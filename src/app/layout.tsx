@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { Outfit } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
 import { LocaleProvider } from '@/context/LocaleContext'
@@ -14,16 +15,18 @@ export const metadata: Metadata = {
     description: 'Vorton Fashion - Discover Your Style',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
                                        children,
                                    }: {
     children: React.ReactNode
 }) {
+    const headersList = await headers()
+    const defaultLocale = (headersList.get('x-next-locale') === 'az' ? 'az' : 'en') as 'az' | 'en'
     return (
-        <html lang="en" className={outfit.variable}>
+        <html lang="en" className={outfit.variable} data-scroll-behavior="smooth">
         <body>
         <AuthProvider>
-            <LocaleProvider>
+            <LocaleProvider defaultLocale={defaultLocale}>
                 <ProductsProvider>
                     <CartProvider>
                         <Layout>{children}</Layout>

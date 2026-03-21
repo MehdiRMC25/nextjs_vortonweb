@@ -5,13 +5,6 @@ import { translations, type Locale } from '../locales/translations'
 
 const STORAGE_KEY = 'vorton-locale'
 
-function getInitialLocale(): Locale {
-  if (typeof window === 'undefined') return 'az'
-  const stored = localStorage.getItem(STORAGE_KEY) as Locale | null
-  if (stored === 'en' || stored === 'az') return stored
-  return 'az'
-}
-
 type LocaleContextValue = {
   locale: Locale
   setLocale: (locale: Locale) => void
@@ -20,8 +13,13 @@ type LocaleContextValue = {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null)
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(getInitialLocale)
+export function LocaleProvider({ children, defaultLocale }: { children: ReactNode; defaultLocale: Locale }) {
+  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY) as Locale | null
+    if (stored === 'en' || stored === 'az') setLocaleState(stored)
+  }, [])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-locale', locale)
