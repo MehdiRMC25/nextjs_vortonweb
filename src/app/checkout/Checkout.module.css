@@ -1,0 +1,130 @@
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 32px;
+}
+
+.wrap {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.summaryCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.guestFields {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.guestTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+}
+
+.guestLabel {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.guestLabel:last-of-type {
+  margin-bottom: 0;
+}
+
+.guestInput {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background: var(--bg-primary);
+}
+
+.guestInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.summaryTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 20px;
+}
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+
+.itemList li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.note {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.error {
+  color: var(--accent, #c00);
+  font-size: 0.9rem;
+  margin: 12px 0 0;
+}
+
+.loadingHint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.backLink {
+  display: block;
+  text-align: center;
+  margin-top: 16px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.backLink:hover {
+  color: var(--accent);
+}
+
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.empty p {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+}

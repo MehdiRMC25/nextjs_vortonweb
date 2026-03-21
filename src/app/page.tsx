@@ -1,65 +1,192 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useCallback, useRef, type RefObject } from 'react'
+import { useProducts } from '@/context/ProductsContext'
+import { useLocale } from '@/context/LocaleContext'
+import { articles } from '@/data'
+import ProductCard from '@/components/ProductCard'
+import styles from './Home.module.css'
 
 export default function Home() {
+  const { t } = useLocale()
+  const { products, loading, error, retry } = useProducts()
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
+  const newCollectionRef = useRef<HTMLDivElement | null>(null)
+  const onSaleRef = useRef<HTMLDivElement | null>(null)
+
+  const onImageError = useCallback((productId: string) => {
+    setFailedImageIds((prev) => new Set(prev).add(productId))
+  }, [])
+
+  const scrollProducts = useCallback((rowRef: RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
+    if (!rowRef.current) return
+    const amount = Math.max(260, Math.round(rowRef.current.clientWidth * 0.8))
+    rowRef.current.scrollBy({
+      left: direction === 'left' ? -amount : amount,
+      behavior: 'smooth',
+    })
+  }, [])
+
+  const newCollectionProducts = products.filter((p) => p.isNew && !failedImageIds.has(p.id))
+  const onSaleProducts = products.filter((p) => p.onSale && !failedImageIds.has(p.id))
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+      <>
+        <section className={styles.hero}>
+          <div className={styles.heroOverlay} />
+        </section>
+
+        {error && (
+            <div className={`container ${styles.errorBlock}`}>
+              <p className={styles.errorMessage}>{error}</p>
+              <button type="button" className={styles.retryBtn} onClick={retry}>
+                {t('retryOrReload')}
+              </button>
+            </div>
+        )}
+
+        <section className={styles.section}>
+          <div className="container">
+            <h2 className="section-title">{t('newCollection')}</h2>
+            {loading ? (
+                <p className={styles.empty}>{t('loading')}</p>
+            ) : newCollectionProducts.length > 0 ? (
+                <div className={styles.carouselWrap}>
+                  <button
+                      type="button"
+                      className={styles.scrollArrowLeft}
+                      aria-label="Scroll new collection left"
+                      onClick={() => scrollProducts(newCollectionRef, 'left')}
+                  >
+                    ←
+                  </button>
+                  <div className={styles.productRow} ref={newCollectionRef}>
+                    {newCollectionProducts.map((p) => (
+                        <ProductCard key={p.id} product={p} onImageError={onImageError} />
+                    ))}
+                  </div>
+                  <button
+                      type="button"
+                      className={styles.scrollArrowRight}
+                      aria-label="Scroll new collection right"
+                      onClick={() => scrollProducts(newCollectionRef, 'right')}
+                  >
+                    →
+                  </button>
+                </div>
+            ) : (
+                <p className={styles.empty}>{t('noProductsYet')}</p>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className="container">
+            <h2 className="section-title">{t('onSale')}</h2>
+            {loading ? (
+                <p className={styles.empty}>{t('loading')}</p>
+            ) : onSaleProducts.length > 0 ? (
+                <div className={styles.carouselWrap}>
+                  <button
+                      type="button"
+                      className={styles.scrollArrowLeft}
+                      aria-label="Scroll on sale left"
+                      onClick={() => scrollProducts(onSaleRef, 'left')}
+                  >
+                    ←
+                  </button>
+                  <div className={styles.productRow} ref={onSaleRef}>
+                    {onSaleProducts.map((p) => (
+                        <ProductCard key={p.id} product={p} onImageError={onImageError} />
+                    ))}
+                  </div>
+                  <button
+                      type="button"
+                      className={styles.scrollArrowRight}
+                      aria-label="Scroll on sale right"
+                      onClick={() => scrollProducts(onSaleRef, 'right')}
+                  >
+                    →
+                  </button>
+                </div>
+            ) : (
+                <p className={styles.empty}>{t('noItemsOnSale')}</p>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.vortonLine} aria-hidden>
+          <div className={styles.vortonLineTrack}>
+            <div className={styles.vortonLineInner}>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+            </div>
+            <div className={styles.vortonLineInner} aria-hidden>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+              <span className={styles.sep}>—</span>
+              <span>Vorton</span>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className="container">
+            <h2 className="section-title">{t('media')}</h2>
+            <div className={styles.videoGrid}>
+              <div className={styles.videoCard}>
+                <iframe
+                    className={styles.videoIframe}
+                    src="https://www.youtube.com/embed/Gw4LlCsJozM?rel=0"
+                    title="The Future of Fashion: How Bio-Based Fibers Are Changing Everything"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                />
+              </div>
+              <div className={styles.videoCard}>
+                <iframe
+                    className={styles.videoIframe}
+                    src="https://www.youtube.com/embed/1CZElaBmnmM?rel=0"
+                    title="Suzanne Lee: Designing With Biology – Biofabrication and Sustainable Materials"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className="container">
+            <h2 className="section-title">{t('articles')}</h2>
+            <div className={styles.articleGrid}>
+              {articles.map((a) => (
+                  <a href={a.url || '#'} target={a.url ? '_blank' : undefined} rel={a.url ? 'noopener noreferrer' : undefined} key={a.id} className={styles.articleCard}>
+                    <div className={styles.articleImage}>
+                      <img src={a.image} alt={a.title} />
+                    </div>
+                    <div className={styles.articleBody}>
+                      <h3 className={styles.articleTitle}>{a.title}</h3>
+                      <p className={styles.articleExcerpt}>{a.excerpt}</p>
+                      <span className={styles.articleDate}>{a.date}</span>
+                    </div>
+                  </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      </>
+  )
 }

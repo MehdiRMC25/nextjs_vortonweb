@@ -1,0 +1,19 @@
+# SPA fallback: serve index.html for all non-file, non-directory requests
+# Fixes 500 error when refreshing or opening /shop, /about, etc. directly
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Prevent content negotiation (e.g. Apache looking for shop.php, shop.html)
+  Options -MultiViews
+
+  # Don't rewrite index.html itself
+  RewriteRule ^index\.html$ - [L]
+
+  # Don't rewrite real files or directories
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Rewrite all other requests to index.html (keeps URL in browser)
+  RewriteRule ^(.*)$ index.html [L,QSA]
+</IfModule>

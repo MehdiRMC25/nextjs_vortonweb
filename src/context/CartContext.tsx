@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useReducer, type ReactNode } from 'react'
 import type { CartItem } from '../types'
 

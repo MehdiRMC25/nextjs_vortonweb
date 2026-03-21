@@ -1,0 +1,74 @@
+.aboutContainer {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.2rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0 0 28px;
+  letter-spacing: -0.02em;
+}
+
+.content {
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-align: justify;
+}
+
+.content p {
+  margin: 0 0 1.25em;
+}
+
+.lead {
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.sectionTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 2em 0 0.2em;
+}
+
+.sectionTitle:first-of-type {
+  margin-top: 1.5em;
+}
+
+.tagline {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-top: 1.5em !important;
+}
+
+.contact {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.contact h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.contact p {
+  margin: 0 0 4px;
+  font-size: 1.45rem;
+}
+
+.email {
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 8px !important;
+}

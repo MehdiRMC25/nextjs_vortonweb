@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment complete — Vorton</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      max-width: 420px;
+      width: 100%;
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 20px;
+      background: #22c55e;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon svg {
+      width: 28px;
+      height: 28px;
+      stroke: #fff;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+    p {
+      color: #6b7280;
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    a {
+      display: inline-block;
+      background: #ea580c;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    a:hover { background: #c2410c; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon" id="icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <h1 id="title">Payment complete</h1>
+    <p id="message">Thank you for your order. We've received your payment.</p>
+    <a href="https://vorton.uk/">Back to Vorton</a>
+  </div>
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var status = (params.get('STATUS') || '').trim();
+      var success = /^(FullyPaid|Paid|Success)$/i.test(status);
+      var cancelled = /^(Cancelled|Canceled|Rejected)$/i.test(status);
+      var failed = status && !success && !cancelled;
+      var titleEl = document.getElementById('title');
+      var messageEl = document.getElementById('message');
+      var iconEl = document.getElementById('icon');
+      if (cancelled) {
+        titleEl.textContent = 'Payment cancelled';
+        messageEl.textContent = "This payment was not completed.";
+        iconEl.style.background = '#6b7280';
+        iconEl.innerHTML = '<svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+      } else if (failed) {
+        titleEl.textContent = 'Payment failed';
+        messageEl.textContent = "Something went wrong with the payment.";
+        iconEl.style.background = '#dc2626';
+        iconEl.innerHTML = '<svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+      }
+    })();
+  </script>
+</body>
+</html>

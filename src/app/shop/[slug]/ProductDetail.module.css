@@ -1,0 +1,266 @@
+.back {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+  padding: 0;
+}
+
+.back:hover {
+  color: var(--text-primary);
+}
+
+.wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gallery {
+  position: sticky;
+  top: 100px;
+}
+
+.mainImage {
+  aspect-ratio: 4/5;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+  margin-bottom: 12px;
+}
+
+.mainImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnails {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  padding: 0;
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.thumbActive {
+  border-color: var(--accent);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  padding: 0 0 24px;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.sku {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+
+.row {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.colorSwatches {
+  display: flex;
+  gap: 12px;
+}
+
+.colorBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.colorBtn:hover {
+  border-color: var(--text-muted);
+}
+
+.colorBtnActive {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg-primary);
+}
+
+.price {
+  margin: 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.priceOriginal {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.priceCurrent {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.priceSale {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--sale);
+}
+
+.fabric {
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.fabricValue {
+  margin: 4px 0 0;
+  font-size: 1rem;
+}
+
+.sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sizeBtn {
+  padding: 10px 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  min-width: 56px;
+}
+
+.sizeBtn:hover {
+  border-color: var(--text-muted);
+}
+
+.sizeBtnActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.qtyBtn {
+  width: 44px;
+  height: 44px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  border-radius: var(--radius-sm);
+}
+
+.qtyBtn:hover {
+  background: #363748;
+}
+
+.qtyValue {
+  min-width: 48px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.addToCart {
+  width: 100%;
+  padding: 16px 24px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-top: 24px;
+  transition: background 0.2s;
+}
+
+.addToCart:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.addToCart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Similar products */
+.similar {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.similarTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 20px;
+  letter-spacing: -0.02em;
+}
+
+.similarGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px;
+}
+
+@media (min-width: 600px) {
+  .similarGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .similarGrid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}

@@ -1,5 +1,7 @@
+'use client'
+
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { useLocale } from '../context/LocaleContext'
 import { variantHasValidColor } from '../api/products'
 import type { Product } from '../types'
@@ -85,7 +87,7 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
   }
 
   return (
-    <Link to={`/shop/${product.slug}`} className={`${styles.card} ${compact ? styles.cardCompact : ''}`}>
+    <Link href={`/shop/${product.slug}`} className={`${styles.card} ${compact ? styles.cardCompact : ''}`}>
       <div className={styles.imageWrap}>
         <img src={displayImage} alt={product.name} className={styles.image} />
         {hasSale && <span className={styles.saleBadge}>{t('sale')}</span>}

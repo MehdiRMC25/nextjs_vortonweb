@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useCallback, useEffect, useState, type ReactNode } from 'react'
 import type { Product } from '../types'
 import { fetchProducts } from '../api/products'

@@ -1,12 +1,15 @@
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import type { UserRole } from '../api/auth'
 import styles from './StaffLayout.module.css'
 
-export default function StaffLayout() {
-  const location = useLocation()
-  const navigate = useNavigate()
+export default function StaffLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const router = useRouter()
   const { t } = useLocale()
   const { user, logout } = useAuth()
   const role: UserRole = (user?.role as UserRole) ?? 'employee'
@@ -15,39 +18,39 @@ export default function StaffLayout() {
 
   function handleSignOut() {
     logout()
-    navigate('/staff/login', { replace: true })
+    router.replace('/staff/login')
   }
 
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <Link to="/staff/dashboard" className={styles.brand}>
+          <Link href="/staff/dashboard" className={styles.brand}>
             Vorton Staff
           </Link>
           <span className={styles.accountBadge}>{accountLabel}</span>
           <nav className={styles.nav}>
             <Link
-              to="/staff/dashboard"
-              className={location.pathname === '/staff/dashboard' ? styles.navActive : ''}
+              href="/staff/dashboard"
+              className={pathname === '/staff/dashboard' ? styles.navActive : ''}
             >
               Dashboard
             </Link>
             <Link
-              to="/staff/orders"
-              className={location.pathname.startsWith('/staff/orders') ? styles.navActive : ''}
+              href="/staff/orders"
+              className={pathname.startsWith('/staff/orders') ? styles.navActive : ''}
             >
               Orders
             </Link>
             <Link
-              to="/staff/sales"
-              className={location.pathname === '/staff/sales' ? styles.navActive : ''}
+              href="/staff/sales"
+              className={pathname === '/staff/sales' ? styles.navActive : ''}
             >
               Sales
             </Link>
             <Link
-              to="/staff/production"
-              className={location.pathname === '/staff/production' ? styles.navActive : ''}
+              href="/staff/production"
+              className={pathname === '/staff/production' ? styles.navActive : ''}
             >
               Production
             </Link>
@@ -59,7 +62,7 @@ export default function StaffLayout() {
       </header>
       <main className={styles.main}>
         <div className={styles.container}>
-          <Outlet />
+          {children}
         </div>
       </main>
     </div>
