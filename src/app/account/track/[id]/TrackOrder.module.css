@@ -1,0 +1,148 @@
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.backLink {
+  display: inline-block;
+  margin-right: 16px;
+  margin-bottom: 16px;
+  color: var(--accent);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0 0 32px;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.trackerSection {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.detailsSection {
+  margin-bottom: 24px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.detailsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detailRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  min-width: 100px;
+}
+
+.value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.itemsTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+}
+
+.itemsList {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 2px solid var(--border);
+  font-size: 1.1rem;
+}
+
+.total {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.actions a {
+  text-decoration: none;
+}
+
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: var(--text-secondary);
+}
+
+.error {
+  color: #dc2626;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fef2f2;
+  border-radius: var(--radius-sm);
+}
+
+.notFound {
+  padding: 24px;
+  color: var(--text-secondary);
+}

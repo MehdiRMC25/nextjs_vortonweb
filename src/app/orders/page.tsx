@@ -74,7 +74,7 @@ export default function Orders() {
         if (!num) return
         const found = orders.find((o) => o.order_number.toLowerCase() === num.toLowerCase())
         if (found) {
-            router.push(`/orders/${found.id}`)
+            router.push(`/account/track/${found.id}`)
         } else {
             setTrackError('Order not found')
         }
@@ -151,6 +151,10 @@ export default function Orders() {
                                     <td>{formatDate(order.order_date)}</td>
                                     <td>{order.total_price.toFixed(2)}</td>
                                     <td>
+                                        <Link href={`/account/track/${order.id}`} className={styles.link}>
+                                            {t('trackOrder')}
+                                        </Link>
+                                        <span className={styles.linkSep}> · </span>
                                         <Link href={`/orders/${order.id}`} className={styles.link}>
                                             {t('orderDetails')}
                                         </Link>

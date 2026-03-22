@@ -1,11 +1,21 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
 import { useAuth } from '@/context/AuthContext'
+import { getOrdersByCustomer, type Order, type OrderStatus } from '@/api/orders'
+import { useOrdersSocket } from '@/hooks/useOrdersSocket'
 import type { MembershipLevel, UserRole } from '@/api/auth'
 import styles from './Account.module.css'
+
+const STATUS_KEYS: Record<OrderStatus, string> = {
+  NEW: 'statusNew',
+  PROCESSING: 'statusProcessing',
+  DISPATCHED: 'statusDispatched',
+  DELIVERED: 'statusDelivered',
+}
 
 const LEVEL_KEYS: Record<MembershipLevel, string> = {
     silver: 'membershipSilver',
@@ -40,8 +50,34 @@ function getLevelFromSales(totalSalesAzn: number | undefined, apiLevel?: Members
 
 export default function Account() {
     const { t, locale, setLocale } = useLocale()
-    const { user, logout } = useAuth()
+    const { user, token, logout } = useAuth()
     const router = useRouter()
+    const [orders, setOrders] = useState<Order[]>([])
+    const [ordersLoading, setOrdersLoading] = useState(true)
+
+    const fetchOrders = useCallback(async () => {
+        if (!token || user?.id == null) return
+        setOrdersLoading(true)
+        try {
+            const list = await getOrdersByCustomer(String(user.id), token)
+            setOrders(list)
+        } catch {
+            setOrders([])
+        } finally {
+            setOrdersLoading(false)
+        }
+    }, [token, user?.id])
+
+    useEffect(() => {
+        if (token && user?.id != null) {
+            fetchOrders()
+        } else {
+            setOrders([])
+            setOrdersLoading(false)
+        }
+    }, [fetchOrders, token, user?.id])
+
+    useOrdersSocket(fetchOrders)
 
     const displayName =
         typeof user?.name === 'string' && user.name.trim()
@@ -74,11 +110,14 @@ export default function Account() {
     const role: UserRole = (user?.role as UserRole) ?? 'customer'
     const isCustomer = role !== 'employee' && role !== 'manager'
 
-    const recentOrders = [
-        { id: 'VR-009841', date: '2026-02-21', total: '$129.00', status: t('orderStatusDelivered') },
-        { id: 'VR-009764', date: '2026-01-14', total: '$84.00', status: t('orderStatusInTransit') },
-        { id: 'VR-009702', date: '2025-12-28', total: '$59.00', status: t('orderStatusProcessing') },
-    ]
+    const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
+    const formatDate = (d: string) => {
+        try {
+            return new Date(d).toLocaleDateString(dateFormat, { day: 'numeric', month: 'short', year: 'numeric' })
+        } catch {
+            return d
+        }
+    }
 
     function handleSignOut() {
         logout()
@@ -90,6 +129,15 @@ export default function Account() {
             <div className={styles.wrap}>
                 <h1 className={styles.title}>{t('myAccount')}</h1>
                 <p className={styles.welcome}>{t('welcome')}</p>
+
+                {isCustomer && (
+                    <nav className={styles.accountNav} aria-label={t('accountMenu')}>
+                        <Link href="/orders" className={styles.accountNavItem}>
+                            <span className={styles.accountNavIcon}>📋</span>
+                            {t('myOrders')}
+                        </Link>
+                    </nav>
+                )}
 
                 <section className={styles.membershipCardSection}>
                     <article
@@ -213,24 +261,26 @@ export default function Account() {
 
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>{t('orderHistory')}</h2>
-                    <div className={styles.orderList}>
-                        {recentOrders.map((order) => (
-                            <div key={order.id} className={styles.orderRow}>
-                                <div>
-                                    <p className={styles.orderId}>{order.id}</p>
-                                    <p className={styles.orderMeta}>
-                                        {new Date(order.date).toLocaleDateString(
-                                            locale === 'az' ? 'az-AZ' : 'en-GB'
-                                        )}
-                                    </p>
-                                </div>
-                                <div className={styles.orderRight}>
-                                    <p className={styles.orderTotal}>{order.total}</p>
-                                    <p className={styles.orderMeta}>{order.status}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    {ordersLoading ? (
+                        <p className={styles.placeholder}>{t('loading')}</p>
+                    ) : orders.length === 0 ? (
+                        <p className={styles.placeholder}>{t('noOrdersYet')}</p>
+                    ) : (
+                        <div className={styles.orderList}>
+                            {orders.map((order) => (
+                                <Link key={order.id} href={`/account/track/${order.id}`} className={styles.orderRow}>
+                                    <div>
+                                        <p className={styles.orderId}>{order.order_number}</p>
+                                        <p className={styles.orderMeta}>{formatDate(order.order_date)}</p>
+                                    </div>
+                                    <div className={styles.orderRight}>
+                                        <p className={styles.orderTotal}>₼{order.total_price.toFixed(2)}</p>
+                                        <p className={styles.orderMeta}>{t(STATUS_KEYS[order.status])}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
                     <Link href="/shop" className={styles.link}>
                         {t('continueShopping')}
                     </Link>

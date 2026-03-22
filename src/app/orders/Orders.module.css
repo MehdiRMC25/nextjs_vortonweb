@@ -191,6 +191,11 @@
   text-decoration: underline;
 }
 
+.linkSep {
+  color: var(--text-muted);
+  margin: 0 4px;
+}
+
 .statusBadge {
   display: inline-block;
   padding: 4px 10px;

@@ -7,7 +7,27 @@ import { useAuth } from '@/context/AuthContext'
 import { useLocale } from '@/context/LocaleContext'
 import { getOrderById, type Order, type OrderStatus } from '@/api/orders'
 import { useOrdersSocket } from '@/hooks/useOrdersSocket'
+import { DeliveryTracker, type DeliveryStage } from '@/components/DeliveryTracker'
 import styles from './OrderDetail.module.css'
+
+function statusToStage(s: OrderStatus): DeliveryStage {
+  if (s === 'NEW' || s === 'PROCESSING') return 'preparing'
+  if (s === 'DISPATCHED') return 'dispatched'
+  return 'delivered'
+}
+
+function buildStageTimestamps(order: Order): Record<DeliveryStage, string | null> {
+  const result: Record<DeliveryStage, string | null> = {
+    preparing: order.order_date ?? order.created_at ?? null,
+    dispatched: null,
+    delivered: null,
+  }
+  for (const entry of order.status_history ?? []) {
+    const stage = statusToStage(entry.status)
+    if (entry.created_at) result[stage] = entry.created_at
+  }
+  return result
+}
 
 const STATUS_KEYS: Record<OrderStatus, string> = {
     NEW: 'statusNew',
@@ -130,6 +150,15 @@ export default function OrderDetail() {
                 </h1>
 
                 {error && <p className={styles.error}>{error}</p>}
+
+                <section className={styles.section}>
+                    <h2 className={styles.sectionTitle}>{t('deliveryTracking')}</h2>
+                    <DeliveryTracker
+                        status={order.status}
+                        stageTimestamps={buildStageTimestamps(order)}
+                        estimatedDelivery={order.delivery_due_date}
+                    />
+                </section>
 
                 <section className={styles.section}>
                     <h2 className={styles.sectionTitle}>{t('orderStatus')}</h2>

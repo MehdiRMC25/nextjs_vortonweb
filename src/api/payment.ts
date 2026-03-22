@@ -42,6 +42,18 @@ export type CreatePaymentResponse = {
   redirectUrl: string
   paymentUrl: string
   createdAt: string
+  /** When payment succeeds and order is created, backend returns the order. */
+  createdOrder?: {
+    id: string
+    order_number: string
+    customer_name: string
+    mobile: string
+    address: string | null
+    items: Array<{ name: string; quantity: number; price: number; sku_color?: string; size?: string }>
+    total_price: number
+    order_date: string
+    [key: string]: unknown
+  }
 }
 
 const PAYMENT_TIMEOUT_MS = 120_000 // Render free tier cold start can take 1–2 min; retry is usually fast

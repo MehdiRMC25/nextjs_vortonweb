@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCart } from '../context/CartContext'
@@ -14,6 +15,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user, logout } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const isHome = pathname === '/'
   const currentYear = new Date().getFullYear()
   const role: UserRole = (user?.role as UserRole) ?? 'customer'
@@ -46,7 +49,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {t('cart')}
               {totalItems > 0 && <span className={styles.cartBadge}>{totalItems}</span>}
             </Link>
-            {isAuthenticated ? (
+            {!mounted ? (
+              <Link href="/signin" className={pathname === '/signin' ? styles.navActive : ''}>
+                {t('signIn')}
+              </Link>
+            ) : isAuthenticated ? (
               <>
                 {isStaff ? (
                   <Link href="/staff/dashboard" className={pathname.startsWith('/staff') ? styles.navActive : ''}>
@@ -54,7 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
                 ) : (
                   <Link href="/orders" className={pathname.startsWith('/orders') ? styles.navActive : ''}>
-                    {t('orders')}
+                    {t('myOrders')}
                   </Link>
                 )}
                 <Link href="/account" className={pathname === '/account' ? styles.navActive : ''}>

@@ -12,8 +12,41 @@
 
 .welcome {
   color: var(--text-secondary);
-  margin: 0 0 32px;
+  margin: 0 0 24px;
   font-size: 1.05rem;
+}
+
+.accountNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.accountNavItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.accountNavItem:hover {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.12);
+}
+
+.accountNavIcon {
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 /* Membership card — credit-card proportion, premium one-sided design */
@@ -361,6 +394,13 @@
   border-radius: var(--radius-sm);
   background: var(--bg-card);
   padding: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+}
+
+.orderRow:hover {
+  border-color: var(--accent);
 }
 
 .orderId {

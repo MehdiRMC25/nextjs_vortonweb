@@ -1,5 +1,5 @@
 .card {
-  max-width: 420px;
+  max-width: 520px;
   margin: 48px auto;
   padding: 32px;
   text-align: center;
@@ -18,4 +18,60 @@
 .message {
   margin: 0 0 24px;
   color: var(--text-secondary);
+}
+
+.receipt {
+  margin: 24px 0;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: left;
+}
+
+.receiptTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+
+.receiptOrderNumber,
+.receiptDate,
+.receiptCustomer {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.receiptCustomer p {
+  margin: 4px 0;
+}
+
+.receiptTable {
+  width: 100%;
+  margin: 16px 0;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.receiptTable th,
+.receiptTable td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.receiptTable th {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.receiptTotal {
+  margin: 12px 0 16px;
+  font-size: 1rem;
+}
+
+.printBtn {
+  width: 100%;
 }
