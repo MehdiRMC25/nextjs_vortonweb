@@ -25,11 +25,13 @@ export default async function RootLayout({
 }) {
     const headersList = await headers()
     const defaultLocale = (headersList.get('x-next-locale') === 'az' ? 'az' : 'en') as 'az' | 'en'
+    const geoCountryRaw = headersList.get('x-next-geo-country')
+    const geoCountry = geoCountryRaw ? geoCountryRaw.toUpperCase().slice(0, 2) : undefined
     return (
         <html lang="en" className={outfit.variable} data-scroll-behavior="smooth">
         <body>
         <AuthProvider>
-            <LocaleProvider defaultLocale={defaultLocale}>
+            <LocaleProvider defaultLocale={defaultLocale} geoCountry={geoCountry}>
                 <ProductsProvider>
                     <CartProvider>
                         <Layout>{children}</Layout>

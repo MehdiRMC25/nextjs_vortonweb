@@ -6,6 +6,7 @@ import { useProducts } from '@/context/ProductsContext'
 import { useLocale } from '@/context/LocaleContext'
 import ProductCard from '@/components/ProductCard'
 import FilterLayout from '@/components/FilterLayout'
+import { CircularProgress } from '@/components/CircularProgress'
 import type { Product } from '@/types'
 import styles from './Shop.module.css'
 
@@ -114,7 +115,7 @@ export default function Shop() {
             </div>
             {error && <p style={{ color: 'var(--sale)', marginBottom: 16 }}>{error}</p>}
             {loading ? (
-                <p className={styles.empty}>{t('loadingProducts')}</p>
+                <CircularProgress loading={true} />
             ) : filtered.length === 0 ? (
                 <p className={styles.empty}>{t('noProductsMatch')}</p>
             ) : (

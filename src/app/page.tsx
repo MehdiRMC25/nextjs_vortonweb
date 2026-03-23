@@ -1,18 +1,35 @@
 "use client";
 
-import { useState, useCallback, useRef, type RefObject } from 'react'
+import { useState, useCallback, useRef, useEffect, type RefObject } from 'react'
 import { useProducts } from '@/context/ProductsContext'
 import { useLocale } from '@/context/LocaleContext'
 import { articles } from '@/data'
 import ProductCard from '@/components/ProductCard'
+import { CircularProgress } from '@/components/CircularProgress'
 import styles from './Home.module.css'
+
+/* Add or remove image URLs – slider adapts automatically */
+const HERO_IMAGES = [
+  'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&h=800&fit=crop',
+  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&h=800&fit=crop',
+  'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=1200&h=800&fit=crop',
+  'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1200&h=800&fit=crop',
+]
 
 export default function Home() {
   const { t } = useLocale()
   const { products, loading, error, retry } = useProducts()
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
+  const [heroIndex, setHeroIndex] = useState(0)
   const newCollectionRef = useRef<HTMLDivElement | null>(null)
   const onSaleRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setHeroIndex((i) => (i + 1) % HERO_IMAGES.length)
+    }, 5000)
+    return () => clearInterval(id)
+  }, [])
 
   const onImageError = useCallback((productId: string) => {
     setFailedImageIds((prev) => new Set(prev).add(productId))
@@ -32,7 +49,16 @@ export default function Home() {
 
   return (
       <>
-        <section className={styles.hero}>
+        <section className={styles.hero} aria-label="Hero gallery">
+          <div className={styles.heroSlides}>
+            {HERO_IMAGES.map((src, i) => (
+              <div
+                key={src}
+                className={`${styles.heroSlide} ${i === heroIndex ? styles.heroSlideActive : ''}`}
+                style={{ backgroundImage: `url(${src})` }}
+              />
+            ))}
+          </div>
           <div className={styles.heroOverlay} />
         </section>
 
@@ -45,12 +71,18 @@ export default function Home() {
             </div>
         )}
 
+        {loading ? (
+          <section className={styles.section}>
+            <div className="container">
+              <CircularProgress loading={true} />
+            </div>
+          </section>
+        ) : (
+          <>
         <section className={styles.section}>
           <div className="container">
             <h2 className="section-title">{t('newCollection')}</h2>
-            {loading ? (
-                <p className={styles.empty}>{t('loading')}</p>
-            ) : newCollectionProducts.length > 0 ? (
+            {newCollectionProducts.length > 0 ? (
                 <div className={styles.carouselWrap}>
                   <button
                       type="button"
@@ -83,9 +115,7 @@ export default function Home() {
         <section className={styles.section}>
           <div className="container">
             <h2 className="section-title">{t('onSale')}</h2>
-            {loading ? (
-                <p className={styles.empty}>{t('loading')}</p>
-            ) : onSaleProducts.length > 0 ? (
+            {onSaleProducts.length > 0 ? (
                 <div className={styles.carouselWrap}>
                   <button
                       type="button"
@@ -114,6 +144,8 @@ export default function Home() {
             )}
           </div>
         </section>
+          </>
+        )}
 
         <section className={styles.vortonLine} aria-hidden>
           <div className={styles.vortonLineTrack}>

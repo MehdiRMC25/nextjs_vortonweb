@@ -7,6 +7,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { useAuth } from '@/context/AuthContext'
 import { AuthApiError } from '@/api/auth'
 import { isValidEmail, isValidPhone } from '@/utils/validation'
+import { PhoneInput } from '@/components/PhoneInput'
 import styles from '@/app/signin/SignIn.module.css'
 
 export default function SignUp() {
@@ -154,33 +155,30 @@ export default function SignUp() {
                     </label>
                     <label className={styles.label}>
                         {t('mobileLabel')} *
-                        <input
-                            type="tel"
-                            autoComplete="tel"
-                            className={`${styles.input} ${phoneError ? styles.inputError : ''}`}
-                            placeholder="+994..."
+                        <PhoneInput
                             value={phone}
-                            onChange={(e) => {
-                                setPhone(e.target.value)
+                            onChange={(v) => {
+                                setPhone(v)
                                 if (phoneError) setPhoneError(false)
                             }}
-                            maxLength={30}
-                            required
+                            error={phoneError}
+                            placeholder=""
+                            autoComplete="tel"
+                            id="phone"
                         />
                     </label>
                     <label className={styles.label}>
                         {t('mobileOptional2')}
-                        <input
-                            type="tel"
-                            autoComplete="tel"
-                            className={`${styles.input} ${secondPhoneError ? styles.inputError : ''}`}
-                            placeholder="+994..."
+                        <PhoneInput
                             value={secondPhone}
-                            onChange={(e) => {
-                                setSecondPhone(e.target.value)
+                            onChange={(v) => {
+                                setSecondPhone(v)
                                 if (secondPhoneError) setSecondPhoneError(false)
                             }}
-                            maxLength={30}
+                            error={secondPhoneError}
+                            placeholder=""
+                            autoComplete="tel-national"
+                            id="secondPhone"
                         />
                     </label>
                     <label className={styles.label}>

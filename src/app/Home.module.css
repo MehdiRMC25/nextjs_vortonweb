@@ -39,7 +39,26 @@
   display: flex;
   align-items: flex-end;
   padding: 32px 24px 40px;
-  background: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=800&fit=crop') center/cover;
+  overflow: hidden;
+}
+
+.heroSlides {
+  position: absolute;
+  inset: 0;
+}
+
+.heroSlide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.heroSlideActive {
+  opacity: 1;
+  z-index: 0;
 }
 
 .heroOverlay {
@@ -47,6 +66,7 @@
   inset: 0;
   background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.5) 100%);
   pointer-events: none;
+  z-index: 1;
 }
 
 .heroContent {

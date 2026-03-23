@@ -9,11 +9,20 @@ type LocaleContextValue = {
   locale: Locale
   setLocale: (locale: Locale) => void
   t: (key: string) => string
+  geoCountry: string | undefined
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null)
 
-export function LocaleProvider({ children, defaultLocale }: { children: ReactNode; defaultLocale: Locale }) {
+export function LocaleProvider({
+  children,
+  defaultLocale,
+  geoCountry,
+}: {
+  children: ReactNode
+  defaultLocale: Locale
+  geoCountry?: string
+}) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale)
 
   useEffect(() => {
@@ -36,7 +45,7 @@ export function LocaleProvider({ children, defaultLocale }: { children: ReactNod
   )
 
   return (
-    <LocaleContext.Provider value={{ locale, setLocale, t }}>
+    <LocaleContext.Provider value={{ locale, setLocale, t, geoCountry }}>
       {children}
     </LocaleContext.Provider>
   )

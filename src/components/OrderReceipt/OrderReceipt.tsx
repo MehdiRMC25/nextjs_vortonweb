@@ -122,7 +122,7 @@ export function OrderReceipt({
 
   return (
     <div
-      className={`max-w-[600px] mx-auto bg-white border border-[#E5E7EB] rounded-lg p-6 md:p-8 text-left print:shadow-none print:border print:max-w-full ${className}`}
+      className={`max-w-[600px] mx-auto mt-5 bg-white border border-[#E5E7EB] rounded-lg p-6 md:p-8 text-left print:shadow-none print:border print:max-w-full ${className}`}
       data-print-receipt
     >
       {/* Header with print link on right */}
