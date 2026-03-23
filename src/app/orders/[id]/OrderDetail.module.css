@@ -57,6 +57,7 @@
 }
 
 .statusBadge {
+  text-align: center;
   display: inline-block;
   padding: 6px 14px;
   border-radius: 999px;
