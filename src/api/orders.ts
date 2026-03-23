@@ -32,6 +32,7 @@ export interface Order {
   status: OrderStatus
   order_date: string
   delivery_due_date: string | null
+  delivered_at?: string | null
   created_at: string
   updated_at: string
   status_history?: OrderStatusHistoryEntry[]
