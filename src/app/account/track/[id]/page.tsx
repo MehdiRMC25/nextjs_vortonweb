@@ -70,7 +70,7 @@ export default function TrackOrderPage() {
   }, [order, searchParams])
 
   if (!token) {
-    router.replace('/signin')
+    router.replace(`/signin?returnTo=${encodeURIComponent(`/account/track/${id}`)}`)
     return null
   }
 

@@ -113,12 +113,7 @@ export function OrderReceipt({
     window.print()
   }, [])
 
-  const firstSku = order.items?.[0]?.sku_color?.trim()
-  const qrUrl = order.id
-    ? firstSku
-      ? `${SITE_URL}/product/${encodeURIComponent(firstSku)}?order=${encodeURIComponent(order.id)}`
-      : `${SITE_URL}/account/track/${order.id}`
-    : null
+  const qrUrl = order.id ? `${SITE_URL}/account/track/${order.id}` : null
 
   return (
     <div
@@ -236,7 +231,7 @@ export function OrderReceipt({
         <div>
           <p className="text-sm text-[#6B7280] italic">{t('receiptThankYou')}</p>
           <p className="text-sm font-medium text-[#111827] mt-1">vorton.uk</p>
-          <p className="text-xs text-[#6B7280] mt-0.5">Caspian Textile LLC</p>
+          <p className="text-xs text-[#6B7280] mt-0.5">{t('receiptSupplier')}</p>
         </div>
         {qrUrl && (
           <div className="flex-shrink-0">
