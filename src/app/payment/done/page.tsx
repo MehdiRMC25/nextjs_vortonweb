@@ -4,22 +4,22 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
 import { useCart } from '@/context/CartContext'
-import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { confirmPayment, type CreatePaymentResponse } from '@/api/payment'
+import { OrderReceipt } from '@/components/OrderReceipt'
 import styles from './PaymentDone.module.css'
 
 const SUCCESS_STATUSES = ['FullyPaid', 'Paid', 'Success']
 const CANCELLED_STATUSES = ['Cancelled', 'Canceled', 'Rejected']
 
 function PaymentDoneContent() {
-    const { t, locale } = useLocale()
+    const { t } = useLocale()
     const { clearCart } = useCart()
     const searchParams = useSearchParams()
     const status = (searchParams.get('STATUS') ?? '').trim()
     const bankOrderId = searchParams.get('ID') ?? ''
     const confirmSent = useRef(false)
     const [createdOrder, setCreatedOrder] = useState<CreatePaymentResponse['createdOrder'] | null>(null)
-    const receiptRef = useRef<HTMLDivElement>(null)
 
     const isSuccess = SUCCESS_STATUSES.includes(status)
     const isCancelled = CANCELLED_STATUSES.includes(status)
@@ -36,21 +36,6 @@ function PaymentDoneContent() {
             if (res?.createdOrder) setCreatedOrder(res.createdOrder)
         }).catch(() => {})
     }, [isSuccess, bankOrderId, status])
-
-    const handlePrintReceipt = useCallback(() => {
-        window.print()
-    }, [])
-
-    const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
-    const formatDate = (d: string) => {
-        try {
-            return new Date(d).toLocaleDateString(dateFormat, {
-                day: 'numeric', month: 'short', year: 'numeric',
-            })
-        } catch {
-            return d
-        }
-    }
 
     const title = isSuccess
         ? t('paymentSuccess')
@@ -74,45 +59,24 @@ function PaymentDoneContent() {
                 <p className={styles.message}>{message}</p>
 
                 {isSuccess && createdOrder && (
-                    <div ref={receiptRef} className={styles.receipt} data-print-receipt>
-                        <h2 className={styles.receiptTitle}>{t('receiptTitle')}</h2>
-                        <p className={styles.receiptOrderNumber}>
-                            {t('orderNumber')}: <strong>{createdOrder.order_number}</strong>
-                        </p>
-                        <p className={styles.receiptDate}>{formatDate(createdOrder.order_date)}</p>
-                        <div className={styles.receiptCustomer}>
-                            <p><strong>{createdOrder.customer_name}</strong></p>
-                            <p>{createdOrder.mobile}</p>
-                            {createdOrder.address && <p>{createdOrder.address}</p>}
-                        </div>
-                        <table className={styles.receiptTable}>
-                            <thead>
-                                <tr>
-                                    <th>{t('items')}</th>
-                                    <th>Qty</th>
-                                    <th>{t('subtotal')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(createdOrder.items ?? []).map((item, i) => (
-                                    <tr key={i}>
-                                        <td>{item.name}{item.size ? ` (${item.size})` : ''}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>₼{(item.quantity * Number(item.price)).toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <p className={styles.receiptTotal}>
-                            {t('orderTotal')}: <strong>₼{Number(createdOrder.total_price).toFixed(2)}</strong>
-                        </p>
-                        <button
-                            type="button"
-                            className={`btn btn-primary ${styles.printBtn} print-receipt-hide`}
-                            onClick={handlePrintReceipt}
-                        >
-                            {t('printReceipt')}
-                        </button>
+                    <div className={styles.receipt}>
+                        <OrderReceipt
+                            order={{
+                                order_number: createdOrder.order_number,
+                                order_date: createdOrder.order_date,
+                                customer_name: createdOrder.customer_name,
+                                mobile: createdOrder.mobile,
+                                address: createdOrder.address ?? undefined,
+                                total_price: Number(createdOrder.total_price),
+                                items: (createdOrder.items ?? []).map((item) => ({
+                                    name: item.name,
+                                    quantity: item.quantity,
+                                    price: Number(item.price),
+                                    size: item.size ?? undefined,
+                                    sku_color: item.sku_color ?? undefined,
+                                })),
+                            }}
+                        />
                     </div>
                 )}
 

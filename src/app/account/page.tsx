@@ -268,16 +268,26 @@ export default function Account() {
                     ) : (
                         <div className={styles.orderList}>
                             {orders.map((order) => (
-                                <Link key={order.id} href={`/account/track/${order.id}`} className={styles.orderRow}>
-                                    <div>
-                                        <p className={styles.orderId}>{order.order_number}</p>
-                                        <p className={styles.orderMeta}>{formatDate(order.order_date)}</p>
-                                    </div>
-                                    <div className={styles.orderRight}>
-                                        <p className={styles.orderTotal}>₼{order.total_price.toFixed(2)}</p>
-                                        <p className={styles.orderMeta}>{t(STATUS_KEYS[order.status])}</p>
-                                    </div>
-                                </Link>
+                                <div key={order.id} className={styles.orderRow}>
+                                    <Link href={`/account/track/${order.id}`} className={styles.orderRowLink}>
+                                        <div>
+                                            <p className={styles.orderId}>{order.order_number}</p>
+                                            <p className={styles.orderMeta}>{formatDate(order.order_date)}</p>
+                                        </div>
+                                        <div className={styles.orderRight}>
+                                            <p className={styles.orderTotal}>₼{order.total_price.toFixed(2)}</p>
+                                            <p className={styles.orderMeta}>{t(STATUS_KEYS[order.status])}</p>
+                                        </div>
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        className={styles.orderPrintBtn}
+                                        onClick={() => router.push(`/account/track/${order.id}?print=1`)}
+                                        title={t('printReceipt')}
+                                    >
+                                        🖨️ {t('printReceipt')}
+                                    </button>
+                                </div>
                             ))}
                         </div>
                     )}

@@ -390,17 +390,44 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-card);
   padding: 12px;
-  text-decoration: none;
-  color: inherit;
   transition: border-color 0.2s;
 }
 
 .orderRow:hover {
   border-color: var(--accent);
+}
+
+.orderRowLink {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.orderPrintBtn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.orderPrintBtn:hover {
+  background: var(--accent);
+  color: white;
 }
 
 .orderId {

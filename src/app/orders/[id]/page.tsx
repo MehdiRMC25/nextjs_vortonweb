@@ -8,6 +8,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { getOrderById, type Order, type OrderStatus } from '@/api/orders'
 import { useOrdersSocket } from '@/hooks/useOrdersSocket'
 import { DeliveryTracker, type DeliveryStage } from '@/components/DeliveryTracker'
+import { OrderReceipt } from '@/components/OrderReceipt'
 import styles from './OrderDetail.module.css'
 
 function statusToStage(s: OrderStatus): DeliveryStage {
@@ -227,6 +228,24 @@ export default function OrderDetail() {
                         <span className={styles.label}>{t('orderTotal')}</span>
                         <span className={styles.value}>{order.total_price.toFixed(2)}</span>
                     </p>
+
+                    <OrderReceipt
+                        order={{
+                            order_number: order.order_number,
+                            order_date: order.order_date,
+                            customer_name: order.customer_name,
+                            mobile: order.mobile,
+                            address: order.address ?? undefined,
+                            total_price: order.total_price,
+                            items: order.items.map((item) => ({
+                                name: item.name,
+                                quantity: item.quantity,
+                                price: Number(item.price),
+                                size: item.size ?? undefined,
+                                sku_color: item.sku_color ?? undefined,
+                            })),
+                        }}
+                    />
                 </section>
 
                 {order.status_history && order.status_history.length > 0 && (
