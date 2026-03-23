@@ -67,13 +67,14 @@ export function DeliveryTracker({
               <div className={styles.stageLabel}>{t(STAGE_LABEL_KEYS[stage.key])}</div>
               {stageTimestamps?.[stage.key] && (
                 <div className={styles.stageTime}>
-                  {new Date(stageTimestamps[stage.key]!).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {(() => {
+                    const d = new Date(stageTimestamps[stage.key]!)
+                    const day = d.getDate()
+                    const month = d.toLocaleString(locale === 'az' ? 'az-AZ' : 'en-GB', { month: 'short' })
+                    const year = d.getFullYear()
+                    const time = d.toLocaleTimeString(locale === 'az' ? 'az-AZ' : 'en-GB', { hour: '2-digit', minute: '2-digit' })
+                    return `${day} ${month} ${year} ${time}`
+                  })()}
                 </div>
               )}
             </div>
@@ -82,12 +83,14 @@ export function DeliveryTracker({
       </div>
       {estimatedDelivery && currentStage !== 'delivered' && (
         <p className={styles.estimated}>
-          {t('estimatedDelivery')}: {new Date(estimatedDelivery).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
+          {t('estimatedDelivery')}: {(() => {
+            const d = new Date(estimatedDelivery)
+            const weekday = d.toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', { weekday: 'short' })
+            const day = d.getDate()
+            const month = d.toLocaleString(locale === 'az' ? 'az-AZ' : 'en-GB', { month: 'short' })
+            const year = d.getFullYear()
+            return `${weekday}, ${day} ${month} ${year}`
+          })()}
         </p>
       )}
     </div>

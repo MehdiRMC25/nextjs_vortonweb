@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useLocale } from '@/context/LocaleContext'
 import QRCode from 'qrcode'
 import JsBarcode from 'jsbarcode'
@@ -27,6 +28,8 @@ interface OrderReceiptProps {
   order: ReceiptOrderData
   /** Optional: show print button. Default true. */
   showPrintButton?: boolean
+  /** Optional: show track order link (e.g. on payment success). Default false. */
+  showTrackLink?: boolean
   /** Optional: custom class for the outer wrapper */
   className?: string
 }
@@ -40,11 +43,11 @@ function formatCurrency(amount: number): string {
 
 function formatDateShort(d: string, locale: string): string {
   try {
-    return new Date(d).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
+    const date = new Date(d)
+    const day = date.getDate()
+    const month = date.toLocaleString(locale === 'az' ? 'az-AZ' : 'en-GB', { month: 'short' })
+    const year = date.getFullYear()
+    return `${day} ${month} ${year}`
   } catch {
     return d
   }
@@ -59,6 +62,7 @@ function BarcodeCell({ value }: { value: string }) {
       JsBarcode(svgRef.current, value, {
         format: 'CODE128',
         displayValue: true,
+        fontSize: 10,
         margin: 2,
         width: 1.5,
         height: 32,
@@ -70,7 +74,9 @@ function BarcodeCell({ value }: { value: string }) {
 
   if (!value) return null
   return (
-    <svg ref={svgRef} className="block mx-auto mt-1 print:max-h-10" />
+    <div className="mt-3 flex justify-center">
+      <svg ref={svgRef} className="block print:max-h-10" />
+    </div>
   )
 }
 
@@ -98,6 +104,7 @@ function ReceiptQRCode({ url }: { url: string }) {
 export function OrderReceipt({
   order,
   showPrintButton = true,
+  showTrackLink = false,
   className = '',
 }: OrderReceiptProps) {
   const { t, locale } = useLocale()
@@ -118,27 +125,37 @@ export function OrderReceipt({
       className={`max-w-[600px] mx-auto bg-white border border-[#E5E7EB] rounded-lg p-6 md:p-8 text-left print:shadow-none print:border print:max-w-full ${className}`}
       data-print-receipt
     >
-      {/* Print link - screen only */}
-      {showPrintButton && (
-        <div className="mb-4 print:hidden">
-          <button
-            type="button"
-            className="text-[#ea580c] font-medium text-sm hover:underline cursor-pointer bg-transparent border-none p-0 print-receipt-hide"
-            onClick={handlePrint}
-          >
-            {t('printShort')}
-          </button>
+      {/* Header with print link on right */}
+      <header className="mb-6 pb-4 border-b border-[#E5E7EB] flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-wide text-[#111827] uppercase">
+            {BRAND_NAME}
+          </h1>
+          <p className="text-sm text-[#6B7280] mt-1">
+            {t('receiptTitle')}
+          </p>
         </div>
-      )}
-
-      {/* Header */}
-      <header className="mb-6 pb-4 border-b border-[#E5E7EB]">
-        <h1 className="text-2xl font-bold tracking-wide text-[#111827] uppercase">
-          {BRAND_NAME}
-        </h1>
-        <p className="text-sm text-[#6B7280] mt-1">
-          {t('receiptTitle')}
-        </p>
+        {(showPrintButton || (showTrackLink && order.id)) && (
+          <div className="flex items-center gap-4 shrink-0 print:hidden">
+            {showTrackLink && order.id && (
+              <Link
+                href={`/account/track/${order.id}`}
+                className="text-[#ea580c] font-medium text-sm hover:underline"
+              >
+                {t('trackOrder')}
+              </Link>
+            )}
+            {showPrintButton && (
+              <button
+                type="button"
+                className="text-[#ea580c] font-medium text-sm hover:underline cursor-pointer bg-transparent border-none p-0"
+                onClick={handlePrint}
+              >
+                {t('printShort')}
+              </button>
+            )}
+          </div>
+        )}
       </header>
 
       {/* Order info */}

@@ -61,6 +61,7 @@ function PaymentDoneContent() {
                 {isSuccess && createdOrder && (
                     <div className={styles.receipt}>
                         <OrderReceipt
+                            showTrackLink
                             order={{
                                 id: createdOrder.id,
                                 order_number: createdOrder.order_number,

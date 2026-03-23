@@ -138,11 +138,11 @@ export default function StaffOrderDetail() {
     const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
     const formatDate = (d: string) => {
         try {
-            return new Date(d).toLocaleDateString(dateFormat, {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-            })
+            const date = new Date(d)
+            const day = date.getDate()
+            const month = date.toLocaleString(dateFormat, { month: 'short' })
+            const year = date.getFullYear()
+            return `${day} ${month} ${year}`
         } catch {
             return d
         }
@@ -150,13 +150,15 @@ export default function StaffOrderDetail() {
 
     const formatDateTime = (d: string) => {
         try {
-            return new Date(d).toLocaleString(dateFormat, {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
+            const date = new Date(d)
+            const day = date.getDate()
+            const month = date.toLocaleString(dateFormat, { month: 'short' })
+            const year = date.getFullYear()
+            const time = date.toLocaleTimeString(dateFormat, {
                 hour: '2-digit',
                 minute: '2-digit',
             })
+            return `${day} ${month} ${year} ${time}`
         } catch {
             return d
         }

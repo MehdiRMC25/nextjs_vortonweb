@@ -111,9 +111,11 @@ export default function TrackOrderPage() {
   const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
   const formatDate = (d: string) => {
     try {
-      return new Date(d).toLocaleDateString(dateFormat, {
-        day: 'numeric', month: 'long', year: 'numeric',
-      })
+      const date = new Date(d)
+      const day = date.getDate()
+      const month = date.toLocaleString(dateFormat, { month: 'short' })
+      const year = date.getFullYear()
+      return `${day} ${month} ${year}`
     } catch {
       return d
     }
