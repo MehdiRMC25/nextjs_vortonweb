@@ -113,7 +113,7 @@ export default function Account() {
     const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
     const formatDate = (d: string) => {
         try {
-            return new Date(d).toLocaleDateString(dateFormat, { day: 'numeric', month: 'short', year: 'numeric' })
+            return new Date(d).toLocaleDateString(dateFormat, { day: 'numeric', month: 'long', year: 'numeric' })
         } catch {
             return d
         }

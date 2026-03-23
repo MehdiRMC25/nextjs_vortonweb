@@ -62,6 +62,7 @@ function PaymentDoneContent() {
                     <div className={styles.receipt}>
                         <OrderReceipt
                             order={{
+                                id: createdOrder.id,
                                 order_number: createdOrder.order_number,
                                 order_date: createdOrder.order_date,
                                 customer_name: createdOrder.customer_name,

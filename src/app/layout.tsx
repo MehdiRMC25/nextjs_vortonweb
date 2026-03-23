@@ -13,6 +13,9 @@ const outfit = Outfit({ subsets: ['latin'], weight: ['300', '400', '500', '600',
 export const metadata: Metadata = {
     title: 'Vorton Fashion — Discover Your Style',
     description: 'Vorton Fashion - Discover Your Style',
+    icons: {
+        icon: '/vorton_web_favicon.png',
+    },
 }
 
 export default async function RootLayout({

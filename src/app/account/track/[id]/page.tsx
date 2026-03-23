@@ -112,7 +112,7 @@ export default function TrackOrderPage() {
   const formatDate = (d: string) => {
     try {
       return new Date(d).toLocaleDateString(dateFormat, {
-        day: 'numeric', month: 'short', year: 'numeric',
+        day: 'numeric', month: 'long', year: 'numeric',
       })
     } catch {
       return d
@@ -175,6 +175,7 @@ export default function TrackOrderPage() {
 
           <OrderReceipt
             order={{
+              id: order.id,
               order_number: order.order_number,
               order_date: order.order_date,
               customer_name: order.customer_name,

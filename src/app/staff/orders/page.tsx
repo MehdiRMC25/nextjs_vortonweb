@@ -110,7 +110,7 @@ export default function StaffOrders() {
         try {
             return new Date(d).toLocaleDateString(dateFormat, {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
             })
         } catch {

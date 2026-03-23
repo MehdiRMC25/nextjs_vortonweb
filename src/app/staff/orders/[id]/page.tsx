@@ -140,7 +140,7 @@ export default function StaffOrderDetail() {
         try {
             return new Date(d).toLocaleDateString(dateFormat, {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
             })
         } catch {
@@ -152,7 +152,7 @@ export default function StaffOrderDetail() {
         try {
             return new Date(d).toLocaleString(dateFormat, {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',

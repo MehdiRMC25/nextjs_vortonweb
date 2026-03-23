@@ -85,7 +85,7 @@ export default function Orders() {
         try {
             return new Date(d).toLocaleDateString(dateFormat, {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
             })
         } catch {
@@ -151,13 +151,20 @@ export default function Orders() {
                                     <td>{formatDate(order.order_date)}</td>
                                     <td>{order.total_price.toFixed(2)}</td>
                                     <td>
-                                        <Link href={`/account/track/${order.id}`} className={styles.link}>
-                                            {t('trackOrder')}
-                                        </Link>
-                                        <span className={styles.linkSep}> · </span>
-                                        <Link href={`/orders/${order.id}`} className={styles.link}>
-                                            {t('orderDetails')}
-                                        </Link>
+                                        <span className={styles.actionsCell}>
+                                            <Link href={`/account/track/${order.id}`} className={styles.link}>
+                                                {t('trackOrder')}
+                                            </Link>
+                                            <Link href={`/orders/${order.id}`} className={styles.link}>
+                                                {t('orderDetails')}
+                                            </Link>
+                                            <Link
+                                                href={`/account/track/${order.id}?print=1`}
+                                                className={styles.link}
+                                            >
+                                                {t('printReceipt')}
+                                            </Link>
+                                        </span>
                                     </td>
                                 </tr>
                             ))}

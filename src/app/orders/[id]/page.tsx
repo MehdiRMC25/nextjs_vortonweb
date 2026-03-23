@@ -117,7 +117,7 @@ export default function OrderDetail() {
         try {
             return new Date(d).toLocaleDateString(dateFormat, {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
             })
         } catch {
@@ -129,7 +129,7 @@ export default function OrderDetail() {
         try {
             return new Date(d).toLocaleString(dateFormat, {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
@@ -231,6 +231,7 @@ export default function OrderDetail() {
 
                     <OrderReceipt
                         order={{
+                            id: order.id,
                             order_number: order.order_number,
                             order_date: order.order_date,
                             customer_name: order.customer_name,

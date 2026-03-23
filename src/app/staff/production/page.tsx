@@ -35,7 +35,7 @@ export default function StaffProduction() {
         try {
             return new Date(d).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', {
                 day: 'numeric',
-                month: 'short',
+                month: 'long',
                 year: 'numeric',
             })
         } catch {

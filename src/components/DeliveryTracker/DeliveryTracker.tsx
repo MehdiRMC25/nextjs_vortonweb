@@ -69,7 +69,7 @@ export function DeliveryTracker({
                 <div className={styles.stageTime}>
                   {new Date(stageTimestamps[stage.key]!).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', {
                     day: 'numeric',
-                    month: 'short',
+                    month: 'long',
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
@@ -85,7 +85,7 @@ export function DeliveryTracker({
           {t('estimatedDelivery')}: {new Date(estimatedDelivery).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB', {
             weekday: 'short',
             day: 'numeric',
-            month: 'short',
+            month: 'long',
             year: 'numeric',
           })}
         </p>
