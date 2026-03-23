@@ -65,7 +65,9 @@ export default function TrackOrderPage() {
   useEffect(() => {
     if (order && searchParams.get('print') === '1' && !printTriggered.current) {
       printTriggered.current = true
-      window.print()
+      // Delay print so async barcode/QR in OrderReceipt have time to render
+      const timer = setTimeout(() => window.print(), 600)
+      return () => clearTimeout(timer)
     }
   }, [order, searchParams])
 
