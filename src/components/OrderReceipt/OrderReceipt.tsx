@@ -62,10 +62,10 @@ function BarcodeCell({ value }: { value: string }) {
       JsBarcode(svgRef.current, value, {
         format: 'CODE128',
         displayValue: true,
-        fontSize: 10,
-        margin: 2,
-        width: 1.5,
-        height: 32,
+        fontSize: 9,
+        margin: 1,
+        width: 0.8,
+        height: 24,
       })
     } catch {
       // Skip barcode if invalid
@@ -74,8 +74,8 @@ function BarcodeCell({ value }: { value: string }) {
 
   if (!value) return null
   return (
-    <div className="mt-3 flex justify-center">
-      <svg ref={svgRef} className="block print:max-h-10" />
+    <div className="mt-2 max-w-[240px] overflow-hidden">
+      <svg ref={svgRef} className="block w-full h-auto max-h-8 print:max-h-10" />
     </div>
   )
 }
@@ -182,17 +182,17 @@ export function OrderReceipt({
       </section>
 
       {/* Product table */}
-      <section className="mb-5">
+      <section className="mb-5 overflow-hidden">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-[#E5E7EB]">
-              <th className="text-left py-3 px-0 text-[#6B7280] font-medium uppercase tracking-wide text-xs">
+              <th className="text-left py-3 pr-2 text-[#6B7280] font-medium uppercase tracking-wide text-xs">
                 {t('items')}
               </th>
-              <th className="text-center py-3 px-3 text-[#6B7280] font-medium uppercase tracking-wide text-xs w-14">
+              <th className="text-center py-3 px-2 text-[#6B7280] font-medium uppercase tracking-wide text-xs w-14">
                 Qty
               </th>
-              <th className="text-right py-3 px-0 text-[#6B7280] font-medium uppercase tracking-wide text-xs w-20">
+              <th className="text-right py-3 pl-2 text-[#6B7280] font-medium uppercase tracking-wide text-xs w-20">
                 {t('subtotal')}
               </th>
             </tr>
@@ -200,8 +200,8 @@ export function OrderReceipt({
           <tbody>
             {(order.items ?? []).map((item, i) => (
               <tr key={i} className="border-b border-[#E5E7EB]">
-                <td className="py-3 px-0">
-                  <span className="font-medium text-[#111827]">
+                <td className="py-3 pr-2 align-top min-w-0 overflow-hidden">
+                  <span className="font-medium text-[#111827] block break-words">
                     {item.name}
                     {item.size ? ` (${item.size})` : ''}
                   </span>
@@ -209,10 +209,10 @@ export function OrderReceipt({
                     <BarcodeCell value={item.sku_color} />
                   )}
                 </td>
-                <td className="py-3 px-3 text-center text-[#111827]">
+                <td className="py-3 px-2 text-center text-[#111827] align-top">
                   {item.quantity}
                 </td>
-                <td className="py-3 px-0 text-right text-[#111827]">
+                <td className="py-3 pl-2 text-right text-[#111827] align-top">
                   {formatCurrency(item.quantity * Number(item.price))}
                 </td>
               </tr>
