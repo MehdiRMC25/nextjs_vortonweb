@@ -7,6 +7,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { useAuth } from '@/context/AuthContext'
 import { AuthApiError } from '@/api/auth'
 import { isValidEmail, isValidPhone, looksLikeEmail } from '@/utils/validation'
+import { PhoneInput } from '@/components/PhoneInput'
 import styles from './SignIn.module.css'
 
 function SignInContent() {
@@ -21,6 +22,8 @@ function SignInContent() {
     const [localError, setLocalError] = useState<string | null>(null)
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const [emailOrPhoneError, setEmailOrPhoneError] = useState(false)
+    /** Phone field uses PhoneInput + geo country (same as signup); email uses plain input. */
+    const [signInWithPhone, setSignInWithPhone] = useState(true)
 
     useEffect(() => {
         const signUpSuccess = searchParams.get('signUpSuccess')
@@ -98,22 +101,51 @@ function SignInContent() {
             <div className={styles.wrap}>
                 <h1 className={styles.title}>{t('signInTitle')}</h1>
                 <form className={styles.form} onSubmit={handleSubmit}>
-                    <label className={styles.label}>
-                        {t('emailOrPhoneLabel')}
-                        <input
-                            type="text"
-                            inputMode="email"
-                            autoComplete="username"
-                            className={`${styles.input} ${emailOrPhoneError ? styles.inputError : ''}`}
-                            placeholder={t('emailOrPhonePlaceholder')}
-                            value={emailOrPhone}
-                            onChange={(e) => {
-                                setEmailOrPhone(e.target.value)
-                                if (emailOrPhoneError) setEmailOrPhoneError(false)
+                    <div className={styles.idFieldBlock}>
+                        <label className={styles.label}>
+                            {signInWithPhone ? t('mobileLabel') : t('emailLabel')}
+                            {signInWithPhone ? (
+                                <PhoneInput
+                                    value={emailOrPhone}
+                                    onChange={(v) => {
+                                        setEmailOrPhone(v)
+                                        if (emailOrPhoneError) setEmailOrPhoneError(false)
+                                    }}
+                                    error={emailOrPhoneError}
+                                    placeholder=""
+                                    autoComplete="tel"
+                                    id="signin-email-or-phone"
+                                />
+                            ) : (
+                                <input
+                                    type="email"
+                                    inputMode="email"
+                                    autoComplete="username"
+                                    className={`${styles.input} ${emailOrPhoneError ? styles.inputError : ''}`}
+                                    placeholder={t('emailOrPhonePlaceholder')}
+                                    value={emailOrPhone}
+                                    onChange={(e) => {
+                                        setEmailOrPhone(e.target.value)
+                                        if (emailOrPhoneError) setEmailOrPhoneError(false)
+                                    }}
+                                    required
+                                />
+                            )}
+                        </label>
+                        <button
+                            type="button"
+                            className={styles.idModeToggle}
+                            onClick={() => {
+                                setSignInWithPhone((v) => !v)
+                                setEmailOrPhone('')
+                                setEmailOrPhoneError(false)
+                                setLocalError(null)
+                                clearError()
                             }}
-                            required
-                        />
-                    </label>
+                        >
+                            {signInWithPhone ? t('signInWithEmailInstead') : t('signInWithMobileInstead')}
+                        </button>
+                    </div>
                     <label className={styles.label}>
                         {t('passwordLabel')}
                         <input
