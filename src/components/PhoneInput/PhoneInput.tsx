@@ -39,6 +39,23 @@ function countryToFlag(country: string): string {
   )
 }
 
+/**
+ * Browsers/password managers often autofill the national input with digits that still include
+ * the country calling code (e.g. 99450… while the dropdown is already +994). Strip repeated
+ * prefixes so we do not build +99499450….
+ */
+function stripLeadingCallingCodeDigits(digits: string, c: CountryCode): string {
+  let d = digits.replace(/\D/g, '')
+  const cc = getCountryCallingCode(c)
+  if (!cc || !d) return d
+  let guard = 0
+  while (d.startsWith(cc) && d.length > cc.length && guard < 4) {
+    d = d.slice(cc.length)
+    guard++
+  }
+  return d
+}
+
 export function PhoneInput({
   value,
   onChange,
@@ -64,16 +81,19 @@ export function PhoneInput({
     if (!trimmed) return { country: defaultCountry, national: '' }
     try {
       const parsed = parsePhoneNumberWithError(trimmed, defaultCountry)
+      const c = parsed.country as CountryCode
       return {
-        country: parsed.country as CountryCode,
-        national: parsed.nationalNumber,
+        country: c,
+        national: stripLeadingCallingCodeDigits(parsed.nationalNumber, c),
       }
     } catch {
       if (trimmed.startsWith('+994')) {
-        const nat = trimmed.replace(/\D/g, '').slice(3) || ''
+        let nat = trimmed.replace(/\D/g, '').slice(3) || ''
+        nat = stripLeadingCallingCodeDigits(nat, 'AZ')
         return { country: 'AZ', national: nat }
       }
-      return { country: defaultCountry, national: trimmed.replace(/\D/g, '') }
+      const digits = stripLeadingCallingCodeDigits(trimmed.replace(/\D/g, ''), defaultCountry)
+      return { country: defaultCountry, national: digits }
     }
   }, [defaultCountry])
 
@@ -106,10 +126,24 @@ export function PhoneInput({
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let raw = e.target.value.replace(/\D/g, '')
+    let raw = stripLeadingCallingCodeDigits(e.target.value, country)
     if (isAZ && raw.length > 9) raw = raw.slice(0, 9)
     setNationalValue(raw)
     onChange(buildFullNumber(country, raw))
+  }
+
+  const handleBlur = () => {
+    const el = inputRef.current
+    if (el) {
+      let raw = stripLeadingCallingCodeDigits(el.value, country)
+      if (isAZ && raw.length > 9) raw = raw.slice(0, 9)
+      const current = nationalValue.replace(/\D/g, '')
+      if (raw !== current) {
+        setNationalValue(raw)
+        onChange(buildFullNumber(country, raw))
+      }
+    }
+    onBlur?.()
   }
 
   const formatDisplayValue = (): string => {
@@ -155,7 +189,7 @@ export function PhoneInput({
         inputMode="numeric"
         value={formatDisplayValue()}
         onChange={handleInputChange}
-        onBlur={onBlur}
+        onBlur={handleBlur}
         placeholder={placeholder ?? (isAZ ? '50 123 45 67' : '1234567890')}
         disabled={disabled}
         className="flex-1 min-w-0 pl-1 pr-3 py-3 bg-transparent border-0 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-0"
