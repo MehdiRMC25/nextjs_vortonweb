@@ -115,7 +115,9 @@ export default function Shop() {
             </div>
             {error && <p style={{ color: 'var(--sale)', marginBottom: 16 }}>{error}</p>}
             {loading ? (
-                <CircularProgress loading={true} />
+                <section className={styles.loadingSection}>
+                    <CircularProgress loading={true} />
+                </section>
             ) : filtered.length === 0 ? (
                 <p className={styles.empty}>{t('noProductsMatch')}</p>
             ) : (
