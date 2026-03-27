@@ -196,7 +196,8 @@
 }
 
 .productRow > * {
-  flex: 0 0 min(280px, calc(100vw - 120px));
+  /* Avoid 100vw here: it ignores parent padding and widens the page on mobile */
+  flex: 0 0 min(280px, calc(100vw - 10rem));
 }
 
 .empty {

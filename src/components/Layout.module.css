@@ -2,6 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .header {
@@ -18,6 +20,8 @@
   padding: 16px 24px;
   display: flex;
   align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 .logo {
@@ -38,6 +42,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  min-width: 0;
 }
 
 .logoIcon {
@@ -172,9 +177,26 @@
 }
 
 @media (max-width: 640px) {
+  .headerInner {
+    flex-wrap: wrap;
+  }
+
+  .navWrap {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    padding-bottom: 2px;
+  }
+
   .nav {
     gap: 16px;
+    flex-wrap: nowrap;
+    width: max-content;
+    max-width: none;
   }
+
   .nav a {
     font-size: 1.05rem;
   }

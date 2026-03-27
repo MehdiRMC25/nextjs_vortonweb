@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
 import { Outfit } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
@@ -16,6 +16,12 @@ export const metadata: Metadata = {
     icons: {
         icon: '/vorton_web_favicon.png',
     },
+}
+
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
 }
 
 export default async function RootLayout({
