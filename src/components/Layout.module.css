@@ -156,6 +156,21 @@
   line-height: 1.4;
 }
 
+.footerLinks {
+  text-align: right;
+  max-width: min(100%, 560px);
+}
+
+.footerLinks a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.footerLinks a:hover {
+  color: var(--accent);
+}
+
 @media (max-width: 640px) {
   .nav {
     gap: 16px;

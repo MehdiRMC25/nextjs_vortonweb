@@ -11,6 +11,8 @@ export interface OrderItem {
   sku_color?: string
   /** Size (e.g. S, M, L) */
   size?: string
+  is_discounted?: boolean
+  promotional?: boolean
   [key: string]: unknown
 }
 
@@ -36,6 +38,10 @@ export interface Order {
   created_at: string
   updated_at: string
   status_history?: OrderStatusHistoryEntry[]
+  /** Reward points credited for this order (0 if none) */
+  points_earned?: number
+  points_redeemed?: number
+  reward_discount_azn?: number
 }
 
 export interface OrderStatsItem {
@@ -60,6 +66,8 @@ export interface CreateOrderPayload {
     sku_color?: string
     size?: string
     product_id?: string
+    is_discounted?: boolean
+    promotional?: boolean
   }>
 }
 

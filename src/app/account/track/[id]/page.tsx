@@ -6,9 +6,11 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLocale } from '@/context/LocaleContext'
 import { getOrderById, type Order, type OrderStatus } from '@/api/orders'
+import { orderPointsEarned } from '@/lib/rewardPointsDisplay'
 import { useOrdersSocket } from '@/hooks/useOrdersSocket'
 import { DeliveryTracker, type DeliveryStage } from '@/components/DeliveryTracker'
 import { OrderReceipt } from '@/components/OrderReceipt'
+import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './TrackOrder.module.css'
 
 function statusToStage(s: OrderStatus): DeliveryStage {
@@ -125,8 +127,9 @@ export default function TrackOrderPage() {
   const stageTimestamps = buildStageTimestamps(order)
 
   return (
-    <div className="container">
-      <div className={styles.wrap}>
+    <>
+      <div className="container">
+        <div className={styles.wrap}>
         <Link href="/orders" className={styles.backLink}>
           ← {t('myOrders')}
         </Link>
@@ -176,6 +179,12 @@ export default function TrackOrderPage() {
             <span className={styles.label}>{t('orderTotal')}</span>
             <span className={styles.total}>₼{order.total_price.toFixed(2)}</span>
           </p>
+          {orderPointsEarned(order) > 0 && (
+            <p className={styles.totalRow}>
+              <span className={styles.label}>{t('orderPointsEarnedLabel')}</span>
+              <span className={styles.total}>+{orderPointsEarned(order)}</span>
+            </p>
+          )}
 
           <OrderReceipt
             order={{
@@ -186,6 +195,8 @@ export default function TrackOrderPage() {
               mobile: order.mobile,
               address: order.address ?? undefined,
               total_price: order.total_price,
+              points_redeemed: order.points_redeemed,
+              reward_discount_azn: order.reward_discount_azn,
               items: order.items.map((item) => ({
                 name: item.name,
                 quantity: item.quantity,
@@ -205,7 +216,9 @@ export default function TrackOrderPage() {
             {t('continueShopping')}
           </Link>
         </div>
+        </div>
       </div>
-    </div>
+      <WhatsAppButton pageTag="account-track" />
+    </>
   )
 }

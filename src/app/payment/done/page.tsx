@@ -6,6 +6,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { useCart } from '@/context/CartContext'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { confirmPayment, type CreatePaymentResponse } from '@/api/payment'
+import { orderPointsEarned } from '@/lib/rewardPointsDisplay'
 import { OrderReceipt } from '@/components/OrderReceipt'
 import styles from './PaymentDone.module.css'
 
@@ -58,6 +59,13 @@ function PaymentDoneContent() {
                 <h1 className={styles.title}>{title}</h1>
                 <p className={styles.message}>{message}</p>
 
+                {isSuccess && createdOrder && orderPointsEarned(createdOrder) > 0 && (
+                    <p className={styles.pointsEarned} role="status">
+                        {t('earnPointsPrefix')} {orderPointsEarned(createdOrder)} {t('earnPointsSuffix')}{' '}
+                        {t('earnPointsNote')}
+                    </p>
+                )}
+
                 {isSuccess && createdOrder && (
                     <div className={styles.receipt}>
                         <OrderReceipt
@@ -70,6 +78,14 @@ function PaymentDoneContent() {
                                 mobile: createdOrder.mobile,
                                 address: createdOrder.address ?? undefined,
                                 total_price: Number(createdOrder.total_price),
+                                points_redeemed:
+                                    createdOrder.points_redeemed != null
+                                        ? Number(createdOrder.points_redeemed)
+                                        : undefined,
+                                reward_discount_azn:
+                                    createdOrder.reward_discount_azn != null
+                                        ? Number(createdOrder.reward_discount_azn)
+                                        : undefined,
                                 items: (createdOrder.items ?? []).map((item) => ({
                                     name: item.name,
                                     quantity: item.quantity,

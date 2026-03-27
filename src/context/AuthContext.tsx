@@ -11,6 +11,8 @@ import {
 import { getMe, login as apiLogin, signup as apiSignup } from '../api/auth'
 import type { AuthUser, SignupPayload } from '../api/auth'
 
+type RefreshUserResult = AuthUser | null
+
 const STORAGE_KEY = 'vorton_auth_token'
 const STORAGE_USER_KEY = 'vorton_auth_user'
 
@@ -24,6 +26,8 @@ type AuthState = {
   signup: (data: SignupPayload) => Promise<{ hasSession: boolean }>
   logout: () => void
   clearError: () => void
+  /** Refetch profile (e.g. reward points) from GET /auth/me */
+  refreshUser: () => Promise<RefreshUserResult>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -143,6 +147,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => setError(null), [])
 
+  const refreshUser = useCallback(async (): Promise<RefreshUserResult> => {
+    const t = token ?? getStoredToken()
+    if (!t) return null
+    try {
+      const me = await getMe(t)
+      setUser(me)
+      if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(me))
+      return me
+    } catch {
+      return null
+    }
+  }, [token])
+
   const value: AuthState = {
     user,
     token,
@@ -153,6 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signup,
     logout,
     clearError,
+    refreshUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

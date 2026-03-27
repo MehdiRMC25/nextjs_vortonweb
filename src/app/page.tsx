@@ -6,6 +6,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { articles } from '@/data'
 import ProductCard from '@/components/ProductCard'
 import { CircularProgress } from '@/components/CircularProgress'
+import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './Home.module.css'
 
 /* Add or remove image URLs – slider adapts automatically */
@@ -219,6 +220,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <WhatsAppButton pageTag="home" />
       </>
   )
 }

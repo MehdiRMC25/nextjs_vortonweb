@@ -15,6 +15,8 @@ export interface ReceiptOrderData {
   mobile: string
   address?: string | null
   total_price: number
+  points_redeemed?: number
+  reward_discount_azn?: number
   items: Array<{
     name: string
     quantity: number
@@ -114,6 +116,14 @@ export function OrderReceipt({
   }, [])
 
   const qrUrl = order.id ? `${SITE_URL}/account/track/${order.id}` : null
+
+  const linesSubtotal = (order.items ?? []).reduce(
+    (s, i) => s + Number(i.quantity) * Number(i.price),
+    0
+  )
+  const discountAzn = Number(order.reward_discount_azn) || 0
+  const ptsRedeemed = Number(order.points_redeemed) || 0
+  const showPointsBreakdown = discountAzn > 0.001 || ptsRedeemed > 0
 
   return (
     <div
@@ -216,9 +226,23 @@ export function OrderReceipt({
         </table>
       </section>
 
-      {/* Total */}
-      <section className="mb-6 py-4 border-t-2 border-[#E5E7EB]">
-        <div className="flex justify-between items-baseline">
+      {/* Totals */}
+      <section className="mb-6 py-4 border-t-2 border-[#E5E7EB] space-y-2">
+        {showPointsBreakdown && (
+          <>
+            <div className="flex justify-between items-baseline text-sm">
+              <span className="text-[#6B7280] font-medium">{t('merchandiseSubtotal')}</span>
+              <span className="text-[#111827]">₼{linesSubtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-baseline text-sm">
+              <span className="text-[#059669] font-medium">
+                {t('pointsDiscount')} (−{ptsRedeemed} {t('orderPointsColumn')})
+              </span>
+              <span className="text-[#059669]">−₼{discountAzn.toFixed(2)}</span>
+            </div>
+          </>
+        )}
+        <div className="flex justify-between items-baseline pt-2 border-t border-[#E5E7EB]">
           <span className="text-[#6B7280] font-medium">{t('orderTotal')}</span>
           <span className="text-xl font-bold text-[#111827]">
             {formatCurrency(Number(order.total_price))}

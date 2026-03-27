@@ -51,6 +51,7 @@ export function CircularProgress({
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference * (1 - progress / 100)
+  const textPx = Math.round(Math.max(12, Math.min(32, size * 0.22)))
 
   const content = (
     <div
@@ -87,7 +88,9 @@ export function CircularProgress({
           }}
         />
       </svg>
-      <span className={styles.text}>{Math.round(progress)}%</span>
+      <span className={styles.text} style={{ fontSize: textPx }}>
+        {Math.round(progress)}%
+      </span>
     </div>
   )
 

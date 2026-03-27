@@ -148,7 +148,12 @@ function toAuthUser(user: unknown): AuthUser {
         : (u.membership_level as 'silver' | 'gold') === 'gold'
           ? 'gold'
           : undefined,
-    loyalty_credits: typeof u.loyalty_credits === 'number' ? u.loyalty_credits : undefined,
+    loyalty_credits:
+      typeof u.reward_points_balance === 'number'
+        ? u.reward_points_balance
+        : typeof u.loyalty_credits === 'number'
+          ? u.loyalty_credits
+          : undefined,
     total_discount_earned: typeof u.total_discount_earned === 'number' ? u.total_discount_earned : undefined,
     orders_count: typeof u.orders_count === 'number' ? u.orders_count : undefined,
     total_sales_azn:

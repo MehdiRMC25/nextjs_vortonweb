@@ -331,6 +331,26 @@
   margin: 0 0 12px;
 }
 
+.rewardBalance {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.rewardHint {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.rewardPolicyLink {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .settingRow {
   display: flex;
   flex-wrap: wrap;

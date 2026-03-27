@@ -1,5 +1,6 @@
 import { useLocale } from '../context/LocaleContext'
 import ScrollSelect from './ScrollSelect'
+import { displayColorName } from '@/lib/colorTranslation'
 import styles from './FilterSidebar.module.css'
 
 export interface FilterSidebarProps {
@@ -25,7 +26,7 @@ export default function FilterSidebar({
   sizes,
   loading = false,
 }: FilterSidebarProps) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
 
   return (
     <>
@@ -55,7 +56,7 @@ export default function FilterSidebar({
           id="filter-color"
           label={t('color')}
           value={selectedColor}
-          options={colors.map((c) => ({ value: c, label: c }))}
+          options={colors.map((c) => ({ value: c, label: displayColorName(c, locale) }))}
           placeholder={t('allColors')}
           onChange={setSelectedColor}
           disabled={loading}

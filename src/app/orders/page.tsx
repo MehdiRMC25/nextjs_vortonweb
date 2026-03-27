@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useLocale } from '@/context/LocaleContext'
 import { getOrdersByCustomer, type Order, type OrderStatus } from '@/api/orders'
+import { orderPointsEarned } from '@/lib/rewardPointsDisplay'
 import { useOrdersSocket } from '@/hooks/useOrdersSocket'
 import styles from './Orders.module.css'
 
@@ -134,6 +135,7 @@ export default function Orders() {
                                 <th>{t('orderStatus')}</th>
                                 <th>{t('orderDate')}</th>
                                 <th>{t('orderTotal')}</th>
+                                <th>{t('orderPointsColumn')}</th>
                                 <th></th>
                             </tr>
                             </thead>
@@ -150,6 +152,11 @@ export default function Orders() {
                                     </td>
                                     <td>{formatDate(order.order_date)}</td>
                                     <td>{order.total_price.toFixed(2)}</td>
+                                    <td>
+                                      {orderPointsEarned(order) > 0
+                                        ? `+${orderPointsEarned(order)}`
+                                        : '—'}
+                                    </td>
                                     <td>
                                         <span className={styles.actionsCell}>
                                             <Link href={`/account/track/${order.id}`} className={styles.link}>

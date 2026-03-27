@@ -1,9 +1,45 @@
 .loadingSection {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 200px;
   padding: 48px 24px;
+}
+
+.refreshBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent, #c2410c);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.refreshBtn:hover {
+  background: var(--accent-hover, #9a3412);
+}
+
+.refreshBtn:active {
+  transform: scale(0.98);
+}
+
+.error {
+  color: var(--sale);
+  margin-bottom: 16px;
+}
+
+.emptyBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .header {

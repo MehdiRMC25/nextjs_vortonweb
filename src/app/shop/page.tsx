@@ -43,10 +43,11 @@ export default function Shop() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const category = (searchParams.get('category') as 'men' | 'women' | null) || null
-    const { products, loading, error } = useProducts()
+    const { products, loading, error, retry } = useProducts()
     const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
     const [selectedColor, setSelectedColor] = useState<string>('')
     const [selectedSize, setSelectedSize] = useState<string>('')
+    const [showRefresh, setShowRefresh] = useState(false)
 
     useEffect(() => {
         const color = searchParams.get('color')
@@ -54,6 +55,20 @@ export default function Shop() {
         if (color) setSelectedColor(color)
         if (size) setSelectedSize(size)
     }, [searchParams])
+
+    useEffect(() => {
+        if (error) setShowRefresh(true)
+    }, [error])
+
+    useEffect(() => {
+        if (!loading) {
+            setShowRefresh(false)
+            return
+        }
+        setShowRefresh(false)
+        const id = window.setTimeout(() => setShowRefresh(true), 9000)
+        return () => window.clearTimeout(id)
+    }, [loading])
 
     const onImageError = useCallback((productId: string) => {
         setFailedImageIds((prev) => new Set(prev).add(productId))
@@ -113,13 +128,27 @@ export default function Shop() {
                     {category === 'men' ? t('mensCollection') : category === 'women' ? t('womensCollection') : t('shop')}
                 </h1>
             </div>
-            {error && <p style={{ color: 'var(--sale)', marginBottom: 16 }}>{error}</p>}
+            {error && <p className={styles.error}>{error}</p>}
             {loading ? (
                 <section className={styles.loadingSection}>
-                    <CircularProgress loading={true} />
+                    <CircularProgress loading={true} size={140} strokeWidth={6} />
+                    {showRefresh && (
+                        <button
+                            type="button"
+                            className={styles.refreshBtn}
+                            onClick={() => retry()}
+                        >
+                            {t('retryOrReload')}
+                        </button>
+                    )}
                 </section>
             ) : filtered.length === 0 ? (
-                <p className={styles.empty}>{t('noProductsMatch')}</p>
+                <div className={styles.emptyBlock}>
+                    <p className={styles.empty}>{t('noProductsMatch')}</p>
+                    <button type="button" className={styles.refreshBtn} onClick={() => retry()}>
+                        {t('retryOrReload')}
+                    </button>
+                </div>
             ) : (
                 <div className={styles.grid}>
                     {filtered.map((p) => (

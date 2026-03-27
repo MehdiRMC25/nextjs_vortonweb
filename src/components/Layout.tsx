@@ -95,7 +95,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <footer className={styles.footer}>
         <div className={styles.footerBottom}>
           <span>© {currentYear} Vorton. All rights reserved.</span>
-          <span>Contemporary everyday wear designed for comfort, movement, and modern life.</span>
+          <span className={styles.footerLinks}>
+            <Link href="/reward-points">{t('rewardPointsShortLink')}</Link>
+            <span aria-hidden="true"> · </span>
+            <span>{t('footerTagline')}</span>
+          </span>
         </div>
       </footer>
     </div>

@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
 import { useAuth } from '@/context/AuthContext'
 import { getOrdersByCustomer, type Order, type OrderStatus } from '@/api/orders'
+import { orderPointsEarned } from '@/lib/rewardPointsDisplay'
 import { useOrdersSocket } from '@/hooks/useOrdersSocket'
 import type { MembershipLevel, UserRole } from '@/api/auth'
+import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './Account.module.css'
 
 const STATUS_KEYS: Record<OrderStatus, string> = {
@@ -50,7 +52,7 @@ function getLevelFromSales(totalSalesAzn: number | undefined, apiLevel?: Members
 
 export default function Account() {
     const { t, locale, setLocale } = useLocale()
-    const { user, token, logout } = useAuth()
+    const { user, token, logout, refreshUser } = useAuth()
     const router = useRouter()
     const [orders, setOrders] = useState<Order[]>([])
     const [ordersLoading, setOrdersLoading] = useState(true)
@@ -76,6 +78,10 @@ export default function Account() {
             setOrdersLoading(false)
         }
     }, [fetchOrders, token, user?.id])
+
+    useEffect(() => {
+        void refreshUser()
+    }, [refreshUser])
 
     useOrdersSocket(fetchOrders)
 
@@ -129,8 +135,9 @@ export default function Account() {
     }
 
     return (
-        <div className="container">
-            <div className={styles.wrap}>
+        <>
+            <div className="container">
+                <div className={styles.wrap}>
                 <h1 className={styles.title}>{t('myAccount')}</h1>
                 <p className={styles.welcome}>{t('welcome')}</p>
 
@@ -140,7 +147,27 @@ export default function Account() {
                             <span className={styles.accountNavIcon}>📋</span>
                             {t('myOrders')}
                         </Link>
+                        <Link href="/reward-points" className={styles.accountNavItem}>
+                            <span className={styles.accountNavIcon}>⭐</span>
+                            {t('rewardPoints')}
+                        </Link>
                     </nav>
+                )}
+
+                {isCustomer && (
+                    <section className={styles.section}>
+                        <h2 className={styles.sectionTitle}>{t('rewardPointsBalance')}</h2>
+                        <p className={styles.rewardBalance}>
+                            {typeof user?.loyalty_credits === 'number'
+                                ? Math.round(user.loyalty_credits).toLocaleString()
+                                : '0'}{' '}
+                            {t('orderPointsColumn')}
+                        </p>
+                        <p className={styles.rewardHint}>{t('rewardPointsBalanceHint')}</p>
+                        <Link href="/reward-points" className={`${styles.link} ${styles.rewardPolicyLink}`}>
+                            {t('rewardPointsFullPolicy')} →
+                        </Link>
+                    </section>
                 )}
 
                 <section className={styles.membershipCardSection}>
@@ -280,6 +307,11 @@ export default function Account() {
                                         </div>
                                         <div className={styles.orderRight}>
                                             <p className={styles.orderTotal}>₼{order.total_price.toFixed(2)}</p>
+                                            {orderPointsEarned(order) > 0 && (
+                                                <p className={styles.orderMeta}>
+                                                    +{orderPointsEarned(order)} {t('orderPointsColumn')}
+                                                </p>
+                                            )}
                                             <p className={styles.orderMeta}>{t(STATUS_KEYS[order.status])}</p>
                                         </div>
                                     </Link>
@@ -310,7 +342,9 @@ export default function Account() {
                         {t('signOut')}
                     </button>
                 </section>
+                </div>
             </div>
-        </div>
+            <WhatsAppButton pageTag="account" />
+        </>
     )
 }

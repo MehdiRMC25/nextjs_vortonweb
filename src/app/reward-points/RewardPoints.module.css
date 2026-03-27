@@ -1,0 +1,57 @@
+.page {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.2rem;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0 0 28px;
+  letter-spacing: -0.02em;
+}
+
+.content {
+  font-size: 1.15rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  text-align: justify;
+}
+
+.content p {
+  margin: 0 0 1.1em;
+}
+
+.sectionTitle {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 2em 0 0.5em;
+}
+
+.sectionTitle:first-of-type {
+  margin-top: 0.5em;
+}
+
+.tierList {
+  margin: 0 0 1.25em;
+  padding-left: 1.25rem;
+}
+
+.tierList li {
+  margin-bottom: 0.35em;
+}
+
+.policyList {
+  margin: 0 0 1.25em;
+  padding-left: 1.25rem;
+}
+
+.policyList li {
+  margin-bottom: 0.4em;
+}

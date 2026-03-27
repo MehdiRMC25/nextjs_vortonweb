@@ -18,8 +18,13 @@ export type PaymentOrderPayload = {
     sku_color?: string
     size?: string
     product_id?: string
+    /** When true, line is excluded from reward-point earning subtotal */
+    is_discounted?: boolean
+    promotional?: boolean
   }>
   total_price: number
+  /** Whole points to redeem; omit when paying full price. */
+  points_to_redeem?: number
 }
 
 export type CreatePaymentRequest = {
@@ -52,6 +57,9 @@ export type CreatePaymentResponse = {
     items: Array<{ name: string; quantity: number; price: number; sku_color?: string; size?: string }>
     total_price: number
     order_date: string
+    points_earned?: number
+    points_redeemed?: number
+    reward_discount_azn?: number
     [key: string]: unknown
   }
 }

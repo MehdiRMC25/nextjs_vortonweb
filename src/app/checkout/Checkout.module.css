@@ -81,9 +81,88 @@
 .totalRow {
   display: flex;
   justify-content: space-between;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.pointsPanel {
+  margin: 0 0 16px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.pointsTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.pointsEstimateLine {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.pointsEstimateStrong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.pointsHint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+  line-height: 1.45;
+}
+
+.pointsBalance {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--text-primary);
+}
+
+.pointsRowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pointsMuted {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.pointsSignInRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.discountRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+
+.payableRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.15rem;
   font-weight: 700;
   margin: 0 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .note {

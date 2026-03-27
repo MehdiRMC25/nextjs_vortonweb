@@ -98,6 +98,25 @@
   margin-bottom: 8px;
 }
 
+.colorLine {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.colorLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.colorValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .colorSwatches {
   display: flex;
   gap: 12px;

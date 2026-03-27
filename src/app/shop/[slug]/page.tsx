@@ -6,6 +6,7 @@ import { useProducts } from '@/context/ProductsContext'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
 import { variantHasValidColor } from '@/api/products'
+import { displayColorName } from '@/lib/colorTranslation'
 import ProductCard from '@/components/ProductCard'
 import type { Product } from '@/types'
 import styles from './ProductDetail.module.css'
@@ -35,7 +36,7 @@ function getSimilarProducts(current: Product, all: Product[], limit: number): Pr
 }
 
 export default function ProductDetail() {
-    const { t } = useLocale()
+    const { t, locale } = useLocale()
     const { slug } = useParams<{ slug: string }>()
     const router = useRouter()
     const { addItem } = useCart()
@@ -71,6 +72,15 @@ export default function ProductDetail() {
             .filter(({ variant }) => variant && variantHasValidColor(variant))
             .map(({ variantIndex, color }) => ({ variantIndex, color: color || { name: 'Grey', hex: '#6b7280' } }))
     }, [product?.variants, product?.colors])
+
+    const selectedColorName = useMemo(() => {
+        const found = validColorSwatches.find((s) => s.variantIndex === selectedColor)
+        return found?.color?.name?.trim() || ''
+    }, [validColorSwatches, selectedColor])
+
+    const selectedColorNameUi = useMemo(() => {
+        return selectedColorName ? displayColorName(selectedColorName, locale) : ''
+    }, [selectedColorName, locale])
 
     useEffect(() => {
         if (product && validColorSwatches.length > 0) {
@@ -149,7 +159,10 @@ export default function ProductDetail() {
 
                     {validColorSwatches.length > 0 && (
                         <div className={styles.row}>
-                            <span className={styles.label}>{t('color')}:</span>
+                            <div className={styles.colorLine}>
+                                <span className={styles.colorLabel}>{t('color')}:</span>
+                                {selectedColorNameUi && <span className={styles.colorValue}>{selectedColorNameUi}</span>}
+                            </div>
                             <div className={styles.colorSwatches}>
                                 {validColorSwatches.map(({ variantIndex, color }) => (
                                     <button
@@ -158,7 +171,7 @@ export default function ProductDetail() {
                                         className={`${styles.colorBtn} ${variantIndex === selectedColor ? styles.colorBtnActive : ''}`}
                                         style={{ background: color.hex }}
                                         onClick={() => setSelectedColor(variantIndex)}
-                                        title={color.name}
+                                        title={displayColorName(color.name, locale)}
                                     />
                                 ))}
                             </div>

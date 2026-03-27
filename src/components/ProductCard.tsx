@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useLocale } from '../context/LocaleContext'
 import { variantHasValidColor } from '../api/products'
+import { displayColorName } from '@/lib/colorTranslation'
 import type { Product } from '../types'
 import styles from './ProductCard.module.css'
 
@@ -17,7 +18,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onImageError, compact, selectedColorFilter }: ProductCardProps) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
 
@@ -101,7 +102,7 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
               key={`${c.name}-${i}`}
               className={styles.colorDot}
               style={{ background: c.hex }}
-              title={c.name}
+              title={displayColorName(c.name, locale)}
             />
           ))}
         </div>
