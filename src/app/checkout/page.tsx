@@ -13,6 +13,11 @@ import {
     discountAznFromRedeemPoints,
     maxRedeemablePoints,
 } from '@/lib/rewardPointsRedemption'
+import {
+    earnRateFromEligibleSubtotal,
+    estimatedEarnPointsFromEligible,
+    formatEarnPercentLabel,
+} from '@/lib/rewardPointsEarn'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './Checkout.module.css'
 
@@ -67,8 +72,8 @@ export default function Checkout() {
             .reduce((sum, i) => sum + getItemPrice(i) * i.quantity, 0) * 100
     ) / 100
 
-    const earnRate = eligibleSubtotal <= 120 ? 0.03 : eligibleSubtotal <= 300 ? 0.05 : 0.07
-    const estimatedEarnPoints = Math.max(0, Math.round(eligibleSubtotal * earnRate * 11))
+    const earnRate = earnRateFromEligibleSubtotal(eligibleSubtotal)
+    const estimatedEarnPoints = estimatedEarnPointsFromEligible(eligibleSubtotal)
     const pointsBalance = pointsBalanceFromUser(user)
     const maxPointsForCart = maxRedeemablePoints(subtotal, pointsBalance)
     const chosenPointsRaw =
@@ -253,7 +258,7 @@ export default function Checkout() {
                             {t('orderPointsColumn')}
                         </p>
                         <p className={styles.pointsHint}>
-                            {t('eligibleSubtotalLabel')}: ₼{eligibleSubtotal.toFixed(2)} • {(earnRate * 100).toFixed(0)}%
+                            {t('eligibleSubtotalLabel')}: ₼{eligibleSubtotal.toFixed(2)} • {formatEarnPercentLabel(earnRate)}%
                         </p>
 
                         {isAuthenticated ? (

@@ -1,4 +1,4 @@
-/** Mirrors payement_backend rewardPointsPolicy redemption rules (keep in sync). */
+/** Mirrors payment backend / `src/data/rewardPolicy.internal.md` redemption rules (keep in sync). */
 export const POINTS_PER_AZN = 11
 export const REDEMPTION_MAX_PERCENT = 100
 

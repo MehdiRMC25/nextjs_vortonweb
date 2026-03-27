@@ -33,10 +33,10 @@
 
 @media (max-width: 768px) {
   .button {
-    /* Viewport-fixed: rely on document not overflowing horizontally (header/carousel fixes) */
+    /* Viewport-fixed: sit above mobile browser / OS bottom chrome so the circle stays visible */
     right: max(16px, env(safe-area-inset-right, 0px));
     left: auto;
-    bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 52px);
+    bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 80px);
     width: 52px;
     height: 52px;
   }
