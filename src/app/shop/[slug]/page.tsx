@@ -8,6 +8,7 @@ import { useLocale } from '@/context/LocaleContext'
 import { variantHasValidColor } from '@/api/products'
 import { displayColorName } from '@/lib/colorTranslation'
 import ProductCard from '@/components/ProductCard'
+import WhatsAppButton from '@/components/WhatsAppButton'
 import type { Product } from '@/types'
 import styles from './ProductDetail.module.css'
 
@@ -96,22 +97,34 @@ export default function ProductDetail() {
         return getSimilarProducts(product, products, SIMILAR_LIMIT)
     }, [product, products])
 
+    const productPageTag = product
+        ? `product:${product.slug} · ${product.name}`
+        : slug
+          ? `product:${slug}`
+          : undefined
+
     if (loading) {
         return (
-            <div className="container">
-                <p>{t('loading')}</p>
-            </div>
+            <>
+                <div className="container">
+                    <p>{t('loading')}</p>
+                </div>
+                <WhatsAppButton pageTag={productPageTag} />
+            </>
         )
     }
 
     if (!product) {
         return (
-            <div className="container">
-                <p>{t('productNotFound')}</p>
-                <button className="btn btn-secondary" onClick={() => router.push('/shop')}>
-                    {t('backToShop')}
-                </button>
-            </div>
+            <>
+                <div className="container">
+                    <p>{t('productNotFound')}</p>
+                    <button className="btn btn-secondary" onClick={() => router.push('/shop')}>
+                        {t('backToShop')}
+                    </button>
+                </div>
+                <WhatsAppButton pageTag={productPageTag} />
+            </>
         )
     }
 
@@ -129,6 +142,7 @@ export default function ProductDetail() {
     }
 
     return (
+        <>
         <div className="container">
             <button className={styles.back} onClick={() => router.back()}>
                 {t('back')}
@@ -257,5 +271,7 @@ export default function ProductDetail() {
                 </section>
             )}
         </div>
+        <WhatsAppButton pageTag={productPageTag} />
+        </>
     )
 }

@@ -13,7 +13,7 @@ interface CircularProgressProps {
 
 export function CircularProgress({
   loading,
-  size = 64,
+  size = 126,
   strokeWidth = 4,
   centered = true,
   className = '',

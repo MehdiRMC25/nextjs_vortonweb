@@ -2,7 +2,7 @@
   position: fixed;
   right: 20px;
   bottom: 20px;
-  z-index: 1200;
+  z-index: 9999;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -33,8 +33,14 @@
 
 @media (max-width: 768px) {
   .button {
-    right: 14px;
-    bottom: 14px;
+    /* Pin from the left so the full circle stays inside the visible viewport
+       (avoids right-edge clipping on some mobile browsers / safe areas). */
+    right: auto;
+    left: calc(
+      100% - 52px - max(20px, 4vw) - env(safe-area-inset-right, 0px)
+    );
+    /* Keep above mobile browser bottom bars and notches/safe areas */
+    bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 52px);
     width: 52px;
     height: 52px;
   }
