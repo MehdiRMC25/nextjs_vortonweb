@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { config, cloudinaryUrl } from '../config'
 import type { ApiProductDoc } from './types'
 import type { Product, ProductVariant } from '../types'
@@ -423,3 +424,11 @@ export async function fetchProducts(): Promise<Product[]> {
   const docs = await fetchApiProducts()
   return buildProductsFromApi(docs)
 }
+
+/** For SEO (server only): same rules as shop; deduped per request when layout + generateMetadata both run. */
+export const getProductBySlug = cache(async function getProductBySlug(
+  slug: string
+): Promise<Product | null> {
+  const products = await fetchProducts()
+  return products.find((p) => p.slug === slug) ?? null
+})
