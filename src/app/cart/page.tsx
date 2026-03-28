@@ -63,6 +63,8 @@ export default function Cart() {
                                             src={getItemImage(item)}
                                             alt={item.product.name}
                                             className={styles.itemImageFill}
+                                            loading="eager"
+                                            decoding="async"
                                         />
                                     </div>
                                     <div className={styles.itemInfo}>

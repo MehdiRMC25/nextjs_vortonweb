@@ -94,11 +94,13 @@ export default function Home() {
                     ←
                   </button>
                   <div className={styles.productRow} ref={newCollectionRef}>
-                    {newCollectionProducts.map((p) => (
+                    {newCollectionProducts.map((p, index) => (
                         <ProductCard
                           key={p.id}
                           product={p}
                           onImageError={onImageError}
+                          imageLoading={index < 4 ? 'eager' : 'lazy'}
+                          imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
                         />
                     ))}
                   </div>
@@ -131,11 +133,13 @@ export default function Home() {
                     ←
                   </button>
                   <div className={styles.productRow} ref={onSaleRef}>
-                    {onSaleProducts.map((p) => (
+                    {onSaleProducts.map((p, index) => (
                         <ProductCard
                           key={p.id}
                           product={p}
                           onImageError={onImageError}
+                          imageLoading={index < 4 ? 'eager' : 'lazy'}
+                          imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
                         />
                     ))}
                   </div>
@@ -216,7 +220,13 @@ export default function Home() {
               {articles.map((a) => (
                   <a href={a.url || '#'} target={a.url ? '_blank' : undefined} rel={a.url ? 'noopener noreferrer' : undefined} key={a.id} className={styles.articleCard}>
                     <div className={styles.articleImage}>
-                      <img src={a.image} alt={a.title} className={styles.articleImageFill} />
+                      <img
+                        src={a.image}
+                        alt={a.title}
+                        className={styles.articleImageFill}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                     <div className={styles.articleBody}>
                       <h3 className={styles.articleTitle}>{a.title}</h3>

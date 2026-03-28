@@ -155,6 +155,9 @@ export default function ProductDetail() {
                             src={images[mainImage] || p.image}
                             alt={p.name}
                             className={styles.mainImageImg}
+                            loading="eager"
+                            fetchPriority="high"
+                            decoding="async"
                         />
                     </div>
                     <div className={styles.thumbnails}>
@@ -169,6 +172,8 @@ export default function ProductDetail() {
                                     src={src}
                                     alt=""
                                     className={styles.thumbImage}
+                                    loading="lazy"
+                                    decoding="async"
                                 />
                             </button>
                         ))}
@@ -273,7 +278,13 @@ export default function ProductDetail() {
                     <h2 className={styles.similarTitle}>{t('similarProducts')}</h2>
                     <div className={styles.similarGrid}>
                         {similarProducts.map((prod, index) => (
-                            <ProductCard key={prod.id} product={prod} compact />
+                            <ProductCard
+                                key={prod.id}
+                                product={prod}
+                                compact
+                                imageLoading={index < 4 ? 'eager' : 'lazy'}
+                                imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
+                            />
                         ))}
                     </div>
                 </section>

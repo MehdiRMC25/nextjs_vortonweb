@@ -15,9 +15,20 @@ interface ProductCardProps {
   compact?: boolean
   /** When set, show only this color variant (image, swatches) instead of all variants */
   selectedColorFilter?: string
+  /** Native lazy-load (no next/image). Use eager for first-screen cards. */
+  imageLoading?: 'lazy' | 'eager'
+  /** Hint for LCP when imageLoading is eager (e.g. first card in grid). */
+  imageFetchPriority?: 'high' | 'low' | 'auto'
 }
 
-export default function ProductCard({ product, onImageError, compact, selectedColorFilter }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  onImageError,
+  compact,
+  selectedColorFilter,
+  imageLoading = 'lazy',
+  imageFetchPriority,
+}: ProductCardProps) {
   const { t, locale } = useLocale()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
@@ -65,6 +76,9 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
 
   if (imageError) return null
 
+  const imgFetchPriority =
+    imageLoading === 'eager' && imageFetchPriority !== undefined ? imageFetchPriority : undefined
+
   if (!imageLoaded) {
     return (
       <div className={`${styles.card} ${compact ? styles.cardCompact : ''}`} aria-hidden>
@@ -74,6 +88,8 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
             key={displayImage}
             src={displayImage}
             alt=""
+            loading={imageLoading}
+            fetchPriority={imgFetchPriority}
             className={`${styles.image} ${styles.imagePreload}`}
             onLoad={() => setImageLoaded(true)}
             onError={handleError}
@@ -95,6 +111,8 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
           key={displayImage}
           src={displayImage}
           alt={product.name}
+          loading={imageLoading}
+          fetchPriority={imgFetchPriority}
           className={styles.image}
         />
         {hasSale && <span className={styles.saleBadge}>{t('sale')}</span>}
