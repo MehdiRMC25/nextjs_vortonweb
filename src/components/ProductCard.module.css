@@ -19,13 +19,14 @@
 }
 
 .image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-/* next/image fill */
 .imagePreload {
-  position: absolute;
-  inset: 0;
   opacity: 0;
   pointer-events: none;
 }

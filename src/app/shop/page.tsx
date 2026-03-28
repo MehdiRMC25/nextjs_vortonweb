@@ -151,13 +151,12 @@ export default function Shop() {
                 </div>
             ) : (
                 <div className={styles.grid}>
-                    {filtered.map((p, index) => (
+                    {filtered.map((p) => (
                         <ProductCard
                             key={p.id}
                             product={p}
                             selectedColorFilter={selectedColor || undefined}
                             onImageError={onImageError}
-                            priority={index < 6}
                         />
                     ))}
                 </div>

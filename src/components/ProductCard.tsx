@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useLocale } from '../context/LocaleContext'
 import { variantHasValidColor } from '../api/products'
@@ -16,17 +15,9 @@ interface ProductCardProps {
   compact?: boolean
   /** When set, show only this color variant (image, swatches) instead of all variants */
   selectedColorFilter?: string
-  /** Eager-load for first-screen cards (shop grid, carousels) to improve LCP */
-  priority?: boolean
 }
 
-export default function ProductCard({
-  product,
-  onImageError,
-  compact,
-  selectedColorFilter,
-  priority = false,
-}: ProductCardProps) {
+export default function ProductCard({ product, onImageError, compact, selectedColorFilter }: ProductCardProps) {
   const { t, locale } = useLocale()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
@@ -79,14 +70,11 @@ export default function ProductCard({
       <div className={`${styles.card} ${compact ? styles.cardCompact : ''}`} aria-hidden>
         <div className={styles.imageWrap}>
           <div className={styles.imagePlaceholder} />
-          <Image
+          <img
             key={displayImage}
             src={displayImage}
             alt=""
-            fill
-            priority={priority}
             className={`${styles.image} ${styles.imagePreload}`}
-            sizes={compact ? '(max-width: 900px) 45vw, 200px' : '(max-width: 640px) 45vw, (max-width: 1200px) 30vw, 320px'}
             onLoad={() => setImageLoaded(true)}
             onError={handleError}
           />
@@ -103,14 +91,11 @@ export default function ProductCard({
   return (
     <Link href={`/shop/${product.slug}`} className={`${styles.card} ${compact ? styles.cardCompact : ''}`}>
       <div className={styles.imageWrap}>
-        <Image
+        <img
           key={displayImage}
           src={displayImage}
           alt={product.name}
-          fill
-          priority={priority}
           className={styles.image}
-          sizes={compact ? '(max-width: 900px) 45vw, 200px' : '(max-width: 640px) 45vw, (max-width: 1200px) 30vw, 320px'}
         />
         {hasSale && <span className={styles.saleBadge}>{t('sale')}</span>}
       </div>
