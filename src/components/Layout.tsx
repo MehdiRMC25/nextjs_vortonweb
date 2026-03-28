@@ -96,9 +96,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className={styles.footerBottom}>
           <span>© {currentYear} Vorton. All rights reserved.</span>
           <span className={styles.footerLinks}>
-            <Link href="/reward-points">{t('rewardPointsShortLink')}</Link>
-            <span aria-hidden="true"> · </span>
-            <span>{t('footerTagline')}</span>
+            <Link href="/reward-points" className={styles.footerPolicyLink}>
+              {t('footerMembershipPolicyLink')}
+            </Link>
+            <span className={styles.footerLinksSep} aria-hidden="true">
+              ·
+            </span>
+            <span className={styles.footerTagline}>{t('footerTagline')}</span>
           </span>
         </div>
       </footer>

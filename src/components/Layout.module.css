@@ -162,18 +162,32 @@
 }
 
 .footerLinks {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.1rem;
   text-align: right;
   max-width: min(100%, 560px);
 }
 
-.footerLinks a {
+.footerPolicyLink {
+  flex-shrink: 0;
   color: var(--text-muted);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.footerLinks a:hover {
+.footerPolicyLink:hover {
   color: var(--accent);
+}
+
+.footerLinksSep {
+  opacity: 0.85;
+}
+
+.footerTagline {
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
