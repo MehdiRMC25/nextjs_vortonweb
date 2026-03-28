@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
@@ -59,7 +60,13 @@ export default function Cart() {
                                     className={styles.item}
                                 >
                                     <div className={styles.itemImage}>
-                                        <img src={getItemImage(item)} alt={item.product.name} />
+                                        <Image
+                                            src={getItemImage(item)}
+                                            alt={item.product.name}
+                                            fill
+                                            className={styles.itemImageFill}
+                                            sizes="100px"
+                                        />
                                     </div>
                                     <div className={styles.itemInfo}>
                                         <h3 className={styles.itemName}>{item.product.name}</h3>

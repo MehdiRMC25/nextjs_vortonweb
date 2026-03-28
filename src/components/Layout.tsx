@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCart } from '../context/CartContext'
@@ -32,7 +33,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <Link href="/" className={styles.logo}>
-            <img src="/Vorton_Logo.png" alt="Vorton" className={styles.logoIcon} />
+            <Image
+              src="/Vorton_Logo.png"
+              alt="Vorton"
+              width={162}
+              height={54}
+              className={styles.logoIcon}
+              priority
+            />
           </Link>
           <div className={styles.navWrap}>
           <nav className={styles.nav}>

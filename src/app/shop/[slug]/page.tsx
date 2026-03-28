@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { useProducts } from '@/context/ProductsContext'
 import { useCart } from '@/context/CartContext'
@@ -151,7 +152,14 @@ export default function ProductDetail() {
             <div className={styles.wrap}>
                 <div className={styles.gallery}>
                     <div className={styles.mainImage}>
-                        <img src={images[mainImage] || p.image} alt={p.name} />
+                        <Image
+                            src={images[mainImage] || p.image}
+                            alt={p.name}
+                            fill
+                            priority
+                            className={styles.mainImageImg}
+                            sizes="(max-width: 900px) 100vw, 50vw"
+                        />
                     </div>
                     <div className={styles.thumbnails}>
                         {images.map((src, i) => (
@@ -161,7 +169,13 @@ export default function ProductDetail() {
                                 className={`${styles.thumb} ${i === mainImage ? styles.thumbActive : ''}`}
                                 onClick={() => setMainImage(i)}
                             >
-                                <img src={src} alt="" />
+                                <Image
+                                    src={src}
+                                    alt=""
+                                    width={72}
+                                    height={72}
+                                    className={styles.thumbImage}
+                                />
                             </button>
                         ))}
                     </div>

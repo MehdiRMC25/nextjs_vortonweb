@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect, type RefObject } from 'react'
+import Image from 'next/image'
 import { useProducts } from '@/context/ProductsContext'
 import { useLocale } from '@/context/LocaleContext'
 import { articles } from '@/data'
@@ -208,7 +209,13 @@ export default function Home() {
               {articles.map((a) => (
                   <a href={a.url || '#'} target={a.url ? '_blank' : undefined} rel={a.url ? 'noopener noreferrer' : undefined} key={a.id} className={styles.articleCard}>
                     <div className={styles.articleImage}>
-                      <img src={a.image} alt={a.title} />
+                      <Image
+                        src={a.image}
+                        alt={a.title}
+                        fill
+                        className={styles.articleImageFill}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                      />
                     </div>
                     <div className={styles.articleBody}>
                       <h3 className={styles.articleTitle}>{a.title}</h3>

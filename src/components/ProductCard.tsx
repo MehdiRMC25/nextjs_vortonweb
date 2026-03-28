@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useLocale } from '../context/LocaleContext'
 import { variantHasValidColor } from '../api/products'
@@ -70,10 +71,13 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
       <div className={`${styles.card} ${compact ? styles.cardCompact : ''}`} aria-hidden>
         <div className={styles.imageWrap}>
           <div className={styles.imagePlaceholder} />
-          <img
+          <Image
+            key={displayImage}
             src={displayImage}
             alt=""
-            className={styles.imageHidden}
+            fill
+            className={`${styles.image} ${styles.imagePreload}`}
+            sizes={compact ? '(max-width: 900px) 45vw, 200px' : '(max-width: 640px) 45vw, (max-width: 1200px) 30vw, 320px'}
             onLoad={() => setImageLoaded(true)}
             onError={handleError}
           />
@@ -90,7 +94,14 @@ export default function ProductCard({ product, onImageError, compact, selectedCo
   return (
     <Link href={`/shop/${product.slug}`} className={`${styles.card} ${compact ? styles.cardCompact : ''}`}>
       <div className={styles.imageWrap}>
-        <img src={displayImage} alt={product.name} className={styles.image} />
+        <Image
+          key={displayImage}
+          src={displayImage}
+          alt={product.name}
+          fill
+          className={styles.image}
+          sizes={compact ? '(max-width: 900px) 45vw, 200px' : '(max-width: 640px) 45vw, (max-width: 1200px) 30vw, 320px'}
+        />
         {hasSale && <span className={styles.saleBadge}>{t('sale')}</span>}
       </div>
       <div className={styles.body}>

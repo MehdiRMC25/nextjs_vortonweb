@@ -330,13 +330,12 @@
 }
 
 .articleImage {
+  position: relative;
   aspect-ratio: 3/2;
   overflow: hidden;
 }
 
-.articleImage img {
-  width: 100%;
-  height: 100%;
+.articleImageFill {
   object-fit: cover;
 }
 
