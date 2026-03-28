@@ -50,10 +50,13 @@
 .heroSlide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
   opacity: 0;
   transition: opacity 0.8s ease;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center;
 }
 
 .heroSlideActive {

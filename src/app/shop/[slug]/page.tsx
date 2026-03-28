@@ -278,8 +278,8 @@ export default function ProductDetail() {
                 <section className={styles.similar}>
                     <h2 className={styles.similarTitle}>{t('similarProducts')}</h2>
                     <div className={styles.similarGrid}>
-                        {similarProducts.map((prod) => (
-                            <ProductCard key={prod.id} product={prod} compact />
+                        {similarProducts.map((prod, index) => (
+                            <ProductCard key={prod.id} product={prod} compact priority={index < 4} />
                         ))}
                     </div>
                 </section>

@@ -57,8 +57,16 @@ export default function Home() {
               <div
                 key={src}
                 className={`${styles.heroSlide} ${i === heroIndex ? styles.heroSlideActive : ''}`}
-                style={{ backgroundImage: `url(${src})` }}
-              />
+              >
+                <Image
+                  src={src}
+                  alt=""
+                  fill
+                  className={styles.heroImage}
+                  sizes="100vw"
+                  priority={i === 0}
+                />
+              </div>
             ))}
           </div>
           <div className={styles.heroOverlay} />
@@ -95,8 +103,13 @@ export default function Home() {
                     ←
                   </button>
                   <div className={styles.productRow} ref={newCollectionRef}>
-                    {newCollectionProducts.map((p) => (
-                        <ProductCard key={p.id} product={p} onImageError={onImageError} />
+                    {newCollectionProducts.map((p, index) => (
+                        <ProductCard
+                          key={p.id}
+                          product={p}
+                          onImageError={onImageError}
+                          priority={index < 4}
+                        />
                     ))}
                   </div>
                   <button
@@ -128,8 +141,13 @@ export default function Home() {
                     ←
                   </button>
                   <div className={styles.productRow} ref={onSaleRef}>
-                    {onSaleProducts.map((p) => (
-                        <ProductCard key={p.id} product={p} onImageError={onImageError} />
+                    {onSaleProducts.map((p, index) => (
+                        <ProductCard
+                          key={p.id}
+                          product={p}
+                          onImageError={onImageError}
+                          priority={index < 4}
+                        />
                     ))}
                   </div>
                   <button
