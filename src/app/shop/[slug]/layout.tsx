@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { getProductBySlug } from '@/api/products'
 import ProductJsonLd from '@/components/seo/ProductJsonLd'
-import { getSiteUrl } from '@/lib/siteUrl'
+import { getCanonicalAndAlternates, getRequestOrigin } from '@/lib/siteUrl'
 
 type Props = {
   children: React.ReactNode
@@ -11,14 +12,22 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const product = await getProductBySlug(slug)
-  const base = getSiteUrl()
-  const canonical = `${base}/shop/${encodeURIComponent(slug)}`
+  const h = await headers()
+  const pathname = `/shop/${slug}`
+  const { canonical, alternates } = getCanonicalAndAlternates(h, { pathname, search: '' })
 
   if (!product) {
     return {
       title: 'Product',
       description: 'Vorton fashion — product page.',
-      alternates: { canonical },
+      alternates: {
+        canonical,
+        languages: {
+          'az-AZ': alternates.az,
+          'en-GB': alternates.en,
+          'x-default': alternates.en,
+        },
+      },
     }
   }
 
@@ -29,7 +38,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      languages: {
+        'az-AZ': alternates.az,
+        'en-GB': alternates.en,
+        'x-default': alternates.en,
+      },
+    },
     openGraph: {
       title: `${title} | Vorton`,
       description,
@@ -49,7 +65,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ShopProductLayout({ children, params }: Props) {
   const { slug } = await params
   const product = await getProductBySlug(slug)
-  const siteUrl = getSiteUrl()
+  const h = await headers()
+  const siteUrl = getRequestOrigin(h)
 
   return (
     <>

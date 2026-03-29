@@ -54,6 +54,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     addresses: 'Ünvanlar',
     continueShopping: 'Alış-verişə davam et',
     changeLanguage: 'Dili dəyiş',
+    accountLanguageOnEnglishSite: 'İngilis saytında (vorton.uk)',
+    accountLanguageOnAzSite: 'Azərbaycan saytı (vorton.az)',
     notProvided: 'Qeyd edilməyib',
     marketingEmails: 'Marketinq email-ləri',
     smsUpdates: 'SMS yenilikləri',
@@ -137,6 +139,12 @@ export const translations: Record<Locale, Record<string, string>> = {
 
     footerTagline:
       'Müasir həyat, rahatlıq və hərəkət üçün nəzərdə tutulmuş gündəlik geyim.',
+
+    geoBannerAzAria: 'Azərbaycan saytı təklifi',
+    geoBannerAzBody:
+      'Azərbaycandan görünməsiniz? Ödəniş və çatdırılma üçün əsas saytımız Azərbaycan versiyası ola bilər.',
+    geoBannerAzCta: 'vorton.az-a keç',
+    geoBannerAzDismiss: 'Gizlət',
 
     contact: 'Əlaqə',
     location: 'Yer',
@@ -330,6 +338,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     addresses: 'Addresses',
     continueShopping: 'Continue shopping',
     changeLanguage: 'Change language',
+    accountLanguageOnAzSite: 'Azerbaijani site (vorton.az)',
+    accountLanguageOnEnglishSite: 'English site (vorton.uk)',
     notProvided: 'Not provided',
     marketingEmails: 'Marketing emails',
     smsUpdates: 'SMS updates',
@@ -413,6 +423,12 @@ export const translations: Record<Locale, Record<string, string>> = {
 
     footerTagline:
       'Contemporary everyday wear designed for comfort, movement, and modern life.',
+
+    geoBannerAzAria: 'Azerbaijan site suggestion',
+    geoBannerAzBody:
+      'Browsing from Azerbaijan? Our Azerbaijan site may suit you better for prices in AZN and local delivery.',
+    geoBannerAzCta: 'Continue on vorton.az',
+    geoBannerAzDismiss: 'Dismiss',
 
     contact: 'Contact',
     location: 'Location',

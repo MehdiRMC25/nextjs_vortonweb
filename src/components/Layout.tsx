@@ -1,17 +1,19 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCart } from '../context/CartContext'
 import { useLocale } from '../context/LocaleContext'
 import { useAuth } from '../context/AuthContext'
 import type { UserRole } from '../api/auth'
+import HeaderDomainLocale from './HeaderDomainLocale'
+import AzSiteSuggestionBanner from './AzSiteSuggestionBanner'
 import styles from './Layout.module.css'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { totalItems } = useCart()
-  const { locale, setLocale, t } = useLocale()
+  const { t } = useLocale()
   const { isAuthenticated, user, logout } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
@@ -29,6 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className={styles.layout}>
+      <AzSiteSuggestionBanner />
       <header className={styles.header}>
         <div className={styles.headerInner}>
           <Link href="/" className={styles.logo}>
@@ -86,14 +89,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/contact" className={pathname === '/contact' ? styles.navActive : ''}>
               {t('contact')}
             </Link>
-            <button
-              type="button"
-              className={locale === 'en' ? `${styles.langBtn} ${styles.langBtnActive}` : styles.langBtn}
-              onClick={() => setLocale(locale === 'az' ? 'en' : 'az')}
-              title={t('changeLanguage')}
-            >
-              {locale === 'az' ? t('english') : t('azerbaijani')}
-            </button>
+            <Suspense fallback={null}>
+              <HeaderDomainLocale />
+            </Suspense>
           </nav>
           </div>
         </div>

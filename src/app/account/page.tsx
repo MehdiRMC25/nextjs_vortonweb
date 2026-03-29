@@ -10,6 +10,7 @@ import { orderPointsEarned } from '@/lib/rewardPointsDisplay'
 import { useOrdersSocket } from '@/hooks/useOrdersSocket'
 import type { MembershipLevel, UserRole } from '@/api/auth'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import AccountLocaleLinks from './AccountLocaleLinks'
 import styles from './Account.module.css'
 
 const STATUS_KEYS: Record<OrderStatus, string> = {
@@ -51,7 +52,7 @@ function getLevelFromSales(totalSalesAzn: number | undefined, apiLevel?: Members
 }
 
 export default function Account() {
-    const { t, locale, setLocale } = useLocale()
+    const { t, locale } = useLocale()
     const { user, token, logout, refreshUser } = useAuth()
     const router = useRouter()
     const [orders, setOrders] = useState<Order[]>([])
@@ -247,22 +248,7 @@ export default function Account() {
                     <h2 className={styles.sectionTitle}>{t('settings')}</h2>
                     <div className={styles.settingRow}>
                         <span className={styles.settingLabel}>{t('language')}</span>
-                        <div className={styles.langOptions}>
-                            <button
-                                type="button"
-                                className={locale === 'az' ? styles.langOptionActive : styles.langOption}
-                                onClick={() => setLocale('az')}
-                            >
-                                {t('azerbaijani')}
-                            </button>
-                            <button
-                                type="button"
-                                className={locale === 'en' ? styles.langOptionActive : styles.langOption}
-                                onClick={() => setLocale('en')}
-                            >
-                                {t('english')}
-                            </button>
-                        </div>
+                        <AccountLocaleLinks />
                     </div>
                     <div className={styles.infoGrid}>
                         <div>

@@ -66,6 +66,8 @@ export type SignupPayload = {
   country?: string
   password: string
   confirmPassword: string
+  /** Production host only — stored as customers.signup_host when API supports it */
+  signup_host?: 'vorton.az' | 'vorton.uk'
 }
 
 function toPath(path: string) {
@@ -232,7 +234,7 @@ async function requestWithFallback<T>(
 }
 
 export async function signup(payload: SignupPayload): Promise<LoginResponse> {
-  const body = {
+  const body: Record<string, unknown> = {
     first_name: payload.first_name.trim(),
     last_name: payload.last_name.trim(),
     phone: payload.phone.trim(),
@@ -246,6 +248,7 @@ export async function signup(payload: SignupPayload): Promise<LoginResponse> {
     password: payload.password,
     confirmPassword: payload.confirmPassword,
   }
+  if (payload.signup_host) body.signup_host = payload.signup_host
 
   const paths = [config.authSignUpPath, '/api/v1/auth/signup']
   return requestWithFallback(

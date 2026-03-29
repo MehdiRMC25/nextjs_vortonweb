@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
+import { headers } from 'next/headers'
 import { fetchProducts } from '@/api/products'
-import { getSiteUrl } from '@/lib/siteUrl'
+import { getRequestOrigin } from '@/lib/siteUrl'
 
 /** Static routes that should always appear in the sitemap (same paths as main nav). */
 const STATIC_PATHS = [
@@ -14,11 +15,12 @@ const STATIC_PATHS = [
 ] as const
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = getSiteUrl()
+  const h = await headers()
+  const base = getRequestOrigin(h).replace(/\/$/, '')
   const now = new Date()
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
-    url: path === '/' ? base : `${base}${path}`,
+    url: path === '/' ? `${base}/` : `${base}${path}`,
     lastModified: now,
     changeFrequency: path === '/' ? 'weekly' : 'weekly',
     priority: path === '/' ? 1 : 0.8,

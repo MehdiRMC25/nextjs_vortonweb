@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext'
 import { AuthApiError } from '@/api/auth'
 import { isValidEmail, isValidPhone } from '@/utils/validation'
 import { PhoneInput } from '@/components/PhoneInput'
+import { signupHostFromBrowser } from '@/lib/domainConfig'
 import styles from '@/app/signin/SignIn.module.css'
 
 export default function SignUp() {
@@ -78,6 +79,7 @@ export default function SignUp() {
                 country: country || undefined,
                 password,
                 confirmPassword,
+                signup_host: signupHostFromBrowser(),
             })
             const successText = t('signUpSuccess')
             setMessage({ type: 'success', text: successText })
