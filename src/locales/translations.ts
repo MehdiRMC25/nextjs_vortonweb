@@ -147,6 +147,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     geoBannerAzDismiss: 'Gizlət',
 
     contact: 'Əlaqə',
+    searchProducts: 'Məhsullarda axtarın',
+    searchProductsPlaceholder: 'Məhsullarda axtarın',
     location: 'Yer',
     address: 'Ünvan',
     phone: 'Telefon',
@@ -431,6 +433,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     geoBannerAzDismiss: 'Dismiss',
 
     contact: 'Contact',
+    searchProducts: 'Search products',
+    searchProductsPlaceholder: 'Search products',
     location: 'Location',
     address: 'Address',
     phone: 'Phone',

@@ -38,11 +38,31 @@ function productHasSize(p: Product, size: string): boolean {
     return p.sizes.some((s) => String(s).trim().toLowerCase() === size.toLowerCase())
 }
 
+function productMatchesSearchQuery(p: Product, query: string): boolean {
+    const needle = query.trim().toLowerCase()
+    if (!needle) return true
+    const parts: string[] = [
+        p.name,
+        p.sku,
+        p.slug,
+        p.fabric ?? '',
+        ...p.colors.map((c) => c.name),
+        ...p.sizes.map((s) => String(s)),
+    ]
+    if (p.variants?.length) {
+        for (const v of p.variants) {
+            parts.push(v.skuColor, v.color, ...v.sizes.map((s) => String(s)))
+        }
+    }
+    return parts.some((s) => s.toLowerCase().includes(needle))
+}
+
 export default function Shop() {
     const { t } = useLocale()
     const searchParams = useSearchParams()
     const router = useRouter()
     const category = (searchParams.get('category') as 'men' | 'women' | null) || null
+    const searchQuery = (searchParams.get('q') ?? '').trim()
     const { products, loading, error, retry } = useProducts()
     const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
     const [selectedColor, setSelectedColor] = useState<string>('')
@@ -108,8 +128,11 @@ export default function Shop() {
         if (selectedSize) {
             list = list.filter((p) => productHasSize(p, selectedSize))
         }
+        if (searchQuery) {
+            list = list.filter((p) => productMatchesSearchQuery(p, searchQuery))
+        }
         return list
-    }, [byCategory, selectedColor, selectedSize])
+    }, [byCategory, selectedColor, selectedSize, searchQuery])
 
     return (
         <FilterLayout

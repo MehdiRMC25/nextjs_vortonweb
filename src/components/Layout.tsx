@@ -8,6 +8,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useAuth } from '../context/AuthContext'
 import type { UserRole } from '../api/auth'
 import HeaderDomainLocale from './HeaderDomainLocale'
+import HeaderSearch from './HeaderSearch'
 import AzSiteSuggestionBanner from './AzSiteSuggestionBanner'
 import styles from './Layout.module.css'
 
@@ -91,6 +92,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             <Suspense fallback={null}>
               <HeaderDomainLocale />
+            </Suspense>
+            <Suspense fallback={null}>
+              <HeaderSearch />
             </Suspense>
           </nav>
           </div>
