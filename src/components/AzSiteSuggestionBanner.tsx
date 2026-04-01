@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale } from '@/context/LocaleContext'
 import { buildLocaleSwitchUrl } from '@/lib/domainConfig'
+import { translations } from '@/locales/translations'
 import styles from './AzSiteSuggestionBanner.module.css'
 
 const STORAGE_KEY = 'vorton-hide-az-suggest'
@@ -41,14 +42,14 @@ export default function AzSiteSuggestionBanner() {
   }
 
   return (
-    <div className={styles.banner} role="region" aria-label={t('geoBannerAzAria')}>
-      <p className={styles.text}>{t('geoBannerAzBody')}</p>
+    <div className={styles.banner} role="region" aria-label={translations.az.geoBannerAzAria}>
+      <p className={styles.text}>{translations.az.geoBannerAzBody}</p>
       <div className={styles.actions}>
         <a href={azUrl} className={styles.cta}>
-          {t('geoBannerAzCta')}
+          {translations.az.geoBannerAzCta}
         </a>
         <button type="button" className={styles.dismiss} onClick={dismiss}>
-          {t('geoBannerAzDismiss')}
+          {translations.az.geoBannerAzDismiss}
         </button>
       </div>
     </div>

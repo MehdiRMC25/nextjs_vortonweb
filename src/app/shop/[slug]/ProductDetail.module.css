@@ -22,6 +22,12 @@
   .wrap {
     grid-template-columns: 1fr;
   }
+
+  /* On mobile, let the gallery scroll away so product info has full viewport. */
+  .gallery {
+    position: static;
+    top: auto;
+  }
 }
 
 .gallery {
@@ -182,6 +188,47 @@
 .fabricValue {
   margin: 4px 0 0;
   font-size: 1rem;
+}
+
+.description {
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+}
+
+.descriptionTitle {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.descriptionText {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  font-size: 1rem;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+}
+
+.descriptionToggle {
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.9;
+}
+
+.descriptionToggle:hover {
+  opacity: 1;
 }
 
 .sizes {
