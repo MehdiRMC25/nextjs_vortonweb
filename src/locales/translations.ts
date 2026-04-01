@@ -140,10 +140,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     footerTagline:
       'Müasir həyat, rahatlıq və hərəkət üçün nəzərdə tutulmuş gündəlik geyim.',
 
-    geoBannerAzAria: 'Azərbaycan saytı təklifi',
-    geoBannerAzBody:
-      'Azərbaycandan görünməsiniz? Ödəniş və çatdırılma üçün əsas saytımız Azərbaycan versiyası ola bilər.',
-    geoBannerAzCta: 'vorton.az-a keç',
+    geoBannerAzAria: 'Azərbaycan dilində davam etmək üçün buraya klik edin',
+    geoBannerAzBeforeLink: 'Azərbaycan dilində davam etmək üçün ',
+    geoBannerAzLink: 'buraya klik edin',
     geoBannerAzDismiss: 'Gizlət',
 
     contact: 'Əlaqə',
@@ -426,10 +425,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     footerTagline:
       'Contemporary everyday wear designed for comfort, movement, and modern life.',
 
-    geoBannerAzAria: 'Azerbaijan site suggestion',
-    geoBannerAzBody:
-      'Browsing from Azerbaijan? Our Azerbaijan site may suit you better for prices in AZN and local delivery.',
-    geoBannerAzCta: 'Continue on vorton.az',
+    geoBannerAzAria: 'Click here to continue in Azerbaijani',
+    geoBannerAzBeforeLink: 'To continue in Azerbaijani, ',
+    geoBannerAzLink: 'click here',
     geoBannerAzDismiss: 'Dismiss',
 
     contact: 'Contact',

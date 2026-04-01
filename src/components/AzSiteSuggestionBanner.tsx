@@ -43,11 +43,13 @@ export default function AzSiteSuggestionBanner() {
 
   return (
     <div className={styles.banner} role="region" aria-label={translations.az.geoBannerAzAria}>
-      <p className={styles.text}>{translations.az.geoBannerAzBody}</p>
-      <div className={styles.actions}>
+      <p className={styles.text}>
+        {translations.az.geoBannerAzBeforeLink}
         <a href={azUrl} className={styles.cta}>
-          {translations.az.geoBannerAzCta}
+          {translations.az.geoBannerAzLink}
         </a>
+      </p>
+      <div className={styles.actions}>
         <button type="button" className={styles.dismiss} onClick={dismiss}>
           {translations.az.geoBannerAzDismiss}
         </button>
