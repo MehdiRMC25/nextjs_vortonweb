@@ -22,17 +22,14 @@
   .wrap {
     grid-template-columns: 1fr;
   }
-
-  /* On mobile, let the gallery scroll away so product info has full viewport. */
-  .gallery {
-    position: static;
-    top: auto;
-  }
 }
 
-.gallery {
-  position: sticky;
-  top: 100px;
+/* Sticky gallery only on desktop — global .gallery sticky was overriding mobile static */
+@media (min-width: 901px) {
+  .gallery {
+    position: sticky;
+    top: 100px;
+  }
 }
 
 .mainImage {
@@ -42,6 +39,13 @@
   overflow: hidden;
   background: var(--bg-card);
   margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .mainImage {
+    aspect-ratio: 3 / 4;
+    max-height: min(70vh, 520px);
+  }
 }
 
 .mainImageImg {
