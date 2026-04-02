@@ -44,6 +44,7 @@ function productMatchesSearchQuery(p: Product, query: string): boolean {
     if (!needle) return true
     const parts: string[] = [
         p.name,
+        p.nameAz ?? '',
         p.sku,
         p.slug,
         p.fabric ?? '',

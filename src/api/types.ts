@@ -7,6 +7,10 @@ export interface ApiProductDoc {
   skuColor?: string
   color: string
   name: string
+  nameAz?: string
+  descriptionEn?: string
+  descriptionAz?: string
+  descriptionAZ?: string
   price: number
   discountedPrice?: number
   image?: string

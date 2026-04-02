@@ -19,6 +19,7 @@ import {
     formatEarnPercentLabel,
 } from '@/lib/rewardPointsEarn'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import { productDisplayName } from '@/lib/productDisplay'
 import styles from './Checkout.module.css'
 
 function getItemPrice(item: CartItem): number {
@@ -55,7 +56,7 @@ function pointsBalanceFromUser(u: AuthUser | null | undefined): number {
 const today = () => new Date().toISOString().slice(0, 10)
 
 export default function Checkout() {
-    const { t } = useLocale()
+    const { t, locale } = useLocale()
     const { user, isAuthenticated, refreshUser } = useAuth()
     const { items } = useCart()
     const [loading, setLoading] = useState(false)
@@ -239,7 +240,7 @@ export default function Checkout() {
                             const lineTotal = price * item.quantity
                             return (
                                 <li key={`${item.product.id}-${item.variantIndex}-${item.size}`}>
-                                    <span>{item.product.name} × {item.quantity}</span>
+                                    <span>{productDisplayName(item.product, locale)} × {item.quantity}</span>
                                     <span>₼{lineTotal.toFixed(2)}</span>
                                 </li>
                             )

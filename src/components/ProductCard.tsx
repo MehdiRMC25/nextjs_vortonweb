@@ -8,6 +8,7 @@ import { displayColorName } from '@/lib/colorTranslation'
 import { getFavoriteKey } from '@/lib/favorites'
 import FavoriteButton from '@/components/FavoriteButton'
 import type { Product } from '../types'
+import { productDisplayName } from '@/lib/productDisplay'
 import styles from './ProductCard.module.css'
 
 interface ProductCardProps {
@@ -88,6 +89,8 @@ export default function ProductCard({
     ...(product.variants?.map((v) => v.skuColor).filter((s): s is string => !!s && !!s.trim()) ?? []),
   ]
 
+  const title = productDisplayName(product, locale)
+
   if (!imageLoaded) {
     return (
       <div className={`${styles.card} ${compact ? styles.cardCompact : ''}`} aria-hidden>
@@ -119,7 +122,7 @@ export default function ProductCard({
         <img
           key={displayImage}
           src={displayImage}
-          alt={product.name}
+          alt={title}
           loading={imageLoading}
           fetchPriority={imgFetchPriority}
           className={styles.image}
@@ -136,7 +139,7 @@ export default function ProductCard({
         />
       </div>
       <div className={styles.body}>
-        <h3 className={styles.name}>{product.name}</h3>
+        <h3 className={styles.name}>{title}</h3>
         <p className={styles.sku}>SKU: {product.sku}</p>
         <div className={styles.colors}>
           {displayColors.map((c, i) => (

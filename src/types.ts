@@ -14,6 +14,12 @@ export interface ProductVariant {
 export interface Product {
   id: string
   name: string
+  /** Azerbaijani product title (MongoDB `nameAz`) */
+  nameAz?: string
+  /** English long description (detail API / optional on list) */
+  descriptionEn?: string
+  /** Azerbaijani long description */
+  descriptionAz?: string
   slug: string
   sku: string
   price: number

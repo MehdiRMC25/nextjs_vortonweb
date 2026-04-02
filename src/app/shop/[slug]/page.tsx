@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { useProducts } from '@/context/ProductsContext'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
-import { variantHasValidColor } from '@/api/products'
+import { variantHasValidColor, fetchApiProductDetail, type ProductDetailExtras } from '@/api/products'
+import { productDisplayName } from '@/lib/productDisplay'
 import { displayColorName } from '@/lib/colorTranslation'
 import { getFavoriteKey } from '@/lib/favorites'
 import FavoriteButton from '@/components/FavoriteButton'
@@ -31,11 +32,11 @@ function getWords(name: string): string[] {
 }
 
 function getSimilarProducts(current: Product, all: Product[], limit: number): Product[] {
-    const currentWords = getWords(current.name)
+    const currentWords = getWords(`${current.name} ${current.nameAz ?? ''}`)
     const scored = all
         .filter((p) => p.id !== current.id)
         .map((p) => {
-            const otherWords = getWords(p.name)
+            const otherWords = getWords(`${p.name} ${p.nameAz ?? ''}`)
             const matchCount = currentWords.filter((w) => otherWords.includes(w)).length
             return { product: p, matchCount }
         })
@@ -69,6 +70,21 @@ export default function ProductDetail() {
     const fabric = variant?.fabric ?? product?.fabric
     const effectiveSize = selectedSize ?? sizes[0]
     const [descExpanded, setDescExpanded] = useState(false)
+    const [detailExtras, setDetailExtras] = useState<ProductDetailExtras | null>(null)
+
+    useEffect(() => {
+        if (!product?.id) {
+            setDetailExtras(null)
+            return
+        }
+        let cancelled = false
+        fetchApiProductDetail(product.id).then((ex) => {
+            if (!cancelled && ex) setDetailExtras(ex)
+        })
+        return () => {
+            cancelled = true
+        }
+    }, [product?.id])
 
     useEffect(() => {
         setMainImage(0)
@@ -107,7 +123,10 @@ export default function ProductDetail() {
     }, [product, products])
 
     const productPageTag = product
-        ? `product:${product.slug} · ${product.name}`
+        ? `product:${product.slug} · ${productDisplayName(
+              { ...product, nameAz: detailExtras?.nameAz ?? product.nameAz },
+              locale
+          )}`
         : slug
           ? `product:${slug}`
           : undefined
@@ -159,21 +178,41 @@ export default function ProductDetail() {
         },
     }
 
+    const displayName = productDisplayName(
+        { ...p, nameAz: detailExtras?.nameAz ?? p.nameAz },
+        locale
+    )
+
+    const mongoDescription =
+        locale === 'az'
+            ? (detailExtras?.descriptionAz ?? p.descriptionAz)?.trim()
+            : (detailExtras?.descriptionEn ?? p.descriptionEn)?.trim()
+
     const overridden = skuDescriptions[p.sku]
     const overriddenFull = overridden ? (locale === 'az' ? overridden.az : overridden.en) : null
 
     const generatedTeaser =
         locale === 'az'
-            ? `${p.name} — ${categoryLabel} üçün premium gündəlik geyim. ${fabricLabel} toxuması, rahat oturuş və hər gün üçün uyğun görünüş. Müasir, minimal üslubla garderobunu yenilə.`
-            : `${p.name} is premium everyday wear for ${categoryLabel}. Crafted in ${fabricLabel} with a comfortable fit and clean look, it’s an easy staple for workdays, weekends, and travel.`
+            ? `${displayName} — ${categoryLabel} üçün premium gündəlik geyim. ${fabricLabel} toxuması, rahat oturuş və hər gün üçün uyğun görünüş. Müasir, minimal üslubla garderobunu yenilə.`
+            : `${displayName} is premium everyday wear for ${categoryLabel}. Crafted in ${fabricLabel} with a comfortable fit and clean look, it’s an easy staple for workdays, weekends, and travel.`
 
     const generatedFull =
         locale === 'az'
-            ? `${p.name} — ${categoryLabel} üçün premium gündəlik geyimdir. ${fabricLabel} toxuması günboyu rahatlıq verir, təmiz və müasir siluet isə həm gündəlik, həm də səliqəli kombinlər üçün uyğundur. Ölçünü seçin, rəngi bəyənin və səbətə əlavə edərək sifarişinizi rahatlıqla tamamlayın.`
-            : `${p.name} is premium everyday wear for ${categoryLabel}. Made in ${fabricLabel}, it’s designed for all‑day comfort with a clean, modern silhouette that pairs easily with your existing wardrobe. Choose your size and color, then add to cart to check out in minutes.`
+            ? `${displayName} — ${categoryLabel} üçün premium gündəlik geyimdir. ${fabricLabel} toxuması günboyu rahatlıq verir, təmiz və müasir siluet isə həm gündəlik, həm də səliqəli kombinlər üçün uyğundur. Ölçünü seçin, rəngi bəyənin və səbətə əlavə edərək sifarişinizi rahatlıqla tamamlayın.`
+            : `${displayName} is premium everyday wear for ${categoryLabel}. Made in ${fabricLabel}, it’s designed for all‑day comfort with a clean, modern silhouette that pairs easily with your existing wardrobe. Choose your size and color, then add to cart to check out in minutes.`
 
-    const full = overriddenFull ?? generatedFull
-    const teaser = overriddenFull ? toTeaser(overriddenFull, 28) : generatedTeaser
+    let full: string
+    let teaser: string
+    if (mongoDescription) {
+        full = mongoDescription
+        teaser = toTeaser(mongoDescription, 28)
+    } else if (overriddenFull) {
+        full = overriddenFull
+        teaser = toTeaser(overriddenFull, 28)
+    } else {
+        full = generatedFull
+        teaser = generatedTeaser
+    }
 
     function handleAddToCart() {
         addItem({
@@ -197,7 +236,7 @@ export default function ProductDetail() {
                     <div className={styles.mainImage}>
                         <img
                             src={images[mainImage] || p.image}
-                            alt={p.name}
+                            alt={displayName}
                             className={styles.mainImageImg}
                             loading="eager"
                             fetchPriority="high"
@@ -226,7 +265,7 @@ export default function ProductDetail() {
 
                 <div className={styles.info}>
                     <div className={styles.titleRow}>
-                        <h1 className={styles.title}>{p.name}</h1>
+                        <h1 className={styles.title}>{displayName}</h1>
                         <FavoriteButton
                             favoriteKey={variantFavoriteKey}
                             activeKeys={activeKeys}

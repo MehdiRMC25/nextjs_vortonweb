@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
+import { productDisplayName } from '@/lib/productDisplay'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './Cart.module.css'
 
@@ -18,7 +19,7 @@ function getItemPrice(item: { product: { price: number; salePrice?: number; vari
 }
 
 export default function Cart() {
-    const { t } = useLocale()
+    const { t, locale } = useLocale()
     const { items, removeItem, updateQuantity } = useCart()
 
     if (items.length === 0) {
@@ -53,6 +54,7 @@ export default function Cart() {
                             const price = getItemPrice(item)
                             const lineTotal = price * item.quantity
                             const colorName = item.product.variants?.[item.variantIndex]?.color
+                            const lineTitle = productDisplayName(item.product, locale)
                             return (
                                 <div
                                     key={`${item.product.id}-${item.variantIndex}-${item.size}`}
@@ -61,14 +63,14 @@ export default function Cart() {
                                     <div className={styles.itemImage}>
                                         <img
                                             src={getItemImage(item)}
-                                            alt={item.product.name}
+                                            alt={lineTitle}
                                             className={styles.itemImageFill}
                                             loading="eager"
                                             decoding="async"
                                         />
                                     </div>
                                     <div className={styles.itemInfo}>
-                                        <h3 className={styles.itemName}>{item.product.name}</h3>
+                                        <h3 className={styles.itemName}>{lineTitle}</h3>
                                         <p className={styles.itemMeta}>
                                             {colorName && `${colorName} · `}
                                             {t('sizeLabel')}: {item.size} · ₼{price.toFixed(2)} {t('each')}

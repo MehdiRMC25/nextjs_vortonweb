@@ -345,6 +345,48 @@ export async function fetchApiProducts(): Promise<ApiProductDoc[]> {
   return list as ApiProductDoc[]
 }
 
+/** Long descriptions are omitted from list responses; fetch single product for Mongo `descriptionEn` / `descriptionAz`. */
+export type ProductDetailExtras = {
+  nameAz?: string
+  descriptionEn?: string
+  descriptionAz?: string
+}
+
+export async function fetchApiProductDetail(productId: string): Promise<ProductDetailExtras | null> {
+  if (!productId?.trim()) return null
+  const base = config.apiUrl.replace(/\/$/, '')
+  const url = `${base}/api/products/${encodeURIComponent(productId.trim())}`
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), PRODUCTS_FETCH_TIMEOUT_MS)
+  try {
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeoutId)
+    if (!res.ok) return null
+    const data = (await res.json()) as { ok?: boolean; product?: Record<string, unknown> }
+    const p = data?.product
+    if (!p || typeof p !== 'object') return null
+    const str = (v: unknown): string | undefined => {
+      if (v == null) return undefined
+      const s = typeof v === 'string' ? v.trim() : String(v).trim()
+      return s || undefined
+    }
+    return {
+      nameAz: str(p.nameAz),
+      descriptionEn: str(p.descriptionEn),
+      descriptionAz: str(p.descriptionAz ?? p.descriptionAZ),
+    }
+  } catch {
+    clearTimeout(timeoutId)
+    return null
+  }
+}
+
+function optionalDocString(v: unknown): string | undefined {
+  if (v == null) return undefined
+  const s = typeof v === 'string' ? v.trim() : String(v).trim()
+  return s || undefined
+}
+
 /**
  * Group docs by SKU; first doc per SKU is the "main" product.
  * Only include variants that have at least one image.
@@ -398,6 +440,9 @@ export function buildProductsFromApi(docs: ApiProductDoc[]): Product[] {
       sku,
       slug: slugFromSku(sku),
       name: (first.name ?? first.sku ?? '').toString().trim() || sku,
+      nameAz: optionalDocString(first.nameAz),
+      descriptionEn: optionalDocString(first.descriptionEn),
+      descriptionAz: optionalDocString(first.descriptionAz ?? first.descriptionAZ),
       category,
       price: v0.price,
       salePrice: v0.discountedPrice,
