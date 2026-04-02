@@ -33,15 +33,34 @@
 }
 
 .dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0;
   border: none;
+  border-radius: 9999px;
   background: transparent;
   cursor: pointer;
-  font-size: 0.85rem;
-  opacity: 0.85;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: inherit;
+  opacity: 0.75;
+  transition: opacity 0.15s, background 0.15s;
 }
 
 .dismiss:hover {
   opacity: 1;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid var(--accent, #f97316);
+  outline-offset: 2px;
+}
+
+.dismissIcon {
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1;
 }

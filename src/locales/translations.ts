@@ -143,7 +143,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     geoBannerAzAria: 'Azərbaycan dilində davam etmək üçün buraya klik edin',
     geoBannerAzBeforeLink: 'Azərbaycan dilində davam etmək üçün ',
     geoBannerAzLink: 'buraya klik edin',
-    geoBannerAzDismiss: 'Gizlət',
+    geoBannerCloseAria: 'Bildirişi bağla',
 
     contact: 'Əlaqə',
     searchProducts: 'Məhsullarda axtarın',
@@ -428,7 +428,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     geoBannerAzAria: 'Click here to continue in Azerbaijani',
     geoBannerAzBeforeLink: 'To continue in Azerbaijani, ',
     geoBannerAzLink: 'click here',
-    geoBannerAzDismiss: 'Dismiss',
+    geoBannerCloseAria: 'Close notification',
 
     contact: 'Contact',
     searchProducts: 'Search products',

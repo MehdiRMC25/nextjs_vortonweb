@@ -50,8 +50,15 @@ export default function AzSiteSuggestionBanner() {
         </a>
       </p>
       <div className={styles.actions}>
-        <button type="button" className={styles.dismiss} onClick={dismiss}>
-          {translations.az.geoBannerAzDismiss}
+        <button
+          type="button"
+          className={styles.dismiss}
+          onClick={dismiss}
+          aria-label={t('geoBannerCloseAria')}
+        >
+          <span className={styles.dismissIcon} aria-hidden="true">
+            ×
+          </span>
         </button>
       </div>
     </div>
