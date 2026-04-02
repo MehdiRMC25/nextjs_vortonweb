@@ -50,6 +50,19 @@
   white-space: nowrap;
 }
 
+.triggerSelected {
+  background: var(--filter-selected-bg);
+  border-color: var(--filter-selected-border);
+}
+
+.triggerSelected .triggerText {
+  color: var(--filter-selected);
+}
+
+.triggerSelected .arrow {
+  color: var(--filter-selected);
+}
+
 .arrow {
   flex-shrink: 0;
   font-size: 0.65rem;

@@ -44,7 +44,7 @@ export default function FilterSidebar({
           <span className={styles.brandWord}>
             <span className={styles.brandV}>V</span>orton
           </span>
-          <span className={styles.brandTagline}>where style meets comfort.</span>
+          <span className={styles.brandTagline}>{t('brandTagline')}</span>
         </span>
       </div>
 
@@ -53,19 +53,19 @@ export default function FilterSidebar({
       </div>
 
       <div className={styles.filterBlock}>
-        <label className={styles.filterLabel} htmlFor="filter-gender">
-          {t('gender')}
-        </label>
-        <select
+        <ScrollSelect
           id="filter-gender"
-          className={styles.select}
+          label={t('gender')}
           value={category ?? ''}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="">{t('all')}</option>
-          <option value="men">{t('men')}</option>
-          <option value="women">{t('women')}</option>
-        </select>
+          options={[
+            { value: 'men', label: t('men') },
+            { value: 'women', label: t('women') },
+          ]}
+          placeholder={t('all')}
+          clearLabel={t('clearFilter')}
+          onChange={(v) => setCategory(v)}
+          disabled={loading}
+        />
       </div>
 
       <div className={styles.filterBlock}>
@@ -75,6 +75,7 @@ export default function FilterSidebar({
           value={selectedColor}
           options={colors.map((c) => ({ value: c, label: displayColorName(c, locale) }))}
           placeholder={t('allColors')}
+          clearLabel={t('clearFilter')}
           onChange={setSelectedColor}
           disabled={loading}
         />
@@ -87,6 +88,7 @@ export default function FilterSidebar({
           value={selectedSize}
           options={sizes.map((s) => ({ value: s, label: s }))}
           placeholder={t('allSizes')}
+          clearLabel={t('clearFilter')}
           onChange={setSelectedSize}
           disabled={loading}
         />
@@ -102,6 +104,7 @@ export default function FilterSidebar({
             { value: 'priceAsc', label: `⬇ ${t('priceLowToHigh')}` },
           ]}
           placeholder={t('priceSortPlaceholder')}
+          clearLabel={t('clearFilter')}
           onChange={(v) => setPriceSort(v as '' | 'priceAsc' | 'priceDesc')}
           disabled={loading}
         />

@@ -73,6 +73,12 @@
   padding-right: 36px;
 }
 
+.selectSelected {
+  background: var(--filter-selected-bg);
+  border-color: var(--filter-selected-border);
+  color: var(--filter-selected);
+}
+
 .select:hover {
   border-color: var(--text-muted);
 }

@@ -81,11 +81,12 @@ export default function ProductCard({
   const imgFetchPriority =
     imageLoading === 'eager' && imageFetchPriority !== undefined ? imageFetchPriority : undefined
 
-  const favoriteKey = getFavoriteKey({
-    skuColor: displayVariant?.skuColor,
-    id: product.id,
-    sku: product.sku,
-  })
+  // Toggle on base key so any variant favorited still lights up the card heart.
+  const baseFavoriteKey = getFavoriteKey({ id: product.id, sku: product.sku })
+  const activeKeys = [
+    baseFavoriteKey,
+    ...(product.variants?.map((v) => v.skuColor).filter((s): s is string => !!s && !!s.trim()) ?? []),
+  ]
 
   if (!imageLoaded) {
     return (
@@ -125,7 +126,8 @@ export default function ProductCard({
         />
         {hasSale && <span className={styles.saleBadge}>{t('sale')}</span>}
         <FavoriteButton
-          favoriteKey={favoriteKey}
+          favoriteKey={baseFavoriteKey}
+          activeKeys={activeKeys}
           className={styles.favoriteBtn}
           onClick={(e) => {
             e.preventDefault()

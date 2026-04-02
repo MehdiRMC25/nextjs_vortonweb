@@ -7,6 +7,8 @@ type ScrollSelectProps = {
   value: string
   options: { value: string; label: string }[]
   placeholder: string
+  /** Label for the "clear" option in dropdown; defaults to placeholder */
+  clearLabel?: string
   onChange: (value: string) => void
   disabled?: boolean
 }
@@ -17,6 +19,7 @@ export default function ScrollSelect({
   value,
   options,
   placeholder,
+  clearLabel,
   onChange,
   disabled = false,
 }: ScrollSelectProps) {
@@ -34,6 +37,7 @@ export default function ScrollSelect({
   }, [])
 
   const displayLabel = value ? (options.find((o) => o.value === value)?.label ?? value) : placeholder
+  const clearText = clearLabel ?? placeholder
 
   return (
     <div className={styles.wrap} ref={ref}>
@@ -43,7 +47,7 @@ export default function ScrollSelect({
       <button
         id={id}
         type="button"
-        className={styles.trigger}
+        className={`${styles.trigger}${value ? ` ${styles.triggerSelected}` : ''}`}
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
         aria-expanded={open}
@@ -68,7 +72,7 @@ export default function ScrollSelect({
               setOpen(false)
             }}
           >
-            {placeholder}
+            {clearText}
           </button>
           {options.map((opt) => (
             <button

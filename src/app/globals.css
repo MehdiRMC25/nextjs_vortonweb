@@ -16,6 +16,11 @@
   --font: var(--font-outfit, 'Outfit'), -apple-system, BlinkMacSystemFont, sans-serif;
   --accent-muted: rgba(249, 115, 22, 0.2);
   --accent-muted-hover: rgba(249, 115, 22, 0.28);
+
+  /* Filter "selected" styling (pink) */
+  --filter-selected: #ec4899;
+  --filter-selected-bg: rgba(236, 72, 153, 0.10);
+  --filter-selected-border: rgba(236, 72, 153, 0.45);
 }
 
 *,

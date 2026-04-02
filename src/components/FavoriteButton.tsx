@@ -6,16 +6,20 @@ import styles from './FavoriteButton.module.css'
 
 export default function FavoriteButton({
   favoriteKey,
+  activeKeys,
   className,
   onClick,
 }: {
   favoriteKey: string
+  /** If any of these are favorited, button renders active (still toggles favoriteKey). */
+  activeKeys?: string[]
   className?: string
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }) {
   const { t } = useLocale()
-  const { isFavorite, toggle } = useFavorites()
-  const active = isFavorite(favoriteKey)
+  const { isFavorite, add, removeMany } = useFavorites()
+  const keysForActive = (activeKeys?.length ? activeKeys : [favoriteKey]).map((k) => String(k ?? '').trim()).filter(Boolean)
+  const active = keysForActive.some((k) => isFavorite(k))
 
   return (
     <button
@@ -25,7 +29,11 @@ export default function FavoriteButton({
       aria-label={active ? t('removeFromFavorites') : t('addToFavorites')}
       onClick={(e) => {
         onClick?.(e)
-        toggle(favoriteKey)
+        if (active) {
+          removeMany(keysForActive)
+        } else {
+          add(favoriteKey)
+        }
       }}
     >
       <svg

@@ -139,11 +139,13 @@ export default function ProductDetail() {
 
     const p = product
     const variantIndex = p.variants?.length ? selectedColor : 0
-    const favoriteKey = getFavoriteKey({
+    const baseFavoriteKey = getFavoriteKey({ id: p.id, sku: p.sku })
+    const variantFavoriteKey = getFavoriteKey({
         skuColor: p.variants?.[variantIndex]?.skuColor,
         id: p.id,
         sku: p.sku,
     })
+    const activeKeys = [variantFavoriteKey, baseFavoriteKey]
     const categoryLabel = p.category === 'women' ? (locale === 'az' ? 'qadınlar' : 'women') : (locale === 'az' ? 'kişilər' : 'men')
     const fabricLabel =
         typeof fabric === 'string' && fabric.trim()
@@ -225,7 +227,11 @@ export default function ProductDetail() {
                 <div className={styles.info}>
                     <div className={styles.titleRow}>
                         <h1 className={styles.title}>{p.name}</h1>
-                        <FavoriteButton favoriteKey={favoriteKey} className={styles.detailFavoriteBtn} />
+                        <FavoriteButton
+                            favoriteKey={variantFavoriteKey}
+                            activeKeys={activeKeys}
+                            className={styles.detailFavoriteBtn}
+                        />
                     </div>
                     <p className={styles.sku}>SKU: {p.sku}</p>
 
