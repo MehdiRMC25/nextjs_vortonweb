@@ -48,6 +48,8 @@
   top: 10px;
   left: 10px;
   z-index: 2;
+  --fav-btn-size: 2rem;
+  --fav-icon-size: 1.2rem;
 }
 
 .body {

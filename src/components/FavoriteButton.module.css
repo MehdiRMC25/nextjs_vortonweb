@@ -2,21 +2,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.35rem;
-  height: 2.35rem;
+  width: var(--fav-btn-size, 2rem);
+  height: var(--fav-btn-size, 2rem);
   padding: 0;
   border-radius: 9999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(6px);
+  border: none;
+  background: var(--fav-btn-bg, rgba(255, 255, 255, 0.98));
+  box-shadow: var(--fav-btn-shadow, 0 10px 22px rgba(15, 23, 42, 0.16));
   color: var(--text-primary);
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
 }
 
 .btn:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.18);
+  background: var(--fav-btn-bg-hover, #fff);
   transform: translateY(-1px);
+  box-shadow: var(--fav-btn-shadow-hover, 0 12px 26px rgba(15, 23, 42, 0.18));
 }
 
 .btn:focus-visible {
@@ -24,13 +24,32 @@
   outline-offset: 2px;
 }
 
-.active {
-  border-color: rgba(249, 115, 22, 0.6);
+.icon {
+  width: var(--fav-icon-size, 1.25rem);
+  height: var(--fav-icon-size, 1.25rem);
+  display: block;
+  transform: translateX(var(--fav-icon-shift-x, 0px)) translateY(var(--fav-icon-shift-y, 0px));
 }
 
-.icon {
-  font-size: 1.25rem;
-  line-height: 1;
-  transform: translateY(-0.02em);
+.heartBase {
+  fill: transparent;
+  stroke: rgba(239, 68, 68, 0.85);
+  stroke-width: 1.8;
+  transition: fill 0.18s, stroke 0.18s, filter 0.18s;
+}
+
+.heartGloss {
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.active .heartBase {
+  fill: rgb(239, 68, 68);
+  stroke: rgb(239, 68, 68);
+  filter: none;
+}
+
+.active .heartGloss {
+  opacity: 0;
 }
 

@@ -12,6 +12,8 @@ export default function FilterLayout({
   setCategory,
   favoritesOnly,
   setFavoritesOnly,
+  priceSort,
+  setPriceSort,
   selectedColor,
   setSelectedColor,
   selectedSize,
@@ -28,6 +30,8 @@ export default function FilterLayout({
           setCategory={setCategory}
           favoritesOnly={favoritesOnly}
           setFavoritesOnly={setFavoritesOnly}
+          priceSort={priceSort}
+          setPriceSort={setPriceSort}
           selectedColor={selectedColor}
           setSelectedColor={setSelectedColor}
           selectedSize={selectedSize}

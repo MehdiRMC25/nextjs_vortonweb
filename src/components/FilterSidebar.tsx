@@ -9,6 +9,8 @@ export interface FilterSidebarProps {
   setCategory: (value: string) => void
   favoritesOnly: boolean
   setFavoritesOnly: (value: boolean) => void
+  priceSort: '' | 'priceAsc' | 'priceDesc'
+  setPriceSort: (value: '' | 'priceAsc' | 'priceDesc') => void
   selectedColor: string
   setSelectedColor: (value: string) => void
   selectedSize: string
@@ -23,6 +25,8 @@ export default function FilterSidebar({
   setCategory,
   favoritesOnly,
   setFavoritesOnly,
+  priceSort,
+  setPriceSort,
   selectedColor,
   setSelectedColor,
   selectedSize,
@@ -36,11 +40,15 @@ export default function FilterSidebar({
   return (
     <>
       <div className={styles.sidebarBrand}>
-        <span className={styles.sidebarTitle}>Vorton</span>
-        <span className={styles.sidebarTagline}>{t('discoverYourStyle')}</span>
+        <span className={styles.sidebarTitle}>
+          <span className={styles.brandWord}>
+            <span className={styles.brandV}>V</span>orton
+          </span>
+          <span className={styles.brandTagline}>where style meets comfort.</span>
+        </span>
       </div>
 
-      <div className={styles.filterBlock}>
+      <div className={`${styles.filterBlock} ${styles.favoritesBlock}`}>
         <FavoritesFilterToggle enabled={favoritesOnly} onChange={setFavoritesOnly} />
       </div>
 
@@ -80,6 +88,21 @@ export default function FilterSidebar({
           options={sizes.map((s) => ({ value: s, label: s }))}
           placeholder={t('allSizes')}
           onChange={setSelectedSize}
+          disabled={loading}
+        />
+      </div>
+
+      <div className={styles.filterBlock}>
+        <ScrollSelect
+          id="filter-price-sort"
+          label={t('price')}
+          value={priceSort}
+          options={[
+            { value: 'priceDesc', label: `⬆ ${t('priceHighToLow')}` },
+            { value: 'priceAsc', label: `⬇ ${t('priceLowToHigh')}` },
+          ]}
+          placeholder={t('priceSortPlaceholder')}
+          onChange={(v) => setPriceSort(v as '' | 'priceAsc' | 'priceDesc')}
           disabled={loading}
         />
       </div>

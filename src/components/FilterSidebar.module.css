@@ -1,13 +1,35 @@
 .sidebarBrand {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  margin-top: 20px;
+  margin-bottom: 28px;
 }
 
 .sidebarTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: 500;
   letter-spacing: -0.02em;
+}
+
+.brandV {
+  color: var(--accent);
+}
+
+.brandWord {
+  display: inline-block;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.brandTagline {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-style: italic;
+  color: var(--text-primary);
 }
 
 .sidebarTagline {
@@ -19,6 +41,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 8px;
+}
+
+.favoritesBlock {
   margin-bottom: 8px;
 }
 

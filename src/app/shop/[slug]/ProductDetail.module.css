@@ -103,6 +103,10 @@
 .detailFavoriteBtn {
   flex-shrink: 0;
   margin-top: 2px;
+  --fav-btn-size: 3.5rem;
+  --fav-icon-size: 2.35rem;
+  --fav-icon-shift-y: -0.5px;
+  --fav-icon-shift-x: 1.5px;
 }
 
 .sku {

@@ -70,6 +70,7 @@ export default function Shop() {
     const [selectedColor, setSelectedColor] = useState<string>('')
     const [selectedSize, setSelectedSize] = useState<string>('')
     const [favoritesOnly, setFavoritesOnly] = useState(false)
+    const [priceSort, setPriceSort] = useState<'' | 'priceAsc' | 'priceDesc'>('')
     const [showRefresh, setShowRefresh] = useState(false)
 
     useEffect(() => {
@@ -142,8 +143,15 @@ export default function Shop() {
                 return p.variants.some((v) => !!v.skuColor && favoritesSet.has(v.skuColor))
             })
         }
+        if (priceSort) {
+            list = [...list].sort((a, b) => {
+                const ap = a.salePrice ?? a.price
+                const bp = b.salePrice ?? b.price
+                return priceSort === 'priceAsc' ? ap - bp : bp - ap
+            })
+        }
         return list
-    }, [byCategory, selectedColor, selectedSize, searchQuery, favoritesOnly, favoritesSet])
+    }, [byCategory, selectedColor, selectedSize, searchQuery, favoritesOnly, favoritesSet, priceSort])
 
     return (
         <FilterLayout
@@ -151,6 +159,8 @@ export default function Shop() {
             setCategory={setCategory}
             favoritesOnly={favoritesOnly}
             setFavoritesOnly={setFavoritesOnly}
+            priceSort={priceSort}
+            setPriceSort={setPriceSort}
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
             selectedSize={selectedSize}
