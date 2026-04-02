@@ -159,7 +159,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     priceHighToLow: 'Bahadan ucuza',
     priceLowToHigh: 'Ucuzdan bahaya',
     clearFilter: 'Filtri təmizlə',
-    brandTagline: 'Üslubun Rahatlıqla Qovuşduğu Yer',
+    brandTagline: 'üslubun rahatlıqla qovuşduğu yer',
     location: 'Yer',
     address: 'Ünvan',
     phone: 'Telefon',

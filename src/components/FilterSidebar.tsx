@@ -44,7 +44,11 @@ export default function FilterSidebar({
           <span className={styles.brandWord}>
             <span className={styles.brandV}>V</span>orton
           </span>
-          <span className={styles.brandTagline}>{t('brandTagline')}</span>
+          <span
+            className={`${styles.brandTagline}${locale === 'az' ? ` ${styles.brandTaglineAz}` : ''}`}
+          >
+            {t('brandTagline')}
+          </span>
         </span>
       </div>
 
