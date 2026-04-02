@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useProducts } from '@/context/ProductsContext'
+import { useFavorites } from '@/context/FavoritesContext'
 import { useLocale } from '@/context/LocaleContext'
 import ProductCard from '@/components/ProductCard'
 import FilterLayout from '@/components/FilterLayout'
@@ -61,12 +62,14 @@ export default function Shop() {
     const { t } = useLocale()
     const searchParams = useSearchParams()
     const router = useRouter()
+    const { favoritesSet } = useFavorites()
     const category = (searchParams.get('category') as 'men' | 'women' | null) || null
     const searchQuery = (searchParams.get('q') ?? '').trim()
     const { products, loading, error, retry } = useProducts()
     const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
     const [selectedColor, setSelectedColor] = useState<string>('')
     const [selectedSize, setSelectedSize] = useState<string>('')
+    const [favoritesOnly, setFavoritesOnly] = useState(false)
     const [showRefresh, setShowRefresh] = useState(false)
 
     useEffect(() => {
@@ -131,13 +134,23 @@ export default function Shop() {
         if (searchQuery) {
             list = list.filter((p) => productMatchesSearchQuery(p, searchQuery))
         }
+        if (favoritesOnly) {
+            list = list.filter((p) => {
+                const productKey = p.id || p.sku
+                if (productKey && favoritesSet.has(productKey)) return true
+                if (!p.variants?.length) return false
+                return p.variants.some((v) => !!v.skuColor && favoritesSet.has(v.skuColor))
+            })
+        }
         return list
-    }, [byCategory, selectedColor, selectedSize, searchQuery])
+    }, [byCategory, selectedColor, selectedSize, searchQuery, favoritesOnly, favoritesSet])
 
     return (
         <FilterLayout
             category={category}
             setCategory={setCategory}
+            favoritesOnly={favoritesOnly}
+            setFavoritesOnly={setFavoritesOnly}
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
             selectedSize={selectedSize}
@@ -167,10 +180,18 @@ export default function Shop() {
                 </section>
             ) : filtered.length === 0 ? (
                 <div className={styles.emptyBlock}>
-                    <p className={styles.empty}>{t('noProductsMatch')}</p>
-                    <button type="button" className={styles.refreshBtn} onClick={() => retry()}>
-                        {t('retryOrReload')}
-                    </button>
+                    <p className={styles.empty}>
+                        {favoritesOnly ? t('noFavoritesYet') : t('noProductsMatch')}
+                    </p>
+                    {favoritesOnly ? (
+                        <button type="button" className={styles.refreshBtn} onClick={() => setFavoritesOnly(false)}>
+                            {t('clearFavoritesFilter')}
+                        </button>
+                    ) : (
+                        <button type="button" className={styles.refreshBtn} onClick={() => retry()}>
+                            {t('retryOrReload')}
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div className={styles.grid}>

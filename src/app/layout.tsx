@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { LocaleProvider } from '@/context/LocaleContext'
 import { ProductsProvider } from '@/context/ProductsContext'
 import { CartProvider } from '@/context/CartContext'
+import { FavoritesProvider } from '@/context/FavoritesContext'
 import Layout from '@/components/Layout'
 import { getCanonicalAndAlternates, getRequestOrigin } from '@/lib/siteUrl'
 import './globals.css'
@@ -86,11 +87,13 @@ export default async function RootLayout({
                 <AuthProvider>
                     <LocaleProvider defaultLocale={defaultLocale} geoCountry={geoCountry}>
                         <ProductsProvider>
-                            <CartProvider>
-                                <Suspense fallback={null}>
-                                    <Layout>{children}</Layout>
-                                </Suspense>
-                            </CartProvider>
+                            <FavoritesProvider>
+                                <CartProvider>
+                                    <Suspense fallback={null}>
+                                        <Layout>{children}</Layout>
+                                    </Suspense>
+                                </CartProvider>
+                            </FavoritesProvider>
                         </ProductsProvider>
                     </LocaleProvider>
                 </AuthProvider>

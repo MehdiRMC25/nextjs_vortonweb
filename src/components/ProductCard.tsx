@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useLocale } from '../context/LocaleContext'
 import { variantHasValidColor } from '../api/products'
 import { displayColorName } from '@/lib/colorTranslation'
+import { getFavoriteKey } from '@/lib/favorites'
+import FavoriteButton from '@/components/FavoriteButton'
 import type { Product } from '../types'
 import styles from './ProductCard.module.css'
 
@@ -79,6 +81,12 @@ export default function ProductCard({
   const imgFetchPriority =
     imageLoading === 'eager' && imageFetchPriority !== undefined ? imageFetchPriority : undefined
 
+  const favoriteKey = getFavoriteKey({
+    skuColor: displayVariant?.skuColor,
+    id: product.id,
+    sku: product.sku,
+  })
+
   if (!imageLoaded) {
     return (
       <div className={`${styles.card} ${compact ? styles.cardCompact : ''}`} aria-hidden>
@@ -116,6 +124,14 @@ export default function ProductCard({
           className={styles.image}
         />
         {hasSale && <span className={styles.saleBadge}>{t('sale')}</span>}
+        <FavoriteButton
+          favoriteKey={favoriteKey}
+          className={styles.favoriteBtn}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+          }}
+        />
       </div>
       <div className={styles.body}>
         <h3 className={styles.name}>{product.name}</h3>

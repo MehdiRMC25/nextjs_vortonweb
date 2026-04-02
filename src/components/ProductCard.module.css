@@ -43,6 +43,13 @@
   border-radius: 6px;
 }
 
+.favoriteBtn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+}
+
 .body {
   padding: 16px;
 }

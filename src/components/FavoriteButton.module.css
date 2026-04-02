@@ -1,0 +1,36 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  color: var(--text-primary);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.active {
+  border-color: rgba(249, 115, 22, 0.6);
+}
+
+.icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  transform: translateY(-0.02em);
+}
+

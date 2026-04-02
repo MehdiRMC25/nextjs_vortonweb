@@ -1,11 +1,14 @@
 import { useLocale } from '../context/LocaleContext'
 import ScrollSelect from './ScrollSelect'
 import { displayColorName } from '@/lib/colorTranslation'
+import FavoritesFilterToggle from '@/components/FavoritesFilterToggle'
 import styles from './FilterSidebar.module.css'
 
 export interface FilterSidebarProps {
   category: 'men' | 'women' | null
   setCategory: (value: string) => void
+  favoritesOnly: boolean
+  setFavoritesOnly: (value: boolean) => void
   selectedColor: string
   setSelectedColor: (value: string) => void
   selectedSize: string
@@ -18,6 +21,8 @@ export interface FilterSidebarProps {
 export default function FilterSidebar({
   category,
   setCategory,
+  favoritesOnly,
+  setFavoritesOnly,
   selectedColor,
   setSelectedColor,
   selectedSize,
@@ -33,6 +38,10 @@ export default function FilterSidebar({
       <div className={styles.sidebarBrand}>
         <span className={styles.sidebarTitle}>Vorton</span>
         <span className={styles.sidebarTagline}>{t('discoverYourStyle')}</span>
+      </div>
+
+      <div className={styles.filterBlock}>
+        <FavoritesFilterToggle enabled={favoritesOnly} onChange={setFavoritesOnly} />
       </div>
 
       <div className={styles.filterBlock}>

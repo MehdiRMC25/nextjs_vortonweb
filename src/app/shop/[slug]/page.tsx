@@ -7,6 +7,8 @@ import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
 import { variantHasValidColor } from '@/api/products'
 import { displayColorName } from '@/lib/colorTranslation'
+import { getFavoriteKey } from '@/lib/favorites'
+import FavoriteButton from '@/components/FavoriteButton'
 import ProductCard from '@/components/ProductCard'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import type { Product } from '@/types'
@@ -137,6 +139,11 @@ export default function ProductDetail() {
 
     const p = product
     const variantIndex = p.variants?.length ? selectedColor : 0
+    const favoriteKey = getFavoriteKey({
+        skuColor: p.variants?.[variantIndex]?.skuColor,
+        id: p.id,
+        sku: p.sku,
+    })
     const categoryLabel = p.category === 'women' ? (locale === 'az' ? 'qadınlar' : 'women') : (locale === 'az' ? 'kişilər' : 'men')
     const fabricLabel =
         typeof fabric === 'string' && fabric.trim()
@@ -216,7 +223,10 @@ export default function ProductDetail() {
                 </div>
 
                 <div className={styles.info}>
-                    <h1 className={styles.title}>{p.name}</h1>
+                    <div className={styles.titleRow}>
+                        <h1 className={styles.title}>{p.name}</h1>
+                        <FavoriteButton favoriteKey={favoriteKey} className={styles.detailFavoriteBtn} />
+                    </div>
                     <p className={styles.sku}>SKU: {p.sku}</p>
 
                     {validColorSwatches.length > 0 && (

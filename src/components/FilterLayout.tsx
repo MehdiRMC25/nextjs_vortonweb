@@ -10,6 +10,8 @@ export default function FilterLayout({
   children,
   category,
   setCategory,
+  favoritesOnly,
+  setFavoritesOnly,
   selectedColor,
   setSelectedColor,
   selectedSize,
@@ -24,6 +26,8 @@ export default function FilterLayout({
         <FilterSidebar
           category={category}
           setCategory={setCategory}
+          favoritesOnly={favoritesOnly}
+          setFavoritesOnly={setFavoritesOnly}
           selectedColor={selectedColor}
           setSelectedColor={setSelectedColor}
           selectedSize={selectedSize}
