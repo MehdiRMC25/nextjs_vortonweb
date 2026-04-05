@@ -66,6 +66,38 @@ export type CreatePaymentResponse = {
 
 const PAYMENT_TIMEOUT_MS = 120_000 // Render free tier cold start can take 1–2 min; retry is usually fast
 
+/** Use in checkout to show translated copy instead of raw gateway text. */
+export const PAYMENT_ERROR_GENERIC = 'PAYMENT_GATEWAY_UNAVAILABLE'
+
+/** Never surface raw HTML or huge JSON bodies from the payment API in the UI. */
+function messageFromPaymentErrorResponse(status: number, bodyText: string): string {
+  const t = bodyText.trim()
+  if (!t) {
+    return PAYMENT_ERROR_GENERIC
+  }
+  if (t.startsWith('{')) {
+    try {
+      const j = JSON.parse(t) as { error?: string; message?: string }
+      const msg = (typeof j.error === 'string' && j.error.trim()) || (typeof j.message === 'string' && j.message.trim())
+      if (msg) {
+        if (msg.length > 800 || /<html|<!DOCTYPE/i.test(msg)) {
+          return PAYMENT_ERROR_GENERIC
+        }
+        return msg
+      }
+    } catch {
+      /* not JSON */
+    }
+  }
+  if (/<!DOCTYPE|<html/i.test(t) || t.length > 800) {
+    return PAYMENT_ERROR_GENERIC
+  }
+  if (t.length > 400) {
+    return PAYMENT_ERROR_GENERIC
+  }
+  return t
+}
+
 /** Call after redirect from bank: confirms payment and triggers backend to create order + emit order_created for Delivery and Order Tracking. */
 export async function confirmPayment(bankOrderId: string, status: string): Promise<CreatePaymentResponse | null> {
   const base = config.paymentApiUrl.replace(/\/$/, '')
@@ -93,8 +125,8 @@ export async function createPayment(body: CreatePaymentRequest): Promise<CreateP
       signal: controller.signal,
     })
     if (!res.ok) {
-      const err = await res.text()
-      throw new Error(err || `Payment API error ${res.status}`)
+      const errText = await res.text()
+      throw new Error(messageFromPaymentErrorResponse(res.status, errText))
     }
     return res.json()
   } catch (e) {

@@ -12,8 +12,13 @@ export const config = {
   paymentApiUrl: e('NEXT_PUBLIC_PAYMENT_API_URL', 'https://vorton-payement.onrender.com'),
   /** Path for creating a payment. payement_backend uses /api/v1/payments/create */
   paymentCreatePath: process.env.NEXT_PUBLIC_PAYMENT_CREATE_PATH || '/api/v1/payments/create',
-  /** Where the bank redirects after payment. Set to https://vorton.uk/payment-done.html for production. */
+  /**
+   * Where the bank redirects after payment (must match a URL allowed by Kapital).
+   * If empty, checkout builds a URL: production uses the current origin; localhost uses NEXT_PUBLIC_SITE_URL (see getPaymentReturnUrl).
+   */
   paymentReturnUrl: process.env.NEXT_PUBLIC_PAYMENT_RETURN_URL || '',
+  /** Canonical public site (no trailing slash). Used for payment return URL on localhost. */
+  siteUrl: e('NEXT_PUBLIC_SITE_URL', 'https://vorton.uk'),
   /** Unified API base URL for auth (and payment). Auth must use vorton-payement, not vorton-mob-app. */
   apiBaseUrl: e('NEXT_PUBLIC_API_BASE_URL', 'https://vorton-payement.onrender.com'),
   /** Auth API base URL. Must point to https://vorton-payement.onrender.com (auth lives there). */
@@ -21,6 +26,11 @@ export const config = {
   authLoginPath: process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH || '/auth/login',
   authSignUpPath: process.env.NEXT_PUBLIC_AUTH_SIGNUP_PATH || '/auth/signup',
   authMePath: process.env.NEXT_PUBLIC_AUTH_ME_PATH || '/api/v1/auth/me',
+  /** PATCH profile — same as mobile (address, phone, etc.) */
+  authProfilePath: process.env.NEXT_PUBLIC_AUTH_PROFILE_PATH || '/api/v1/auth/profile',
+  /** Append-only checkout delivery contact log */
+  authCheckoutDeliveryPath:
+    process.env.NEXT_PUBLIC_AUTH_CHECKOUT_DELIVERY_PATH || '/api/v1/auth/checkout-delivery',
   /** Orders API base (e.g. http://localhost:3000/api/v1). Same backend as auth. */
   ordersApiBaseUrl: (() => {
     const base = e('NEXT_PUBLIC_ORDERS_API_URL', e('NEXT_PUBLIC_API_BASE_URL', 'https://vorton-payement.onrender.com'))

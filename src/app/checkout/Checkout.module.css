@@ -9,6 +9,16 @@
   margin: 0 auto;
 }
 
+@media (min-width: 768px) {
+  .wrap {
+    max-width: 720px;
+  }
+
+  .title {
+    font-size: 1.875rem;
+  }
+}
+
 .summaryCard {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -23,7 +33,7 @@
 }
 
 .guestTitle {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   margin: 0 0 12px;
   color: var(--text-secondary);
@@ -31,7 +41,7 @@
 
 .guestLabel {
   display: block;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   margin-bottom: 10px;
   color: var(--text-primary);
@@ -58,7 +68,7 @@
 }
 
 .summaryTitle {
-  font-size: 1.15rem;
+  font-size: 1.3125rem;
   font-weight: 600;
   margin: 0 0 20px;
 }
@@ -74,14 +84,15 @@
 .itemList li {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  line-height: 1.45;
   margin-bottom: 8px;
 }
 
 .totalRow {
   display: flex;
   justify-content: space-between;
-  font-size: 1.05rem;
+  font-size: 1.125rem;
   font-weight: 600;
   margin: 0 0 12px;
 }
@@ -95,16 +106,16 @@
 }
 
 .pointsTitle {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   margin: 0 0 10px;
 }
 
 .pointsEstimateLine {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-primary);
   margin: 0 0 8px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .pointsEstimateStrong {
@@ -113,14 +124,14 @@
 }
 
 .pointsHint {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   margin: 0 0 10px;
   line-height: 1.45;
 }
 
 .pointsBalance {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
   margin: 0 0 10px;
   color: var(--text-primary);
@@ -133,9 +144,10 @@
 }
 
 .pointsMuted {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.45;
 }
 
 .pointsSignInRow {
@@ -149,7 +161,7 @@
 .discountRow {
   display: flex;
   justify-content: space-between;
-  font-size: 0.98rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--accent);
   margin: 0 0 8px;
@@ -158,7 +170,7 @@
 .payableRow {
   display: flex;
   justify-content: space-between;
-  font-size: 1.15rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   margin: 0 0 12px;
   padding-top: 12px;
@@ -166,19 +178,20 @@
 }
 
 .note {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   margin: 0;
+  line-height: 1.45;
 }
 
 .error {
   color: var(--accent, #c00);
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin: 12px 0 0;
 }
 
 .loadingHint {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
   margin: 8px 0 0;
 }
@@ -188,7 +201,7 @@
   text-align: center;
   margin-top: 16px;
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .backLink:hover {
@@ -206,4 +219,57 @@
 .empty p {
   margin: 0 0 20px;
   color: var(--text-secondary);
+}
+
+.deliveryPanel {
+  margin: 0 0 16px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.deliveryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.deliveryTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.deliveryReadonly {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.deliveryLine {
+  margin: 0 0 6px;
+  word-break: break-word;
+}
+
+.deliveryLine:last-child {
+  margin-bottom: 0;
+}
+
+.deliveryLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.deliveryEdit {
+  margin-top: 4px;
+}
+
+.deliveryHint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 10px 0 0;
+  line-height: 1.45;
 }

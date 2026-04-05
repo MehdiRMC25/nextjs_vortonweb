@@ -8,8 +8,13 @@ import {
   useEffect,
   type ReactNode,
 } from 'react'
-import { getMe, login as apiLogin, signup as apiSignup } from '../api/auth'
-import type { AuthUser, SignupPayload } from '../api/auth'
+import {
+  getMe,
+  login as apiLogin,
+  signup as apiSignup,
+  updateProfile as updateProfileApi,
+} from '../api/auth'
+import type { AuthUser, ProfileUpdatePayload, SignupPayload } from '../api/auth'
 
 type RefreshUserResult = AuthUser | null
 
@@ -28,6 +33,10 @@ type AuthState = {
   clearError: () => void
   /** Refetch profile (e.g. reward points) from GET /auth/me */
   refreshUser: () => Promise<RefreshUserResult>
+  /** PATCH profile (address, phone, etc.) — updates stored user */
+  updateProfile: (payload: ProfileUpdatePayload) => Promise<void>
+  /** Replace user in memory + localStorage (e.g. after email confirm) */
+  syncUser: (u: AuthUser) => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -160,6 +169,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [token])
 
+  const updateProfile = useCallback(
+    async (payload: ProfileUpdatePayload) => {
+      const t = token ?? getStoredToken()
+      if (!t) throw new Error('Not signed in')
+      const me = await updateProfileApi(t, payload)
+      setUser(me)
+      if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(me))
+    },
+    [token]
+  )
+
+  const syncUser = useCallback((u: AuthUser) => {
+    setUser(u)
+    if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(u))
+  }, [])
+
   const value: AuthState = {
     user,
     token,
@@ -171,6 +196,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     clearError,
     refreshUser,
+    updateProfile,
+    syncUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

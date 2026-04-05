@@ -152,6 +152,10 @@ export default function Account() {
                             <span className={styles.accountNavIcon}>⭐</span>
                             {t('rewardPoints')}
                         </Link>
+                        <Link href="/account/edit-profile" className={styles.accountNavItem}>
+                            <span className={styles.accountNavIcon}>✏️</span>
+                            {t('editProfile')}
+                        </Link>
                     </nav>
                 )}
 

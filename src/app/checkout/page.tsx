@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
-import { createPayment, type PaymentOrderPayload } from '@/api/payment'
+import { createPayment, PAYMENT_ERROR_GENERIC, type PaymentOrderPayload } from '@/api/payment'
+import { appendCheckoutDelivery } from '@/api/auth'
 import type { AuthUser } from '@/api/auth'
 import type { CartItem } from '@/types'
 import {
@@ -20,6 +21,8 @@ import {
 } from '@/lib/rewardPointsEarn'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import { productDisplayName } from '@/lib/productDisplay'
+import { isValidPhone } from '@/utils/validation'
+import { getPaymentReturnUrl } from '@/lib/paymentReturnUrl'
 import styles from './Checkout.module.css'
 
 function getItemPrice(item: CartItem): number {
@@ -57,7 +60,7 @@ const today = () => new Date().toISOString().slice(0, 10)
 
 export default function Checkout() {
     const { t, locale } = useLocale()
-    const { user, isAuthenticated, refreshUser } = useAuth()
+    const { user, token, isAuthenticated, refreshUser } = useAuth()
     const { items } = useCart()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -65,6 +68,25 @@ export default function Checkout() {
     const [guestMobile, setGuestMobile] = useState('')
     const [guestAddress, setGuestAddress] = useState('')
     const [useRewardPoints, setUseRewardPoints] = useState(false)
+    const [deliveryMobile, setDeliveryMobile] = useState('')
+    const [deliveryAddress, setDeliveryAddress] = useState('')
+    const [deliveryEditing, setDeliveryEditing] = useState(false)
+    const [deliveryBusy, setDeliveryBusy] = useState(false)
+    const [deliveryError, setDeliveryError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            setDeliveryMobile((user.phone ?? '').trim())
+            const composed =
+                typeof user.address === 'string' && user.address.trim()
+                    ? user.address.trim()
+                    : [user.address_line1, user.address_line2, user.city, user.postcode, user.country]
+                          .filter(Boolean)
+                          .join(', ')
+                          .trim()
+            setDeliveryAddress(composed)
+        }
+    }, [isAuthenticated, user])
 
     const subtotal = Math.round(items.reduce((sum, i) => sum + getItemPrice(i) * i.quantity, 0) * 100) / 100
     const eligibleSubtotal = Math.round(
@@ -104,10 +126,20 @@ export default function Checkout() {
         const customer_name = isAuthenticated && user
             ? ((user.name ?? ([user.first_name, user.last_name].filter(Boolean).join(' ') || 'Customer')).trim() || 'Customer')
             : guestName.trim()
-        const mobile = (isAuthenticated && user ? user.phone : guestMobile.trim()) || ''
-        const address = isAuthenticated && user
-            ? (user.address ?? [user.address_line1, user.address_line2, user.city, user.postcode, user.country].filter(Boolean).join(', ')).trim() || null
-            : guestAddress.trim() || null
+        const mobile =
+            isAuthenticated && user
+                ? (deliveryMobile.trim() || (user.phone ?? '').trim() || '')
+                : guestMobile.trim() || ''
+        const address =
+            isAuthenticated && user
+                ? (deliveryAddress.trim() ||
+                      (user.address ??
+                          [user.address_line1, user.address_line2, user.city, user.postcode, user.country]
+                              .filter(Boolean)
+                              .join(', ')
+                              .trim()) ||
+                      null)
+                : guestAddress.trim() || null
         const membership_level = (isAuthenticated && user && user.membership_level) ? user.membership_level : 'none'
         const customer_id = parseCustomerId(user)
         const orderItems = items.map((item) => {
@@ -163,7 +195,7 @@ export default function Checkout() {
             const disc = discountAznFromRedeemPoints(pts)
             const net = Math.round((subtotal - disc) * 100) / 100
 
-            const returnUrl = `${window.location.origin}/payment/done`
+            const returnUrl = getPaymentReturnUrl()
             const order = buildOrderPayload(net, pts)
             const res = await createPayment({
                 amount: net,
@@ -181,12 +213,40 @@ export default function Checkout() {
                 msg === 'PAYMENT_CORS_OR_NETWORK'
                     ? `${t('paymentCorsError')} (${t('youAreOn')}: ${window.location.origin})`
                     : null
+            const gatewayMsg = msg === PAYMENT_ERROR_GENERIC ? t('paymentGatewayUnavailable') : null
             setError(
                 msg === 'PAYMENT_TIMEOUT'
                     ? t('paymentTimeoutMessage')
-                    : corsMsg ?? msg
+                    : corsMsg ?? gatewayMsg ?? msg
             )
             setLoading(false)
+        }
+    }
+
+    async function saveCheckoutDelivery() {
+        setDeliveryError(null)
+        if (!token) {
+            setDeliveryError(t('signIn'))
+            return
+        }
+        const phone = deliveryMobile.trim()
+        const addr = deliveryAddress.trim()
+        if (!phone && !addr) {
+            setDeliveryError(t('checkoutGuestFields'))
+            return
+        }
+        if (phone && !isValidPhone(phone)) {
+            setDeliveryError(t('invalidMobileNumber'))
+            return
+        }
+        setDeliveryBusy(true)
+        try {
+            await appendCheckoutDelivery(token, { phone, address: addr })
+            setDeliveryEditing(false)
+        } catch (e) {
+            setDeliveryError(e instanceof Error ? e.message : 'Save failed')
+        } finally {
+            setDeliveryBusy(false)
         }
     }
 
@@ -304,6 +364,70 @@ export default function Checkout() {
                             </div>
                         )}
                     </div>
+
+                    {isAuthenticated && user && (
+                        <div className={styles.deliveryPanel}>
+                            <div className={styles.deliveryHeader}>
+                                <h3 className={styles.deliveryTitle}>{t('checkDeliveryDetails')}</h3>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setDeliveryError(null)
+                                        setDeliveryEditing((v) => !v)
+                                    }}
+                                >
+                                    {t('checkDeliveryUpdate')}
+                                </button>
+                            </div>
+                            {!deliveryEditing ? (
+                                <div className={styles.deliveryReadonly}>
+                                    <p className={styles.deliveryLine}>
+                                        <span className={styles.deliveryLabel}>{t('mobileLabel')}:</span>{' '}
+                                        {deliveryMobile.trim() || t('notProvided')}
+                                    </p>
+                                    <p className={styles.deliveryLine}>
+                                        <span className={styles.deliveryLabel}>{t('address')}:</span>{' '}
+                                        {deliveryAddress.trim() || t('notProvided')}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className={styles.deliveryEdit}>
+                                    <label className={styles.guestLabel}>
+                                        {t('mobileLabel')}
+                                        <input
+                                            type="text"
+                                            className={styles.guestInput}
+                                            value={deliveryMobile}
+                                            onChange={(e) => setDeliveryMobile(e.target.value)}
+                                            placeholder="+994..."
+                                        />
+                                    </label>
+                                    <label className={styles.guestLabel}>
+                                        {t('address')}
+                                        <input
+                                            type="text"
+                                            className={styles.guestInput}
+                                            value={deliveryAddress}
+                                            onChange={(e) => setDeliveryAddress(e.target.value)}
+                                            placeholder={t('optional')}
+                                        />
+                                    </label>
+                                    {deliveryError && <p className={styles.error}>{deliveryError}</p>}
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        style={{ width: '100%', marginTop: 8 }}
+                                        onClick={() => void saveCheckoutDelivery()}
+                                        disabled={deliveryBusy}
+                                    >
+                                        {deliveryBusy ? t('loading') : t('saveDeliveryDetails')}
+                                    </button>
+                                </div>
+                            )}
+                            <p className={styles.deliveryHint}>{t('checkDeliveryAccountHint')}</p>
+                        </div>
+                    )}
 
                     {chosenPoints > 0 && (
                         <p className={styles.discountRow}>

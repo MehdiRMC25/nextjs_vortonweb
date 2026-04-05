@@ -346,3 +346,151 @@ export async function getMe(token: string): Promise<AuthUser> {
     }
   )
 }
+
+export type ProfileUpdatePayload = {
+  email?: string
+  phone?: string
+  address_line1?: string
+  address_line2?: string
+  city?: string
+  postcode?: string
+  country?: string
+  password?: string
+  current_phone?: string
+}
+
+function buildProfileBody(payload: ProfileUpdatePayload): Record<string, unknown> {
+  const body: Record<string, unknown> = {}
+  const keys: (keyof ProfileUpdatePayload)[] = [
+    'email',
+    'phone',
+    'address_line1',
+    'address_line2',
+    'city',
+    'postcode',
+    'country',
+    'password',
+    'current_phone',
+  ]
+  for (const k of keys) {
+    const v = payload[k]
+    if (v !== undefined && v !== '') {
+      body[k] = v
+    }
+  }
+  return body
+}
+
+/**
+ * PATCH profile — Bearer token. Same contract as Vorton_app_mob (fallback paths).
+ */
+export async function updateProfile(token: string, payload: ProfileUpdatePayload): Promise<AuthUser> {
+  const body = buildProfileBody(payload)
+  if (Object.keys(body).length === 0) {
+    return getMe(token)
+  }
+  const paths = [config.authProfilePath, '/api/v1/users/me', '/api/v1/auth/me', '/auth/profile']
+  return requestWithFallback(
+    paths,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    },
+    async (res) => {
+      const raw = (await res.json()) as Record<string, unknown>
+      const data = (raw.data as Record<string, unknown> | undefined) ?? raw
+      const userPayload = data.user ?? data.customer ?? raw.user ?? raw.customer
+      return toAuthUser(userPayload)
+    }
+  )
+}
+
+export async function requestEmailChangeCode(token: string, newEmail: string): Promise<{ ok: boolean; error?: string }> {
+  const paths = [
+    '/api/v1/auth/profile/email/request-code',
+    '/api/v1/auth/email/change/request',
+    '/auth/email/verify/request',
+  ]
+  try {
+    await requestWithFallback(
+      paths,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: newEmail.trim(), new_email: newEmail.trim() }),
+      },
+      async (res) => {
+        await res.json()
+        return null
+      }
+    )
+    return { ok: true }
+  } catch (e) {
+    if (e instanceof AuthApiError && (e.status === 404 || e.status === 405)) {
+      return { ok: false, error: 'EMAIL_CODE_UNAVAILABLE' }
+    }
+    return { ok: false, error: e instanceof Error ? e.message : 'Request failed' }
+  }
+}
+
+export async function confirmEmailChange(token: string, newEmail: string, code: string): Promise<AuthUser> {
+  const paths = [
+    '/api/v1/auth/profile/email/confirm',
+    '/api/v1/auth/email/change/confirm',
+    '/auth/email/verify/confirm',
+  ]
+  return requestWithFallback(
+    paths,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: newEmail.trim(),
+        new_email: newEmail.trim(),
+        code: code.trim(),
+      }),
+    },
+    async (res) => {
+      const raw = (await res.json()) as Record<string, unknown>
+      const data = (raw.data as Record<string, unknown> | undefined) ?? raw
+      const userPayload = data.user ?? raw.user ?? data
+      return toAuthUser(userPayload)
+    }
+  )
+}
+
+/** Append-only delivery phone/address for checkout (does not replace saved profile). */
+export async function appendCheckoutDelivery(
+  token: string,
+  payload: { phone: string; address: string }
+): Promise<void> {
+  const paths = [config.authCheckoutDeliveryPath, '/api/v1/auth/checkout-delivery']
+  await requestWithFallback(
+    paths,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        phone: payload.phone.trim(),
+        address: payload.address.trim(),
+      }),
+    },
+    async (res) => {
+      await res.json()
+      return null
+    }
+  )
+}
