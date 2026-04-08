@@ -2,15 +2,15 @@
 
 **Do not surface this file in the app UI.** Customer-facing copy lives in `src/data/rewardPolicy.public.md`. Website earn **estimates**: `src/lib/rewardPointsEarn.ts` (used by checkout UI). Redemption helpers: `src/lib/rewardPointsRedemption.ts` (keep in sync with payment backend / PostgreSQL).
 
-## Earning (eligible merchandise subtotal in merchant currency / AZN, regular-price lines only)
+## Earning (eligible merchandise subtotal in USD, regular-price lines only)
 
-- 0–72 → 2% back in points
-- 72–180 → 3.5% back in points
-- 180+ → 5% back in points
+- 0–72 USD → 2% back in points
+- 72–180 USD → 3.5% back in points
+- 180+ USD → 5% back in points
 
-**Conversion:** 1 currency unit of reward value = 11 points (same as checkout `POINTS_PER_AZN`).
+**Conversion:** 1 USD reward value = 11 points.
 
-Example: 200 eligible at 5% → 10 reward value → 110 points.
+Example: 200 USD eligible at 5% → 10 USD reward value → 110 points.
 
 **Notes:**
 - Eligible subtotal = sum of non-discounted items only.
@@ -20,7 +20,7 @@ Example: 200 eligible at 5% → 10 reward value → 110 points.
 ## Redemption
 
 - Points can be applied as a discount at checkout via “Use my points”.
-- 11 points = 1 unit discount value (e.g. 1 ₼).
+- 11 points = 1 USD discount value (converted to AZN at checkout).
 - Points can only be applied to non-discounted items within the cart.
 - Points cannot exceed the value of eligible (non-discounted) items.
 - Partial redemption is allowed.
@@ -70,6 +70,8 @@ Example: 200 eligible at 5% → 10 reward value → 110 points.
 
 ## Implementation notes
 
+- Storefront/order totals are in **AZN**; earning tiers and redemption value are defined in **USD**.
+- Backend uses `REWARD_AZN_PER_USD` (default 1.7) to convert USD↔AZN. If the FX rate changes, update that env var on the backend and keep frontend “estimate” copy in sync.
 - Always persist reward transactions (earn/redeem/expire) in a dedicated table.
 - Never delete reward history (append-only ledger).
 - Orders must remain immutable for audit and reporting.

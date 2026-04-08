@@ -92,8 +92,25 @@ export default function Account() {
             : [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() || t('notProvided')
     const displayEmail =
         typeof user?.email === 'string' && user.email.trim() ? user.email : t('notProvided')
+    const displaySecondEmail =
+        typeof user?.second_email === 'string' && user.second_email.trim()
+            ? user.second_email
+            : t('notProvided')
+    const displayThirdEmail =
+        typeof user?.third_email === 'string' && user.third_email.trim()
+            ? user.third_email
+            : t('notProvided')
     const displayPhone =
         typeof user?.phone === 'string' && user.phone.trim() ? user.phone : t('notProvided')
+    const displaySecondPhone =
+        typeof user?.second_phone === 'string' && user.second_phone.trim()
+            ? user.second_phone
+            : t('notProvided')
+    const displayThirdPhone =
+        typeof user?.third_phone === 'string' && user.third_phone.trim()
+            ? user.third_phone
+            : t('notProvided')
+    const showAuthDebug = process.env.NEXT_PUBLIC_DEBUG_AUTH_USER === '1'
     const userAddress =
         typeof user?.address === 'string' && user.address.trim() ? user.address : ''
     const joinedDate =
@@ -211,7 +228,6 @@ export default function Account() {
                             <p className={styles.membershipCardName} aria-hidden="true">{displayName}</p>
                         </div>
                     </article>
-                    <p className={styles.tierThresholds}>{t('tierThresholds')}</p>
                 </section>
 
                 {isCustomer && (
@@ -245,7 +261,30 @@ export default function Account() {
                             <p className={styles.label}>{t('address')}</p>
                             <p className={styles.text}>{userAddress || t('notProvided')}</p>
                         </div>
+                        <div>
+                            <p className={styles.label}>{t('secondEmail')}</p>
+                            <p className={styles.text}>{displaySecondEmail}</p>
+                        </div>
+                        <div>
+                            <p className={styles.label}>{t('thirdEmail')}</p>
+                            <p className={styles.text}>{displayThirdEmail}</p>
+                        </div>
+                        <div>
+                            <p className={styles.label}>{t('secondMobile')}</p>
+                            <p className={styles.text}>{displaySecondPhone}</p>
+                        </div>
+                        <div>
+                            <p className={styles.label}>{t('thirdMobile')}</p>
+                            <p className={styles.text}>{displayThirdPhone}</p>
+                        </div>
                     </div>
+                    {showAuthDebug && user && (
+                        <details className={styles.authDebug}>
+                            <summary>{t('accountDebugAuthMeTitle')}</summary>
+                            <p className={styles.authDebugHint}>{t('accountDebugAuthMeHint')}</p>
+                            <pre className={styles.authDebugPre}>{JSON.stringify(user, null, 2)}</pre>
+                        </details>
+                    )}
                 </section>
 
                 <section className={styles.section}>

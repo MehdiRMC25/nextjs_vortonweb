@@ -1,4 +1,14 @@
 .wrap {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.cardWide {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.cardNarrow {
   max-width: 560px;
   margin: 0 auto;
 }

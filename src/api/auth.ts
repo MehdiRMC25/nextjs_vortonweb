@@ -8,7 +8,11 @@ export type AuthUser = {
   id: string | number
   role?: UserRole
   email?: string
+  second_email?: string
+  third_email?: string
   phone?: string
+  second_phone?: string
+  third_phone?: string
   name?: string
   first_name?: string
   last_name?: string
@@ -112,6 +116,17 @@ async function readErrorMessage(res: Response): Promise<string> {
   }
 }
 
+function pickFirstString(record: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const v = record[key]
+    if (typeof v === 'string') {
+      const t = v.trim()
+      if (t) return t
+    }
+  }
+  return undefined
+}
+
 function toAuthUser(user: unknown): AuthUser {
   if (!user || typeof user !== 'object') return { id: 'user' }
   const u = user as Record<string, unknown>
@@ -123,6 +138,25 @@ function toAuthUser(user: unknown): AuthUser {
   const city = typeof u.city === 'string' ? u.city : ''
   const postcode = typeof u.postcode === 'string' ? u.postcode : ''
   const country = typeof u.country === 'string' ? u.country : ''
+
+  const secondEmail = pickFirstString(u, [
+    'second_email',
+    'secondEmail',
+    'email_secondary',
+  ])
+  const thirdEmail = pickFirstString(u, ['third_email', 'thirdEmail', 'email_tertiary'])
+  const secondPhone = pickFirstString(u, [
+    'second_phone',
+    'secondPhone',
+    'second_mobile',
+    'mobile_secondary',
+  ])
+  const thirdPhone = pickFirstString(u, [
+    'third_phone',
+    'thirdPhone',
+    'third_mobile',
+    'mobile_tertiary',
+  ])
 
   const mapped: AuthUser = {
     ...(u as AuthUser),
@@ -136,10 +170,14 @@ function toAuthUser(user: unknown): AuthUser {
             ? 'customer'
             : undefined,
     email: typeof u.email === 'string' ? u.email : undefined,
+    second_email: secondEmail,
+    third_email: thirdEmail,
     phone:
       (typeof u.phone === 'string' ? u.phone : undefined) ??
       (typeof u.mobile === 'string' ? u.mobile : undefined) ??
       (typeof u.mobileNumber === 'string' ? u.mobileNumber : undefined),
+    second_phone: secondPhone,
+    third_phone: thirdPhone,
     name: fullName || (typeof u.fullName === 'string' ? u.fullName : undefined),
     first_name: firstName || undefined,
     last_name: lastName || undefined,
@@ -340,16 +378,26 @@ export async function getMe(token: string): Promise<AuthUser> {
       headers: { Authorization: `Bearer ${token}` },
     },
     async (res) => {
-      const data = (await res.json()) as { user?: unknown } | unknown
-      const userData = typeof data === 'object' && data && 'user' in data ? (data as { user?: unknown }).user : data
-      return toAuthUser(userData)
+      const data = (await res.json()) as Record<string, unknown> | unknown
+      if (data && typeof data === 'object') {
+        const d = data as Record<string, unknown>
+        // GET /auth/me — { user, membership } from Node backend
+        if ('user' in d && d.user != null) {
+          return toAuthUser(d.user)
+        }
+      }
+      return toAuthUser(data)
     }
   )
 }
 
 export type ProfileUpdatePayload = {
   email?: string
+  second_email?: string
+  third_email?: string
   phone?: string
+  second_phone?: string
+  third_phone?: string
   address_line1?: string
   address_line2?: string
   city?: string
@@ -363,7 +411,11 @@ function buildProfileBody(payload: ProfileUpdatePayload): Record<string, unknown
   const body: Record<string, unknown> = {}
   const keys: (keyof ProfileUpdatePayload)[] = [
     'email',
+    'second_email',
+    'third_email',
     'phone',
+    'second_phone',
+    'third_phone',
     'address_line1',
     'address_line2',
     'city',
@@ -469,13 +521,13 @@ export async function confirmEmailChange(token: string, newEmail: string, code: 
   )
 }
 
-/** Append-only delivery phone/address for checkout (does not replace saved profile). */
+/** Append-only delivery phone/address for checkout (does not replace saved profile). Returns log row id for linking to the order after payment. */
 export async function appendCheckoutDelivery(
   token: string,
   payload: { phone: string; address: string }
-): Promise<void> {
+): Promise<{ id: number }> {
   const paths = [config.authCheckoutDeliveryPath, '/api/v1/auth/checkout-delivery']
-  await requestWithFallback(
+  return requestWithFallback(
     paths,
     {
       method: 'POST',
@@ -489,8 +541,12 @@ export async function appendCheckoutDelivery(
       }),
     },
     async (res) => {
-      await res.json()
-      return null
+      const raw = (await res.json()) as { ok?: boolean; id?: number }
+      const id = typeof raw.id === 'number' ? raw.id : Number(raw.id)
+      if (!Number.isFinite(id) || id <= 0) {
+        throw new Error('Invalid delivery log response from server')
+      }
+      return { id }
     }
   )
 }

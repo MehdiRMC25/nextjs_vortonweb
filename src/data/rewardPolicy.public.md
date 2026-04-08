@@ -4,17 +4,20 @@ Our rewards programme is designed to thank loyal customers while preserving the 
 
 ## Earning Points
 
-Earn points on every full-price purchase (amounts in AZN / ₼, same currency as prices on this site):
+Earn points on every full-price purchase (amounts in USD / $):
 
-- Up to 72 ₼ → 2% back
-- 72–180 ₼ → 3.5% back
-- 180+ ₼ → 5% back
+- Up to $72 → 2% back
+- $72–$180 → 3.5% back
+- $180+ → 5% back
 
 Points are calculated on regular-price items only.
+
+**Conversion:** 1 USD reward value = 11 points.
 
 ## Using Your Points
 
 - Points can be used as a discount at checkout
+- 11 points = $1 discount value
 - Points apply only to full-price items
 - You can use points partially or fully on eligible items
 
@@ -43,6 +46,8 @@ Your membership level is based on your total spend:
 ## Important Notes
 
 - Points and discounts apply only to full-price items
+- No points are earned on discounted or promotional items
+- Points can’t be earned or redeemed on delivery/shipping fees or additional services
 - Promotions and discounts cannot be combined
 - Points are valid for 12 months from the date earned
 

@@ -20,12 +20,20 @@ export default function EditProfilePage() {
     const [postcode, setPostcode] = useState('')
     const [country, setCountry] = useState('')
 
-    const [newEmail, setNewEmail] = useState('')
+    const [email1, setEmail1] = useState('')
+    const [email2, setEmail2] = useState('')
+    const [email3, setEmail3] = useState('')
+    const [showEmail2, setShowEmail2] = useState(false)
+    const [showEmail3, setShowEmail3] = useState(false)
     const [emailCode, setEmailCode] = useState('')
     const [emailCodeSent, setEmailCodeSent] = useState(false)
 
     const [phonePassword, setPhonePassword] = useState('')
     const [newPhone, setNewPhone] = useState('')
+    const [phone2, setPhone2] = useState('')
+    const [phone3, setPhone3] = useState('')
+    const [showPhone2, setShowPhone2] = useState(false)
+    const [showPhone3, setShowPhone3] = useState(false)
 
     const [busy, setBusy] = useState<string | null>(null)
     const [msg, setMsg] = useState<string | null>(null)
@@ -44,8 +52,16 @@ export default function EditProfilePage() {
         setCity(user.city ?? '')
         setPostcode(user.postcode ?? '')
         setCountry(user.country ?? '')
-        setNewEmail(user.email ?? '')
-        setNewPhone('')
+        setEmail1(user.email ?? '')
+        setEmail2(user.second_email ?? '')
+        setEmail3(user.third_email ?? '')
+        setShowEmail2(Boolean((user.second_email ?? '').trim()))
+        setShowEmail3(Boolean((user.third_email ?? '').trim()))
+        setNewPhone(user.phone ?? '')
+        setPhone2(user.second_phone ?? '')
+        setPhone3(user.third_phone ?? '')
+        setShowPhone2(Boolean((user.second_phone ?? '').trim()))
+        setShowPhone3(Boolean((user.third_phone ?? '').trim()))
     }, [user])
 
     const loginIdentifier = useMemo(() => {
@@ -76,7 +92,7 @@ export default function EditProfilePage() {
     }
 
     async function onSendEmailCode() {
-        const next = newEmail.trim()
+        const next = email1.trim()
         if (!next || !isValidEmail(next)) {
             setErr(t('editProfileFillRequired'))
             return
@@ -109,7 +125,7 @@ export default function EditProfilePage() {
     }
 
     async function onConfirmEmail() {
-        const next = newEmail.trim()
+        const next = email1.trim()
         const code = emailCode.trim()
         if (!next || !code || !token) {
             setErr(t('editProfileFillRequired'))
@@ -131,42 +147,52 @@ export default function EditProfilePage() {
         }
     }
 
-    async function onUpdatePhone() {
-        const next = newPhone.trim()
-        const pwd = phonePassword
-        if (!pwd || !next) {
-            setErr(t('editProfileFillRequired'))
-            return
-        }
-        const accountPhone = (user?.phone ?? '').trim()
-        if (accountPhone && next.replace(/\s/g, '') === accountPhone.replace(/\s/g, '')) {
-            setErr(t('editProfilePhoneSameAsCurrent'))
-            return
-        }
-        if (!isValidPhone(next)) {
-            setErr(t('invalidMobileNumber'))
-            return
-        }
-        if (!loginIdentifier) return
+    async function onSaveContactInfo() {
+        if (!user || !token) return
         setErr(null)
         setMsg(null)
-        setBusy('phone')
+        setBusy('contact')
         try {
-            await login(loginIdentifier, pwd)
-        } catch {
-            setErr(t('editProfileLoginFailed'))
-            return
-        }
-        try {
+            const primaryPhone = (user.phone ?? '').trim()
+            const nextPhone = newPhone.trim()
+            const primaryPhoneChanged =
+                Boolean(nextPhone) && nextPhone.replace(/\s/g, '') !== primaryPhone.replace(/\s/g, '')
+
+            // Validate emails (optional fields)
+            const e1 = email1.trim()
+            const e2 = showEmail2 ? email2.trim() : ''
+            const e3 = showEmail3 ? email3.trim() : ''
+            if (e1 && !isValidEmail(e1)) throw new Error(t('invalidEmailAddress'))
+            if (e2 && !isValidEmail(e2)) throw new Error(t('invalidEmailAddress'))
+            if (e3 && !isValidEmail(e3)) throw new Error(t('invalidEmailAddress'))
+
+            // Validate phones (optional fields)
+            if (nextPhone && !isValidPhone(nextPhone)) throw new Error(t('invalidMobileNumber'))
+            const p2 = showPhone2 ? phone2.trim() : ''
+            const p3 = showPhone3 ? phone3.trim() : ''
+            if (p2 && !isValidPhone(p2)) throw new Error(t('invalidMobileNumber'))
+            if (p3 && !isValidPhone(p3)) throw new Error(t('invalidMobileNumber'))
+
+            // Only require password when primary phone changes
+            if (primaryPhoneChanged) {
+                if (!loginIdentifier) throw new Error(t('editProfileLoginFailed'))
+                await login(loginIdentifier, phonePassword)
+            }
+
             await updateProfile({
-                phone: next,
-                current_phone: accountPhone || undefined,
+                email: e1 || undefined,
+                second_email: showEmail2 ? e2 || undefined : undefined,
+                third_email: showEmail3 ? e3 || undefined : undefined,
+                ...(primaryPhoneChanged
+                    ? { phone: nextPhone, current_phone: primaryPhone || undefined }
+                    : {}),
+                second_phone: showPhone2 ? p2 || undefined : undefined,
+                third_phone: showPhone3 ? p3 || undefined : undefined,
             })
             setPhonePassword('')
-            setNewPhone('')
             setMsg(t('editProfileSaved'))
         } catch (e) {
-            setErr(e instanceof Error ? e.message : 'Update failed')
+            setErr(e instanceof Error ? e.message : 'Save failed')
         } finally {
             setBusy(null)
         }
@@ -192,7 +218,7 @@ export default function EditProfilePage() {
                 {msg && <p className={styles.success}>{msg}</p>}
 
                 <h2 className={styles.sectionTitle}>{t('editProfileAddressSection')}</h2>
-                <div className={styles.card}>
+                <div className={`${styles.card} ${styles.cardWide}`}>
                     <label className={styles.label}>
                         {t('addressLine1Label')}
                         <input
@@ -234,94 +260,169 @@ export default function EditProfilePage() {
                 </div>
 
                 <h2 className={styles.sectionTitle}>{t('editProfileEmailSection')}</h2>
-                <div className={styles.card}>
-                    <p className={styles.label}>{t('email')}</p>
-                    <input
-                        className={`${styles.input} ${styles.readOnly}`}
-                        value={user.email ?? ''}
-                        readOnly
-                        aria-readonly
-                    />
+                <div className={`${styles.card} ${styles.cardWide}`}>
                     <label className={styles.label}>
-                        {t('editProfileNewEmail')}
+                        {t('emailLabel')}
                         <input
                             type="email"
                             className={styles.input}
-                            value={newEmail}
-                            onChange={(e) => setNewEmail(e.target.value)}
+                            value={email1}
+                            onChange={(e) => setEmail1(e.target.value)}
                             autoComplete="email"
                         />
                     </label>
-                    <div className={styles.rowActions}>
-                        <button
-                            type="button"
-                            className="btn btn-secondary"
-                            onClick={() => void onSendEmailCode()}
-                            disabled={busy !== null}
-                        >
-                            {busy === 'email-send' ? t('loading') : t('editProfileSendCode')}
-                        </button>
-                    </div>
-                    {emailCodeSent && (
+
+                    {email1.trim() && email1.trim() !== (user.email ?? '').trim() && (
                         <>
+                            <div className={styles.rowActions}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => void onSendEmailCode()}
+                                    disabled={busy !== null}
+                                >
+                                    {busy === 'email-send' ? t('loading') : t('editProfileSendCode')}
+                                </button>
+                            </div>
+                            {emailCodeSent && (
+                                <>
+                                    <label className={styles.label}>
+                                        {t('editProfileCodePlaceholder')}
+                                        <input
+                                            className={styles.input}
+                                            value={emailCode}
+                                            onChange={(e) => setEmailCode(e.target.value)}
+                                            inputMode="numeric"
+                                            autoComplete="one-time-code"
+                                        />
+                                    </label>
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        onClick={() => void onConfirmEmail()}
+                                        disabled={busy !== null}
+                                    >
+                                        {busy === 'email-confirm' ? t('loading') : t('editProfileConfirmEmail')}
+                                    </button>
+                                </>
+                            )}
+                        </>
+                    )}
+
+                    {!showEmail2 ? (
+                        <button type="button" className="btn btn-secondary" onClick={() => setShowEmail2(true)} disabled={busy !== null}>
+                            {t('addSecondEmail')}
+                        </button>
+                    ) : (
+                        <>
+                            <div className={styles.rowActions}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setShowEmail2(false)
+                                        setShowEmail3(false)
+                                        setEmail2('')
+                                        setEmail3('')
+                                    }}
+                                    disabled={busy !== null}
+                                >
+                                    {t('hideSecondEmail')}
+                                </button>
+                            </div>
                             <label className={styles.label}>
-                                {t('editProfileCodePlaceholder')}
-                                <input
-                                    className={styles.input}
-                                    value={emailCode}
-                                    onChange={(e) => setEmailCode(e.target.value)}
-                                    inputMode="numeric"
-                                    autoComplete="one-time-code"
-                                />
+                                {t('secondEmail')}
+                                <input type="email" className={styles.input} value={email2} onChange={(e) => setEmail2(e.target.value)} />
                             </label>
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={() => void onConfirmEmail()}
-                                disabled={busy !== null}
-                            >
-                                {busy === 'email-confirm' ? t('loading') : t('editProfileConfirmEmail')}
-                            </button>
+                            {!showEmail3 ? (
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowEmail3(true)} disabled={busy !== null}>
+                                    {t('addThirdEmail')}
+                                </button>
+                            ) : (
+                                <label className={styles.label}>
+                                    {t('thirdEmail')}
+                                    <input type="email" className={styles.input} value={email3} onChange={(e) => setEmail3(e.target.value)} />
+                                </label>
+                            )}
                         </>
                     )}
                 </div>
 
                 <h2 className={styles.sectionTitle}>{t('editProfilePhoneSection')}</h2>
-                <div className={styles.card}>
-                    <p className={styles.label}>{t('mobileLabel')}</p>
-                    <input
-                        className={`${styles.input} ${styles.readOnly}`}
-                        value={user.phone ?? ''}
-                        readOnly
-                        aria-readonly
-                    />
-                    <label className={styles.label}>{t('editProfileNewPhone')}</label>
-                    <input
-                        className={styles.input}
-                        value={newPhone}
-                        onChange={(e) => setNewPhone(e.target.value)}
-                        inputMode="tel"
-                        autoComplete="tel"
-                        placeholder="+994..."
-                    />
+                <div className={`${styles.card} ${styles.cardWide}`}>
                     <label className={styles.label}>
-                        {t('editProfilePhonePassword')}
+                        {t('mobileLabel')}
                         <input
-                            type="password"
                             className={styles.input}
-                            value={phonePassword}
-                            onChange={(e) => setPhonePassword(e.target.value)}
-                            autoComplete="current-password"
+                            value={newPhone}
+                            onChange={(e) => setNewPhone(e.target.value)}
+                            inputMode="tel"
+                            autoComplete="tel"
+                            placeholder="+994..."
                         />
                     </label>
-                    <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => void onUpdatePhone()}
-                        disabled={busy !== null}
-                    >
-                        {busy === 'phone' ? t('loading') : t('editProfileUpdatePhone')}
-                    </button>
+
+                    {newPhone.trim() && newPhone.trim().replace(/\s/g, '') !== (user.phone ?? '').trim().replace(/\s/g, '') && (
+                        <label className={styles.label}>
+                            {t('editProfilePhonePassword')}
+                            <input
+                                type="password"
+                                className={styles.input}
+                                value={phonePassword}
+                                onChange={(e) => setPhonePassword(e.target.value)}
+                                autoComplete="current-password"
+                            />
+                        </label>
+                    )}
+
+                    {!showPhone2 ? (
+                        <button type="button" className="btn btn-secondary" onClick={() => setShowPhone2(true)} disabled={busy !== null}>
+                            {t('addSecondMobile')}
+                        </button>
+                    ) : (
+                        <>
+                            <div className={styles.rowActions}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setShowPhone2(false)
+                                        setShowPhone3(false)
+                                        setPhone2('')
+                                        setPhone3('')
+                                    }}
+                                    disabled={busy !== null}
+                                >
+                                    {t('hideSecondMobile')}
+                                </button>
+                            </div>
+                            <label className={styles.label}>
+                                {t('secondMobile')}
+                                <input className={styles.input} value={phone2} onChange={(e) => setPhone2(e.target.value)} inputMode="tel" />
+                            </label>
+                            {!showPhone3 ? (
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowPhone3(true)} disabled={busy !== null}>
+                                    {t('addThirdMobile')}
+                                </button>
+                            ) : (
+                                <label className={styles.label}>
+                                    {t('thirdMobile')}
+                                    <input className={styles.input} value={phone3} onChange={(e) => setPhone3(e.target.value)} inputMode="tel" />
+                                </label>
+                            )}
+                        </>
+                    )}
+
+                    <div className={styles.rowActions} style={{ marginTop: 12 }}>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => void onSaveContactInfo()}
+                            disabled={busy !== null}
+                        >
+                            {busy === 'contact' ? t('loading') : t('editProfileSaveAll')}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

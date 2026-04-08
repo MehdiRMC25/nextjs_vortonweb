@@ -25,6 +25,8 @@ export type PaymentOrderPayload = {
   total_price: number
   /** Whole points to redeem; omit when paying full price. */
   points_to_redeem?: number
+  /** From POST /auth/checkout-delivery — linked to the order after payment. */
+  delivery_contact_log_id?: number
 }
 
 export type CreatePaymentRequest = {

@@ -73,6 +73,8 @@ export default function Checkout() {
     const [deliveryEditing, setDeliveryEditing] = useState(false)
     const [deliveryBusy, setDeliveryBusy] = useState(false)
     const [deliveryError, setDeliveryError] = useState<string | null>(null)
+    /** Set when user saves checkout delivery — sent with payment order to link log row to created order. */
+    const [deliveryContactLogId, setDeliveryContactLogId] = useState<number | null>(null)
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -168,6 +170,12 @@ export default function Checkout() {
             items: orderItems,
             total_price: netPay,
             ...(pointsToRedeem > 0 ? { points_to_redeem: pointsToRedeem } : {}),
+            ...(isAuthenticated &&
+            user &&
+            deliveryContactLogId != null &&
+            deliveryContactLogId > 0
+                ? { delivery_contact_log_id: deliveryContactLogId }
+                : {}),
         }
     }
 
@@ -241,7 +249,8 @@ export default function Checkout() {
         }
         setDeliveryBusy(true)
         try {
-            await appendCheckoutDelivery(token, { phone, address: addr })
+            const { id } = await appendCheckoutDelivery(token, { phone, address: addr })
+            setDeliveryContactLogId(id)
             setDeliveryEditing(false)
         } catch (e) {
             setDeliveryError(e instanceof Error ? e.message : 'Save failed')

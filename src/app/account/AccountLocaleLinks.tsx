@@ -3,7 +3,7 @@
 import { Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
-import { buildLocaleSwitchUrl } from '@/lib/domainConfig'
+import { buildLocaleSwitchUrl, normalizeRegistrableHost, VORTON_HOST_AZ, VORTON_HOST_UK } from '@/lib/domainConfig'
 import styles from './Account.module.css'
 
 function AccountLocaleLinksInner() {
@@ -13,23 +13,38 @@ function AccountLocaleLinksInner() {
   const search = searchParams?.toString() ? `?${searchParams.toString()}` : ''
   const azUrl = buildLocaleSwitchUrl('az', pathname, search)
   const enUrl = buildLocaleSwitchUrl('en', pathname, search)
+  const host =
+    typeof window !== 'undefined' ? normalizeRegistrableHost(window.location.host) : ''
 
-  if (locale === 'az') {
+  // Domain-specific behavior:
+  // - vorton.uk: show Language = English only (no cross-site link)
+  // - vorton.az: show Azerbaijani + hint for English on vorton.com
+  if (host === VORTON_HOST_UK) {
+    return (
+      <div className={`${styles.langOptions} ${styles.langOptionsSingle}`}>
+        <span className={`${styles.langOption} ${styles.langOptionActive}`}>{t('english')}</span>
+      </div>
+    )
+  }
+
+  if (host === VORTON_HOST_AZ || locale === 'az') {
     return (
       <div className={styles.langOptions}>
         <span className={`${styles.langOption} ${styles.langOptionActive}`}>{t('azerbaijani')}</span>
-        <a href={enUrl} className={styles.langOption}>
-          {t('accountLanguageOnEnglishSite')}
+        <a
+          href="https://vorton.com"
+          className={styles.langOption}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          {t('accountLanguageEnglishOnDotCom')}
         </a>
       </div>
     )
   }
 
   return (
-    <div className={styles.langOptions}>
-      <a href={azUrl} className={styles.langOption}>
-        {t('accountLanguageOnAzSite')}
-      </a>
+    <div className={`${styles.langOptions} ${styles.langOptionsSingle}`}>
       <span className={`${styles.langOption} ${styles.langOptionActive}`}>{t('english')}</span>
     </div>
   )

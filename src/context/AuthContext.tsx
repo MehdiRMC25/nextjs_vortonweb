@@ -70,11 +70,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           setUser(null)
         }
-      }
-      // Only call getMe when we have token but no user (e.g. token from another tab).
-      // When we have storedUser from login, skip getMe to avoid 401s from auth/me.
-      if (storedUser) {
         setLoading(false)
+        // Refresh from GET /auth/me so PostgreSQL fields (e.g. second_email) are not stuck on an old localStorage snapshot.
+        void (async () => {
+          try {
+            const me = await getMe(stored)
+            setUser(me)
+            if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(me))
+          } catch {
+            /* keep token + cached user */
+          }
+        })()
         return
       }
       try {
@@ -83,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(me))
       } catch {
         // Keep token so protected routes still work (orders API validates token)
-        // auth/me may 401 due to backend config; token can still work for other endpoints
       } finally {
         setLoading(false)
       }
@@ -97,7 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await apiLogin(emailOrPhone, password)
       if (res.token) {
-        // Use user from login response; skip getMe to avoid 401 from auth/me
         const me = res.user
         if (typeof window !== 'undefined') {
           localStorage.setItem(STORAGE_KEY, res.token)
@@ -105,6 +109,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setToken(res.token)
         setUser(me)
+        void (async () => {
+          try {
+            const fresh = await getMe(res.token)
+            setUser(fresh)
+            if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(fresh))
+          } catch {
+            /* keep login payload if /me unavailable */
+          }
+        })()
       } else {
         setError('Sign-in could not be completed. No token in response.')
         throw new Error('Sign-in could not be completed. No token in response.')
@@ -124,7 +137,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await apiSignup(data)
       if (res.token) {
-        // Use user from signup response; skip getMe to avoid 401 from auth/me
         const me = res.user
         if (typeof window !== 'undefined') {
           localStorage.setItem(STORAGE_KEY, res.token)
@@ -132,6 +144,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setToken(res.token)
         setUser(me)
+        void (async () => {
+          try {
+            const fresh = await getMe(res.token)
+            setUser(fresh)
+            if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(fresh))
+          } catch {
+            /* keep signup payload if /me unavailable */
+          }
+        })()
         return { hasSession: true }
       }
       return { hasSession: false }

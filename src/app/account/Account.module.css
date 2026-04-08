@@ -313,6 +313,38 @@
   gap: 16px;
 }
 
+.authDebug {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.authDebug summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.authDebugHint {
+  margin: 8px 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.authDebugPre {
+  margin: 0;
+  padding: 12px;
+  max-height: 280px;
+  overflow: auto;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .label {
   margin: 0 0 4px;
   color: var(--text-secondary);
@@ -368,6 +400,10 @@
 .langOptions {
   display: flex;
   gap: 10px;
+}
+
+.langOptionsSingle {
+  margin-left: auto;
 }
 
 .langOption,
