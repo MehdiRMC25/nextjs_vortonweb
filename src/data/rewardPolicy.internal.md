@@ -2,7 +2,7 @@
 
 **Do not surface this file in the app UI.** Customer-facing copy lives in `src/data/rewardPolicy.public.md`. Website earn **estimates**: `src/lib/rewardPointsEarn.ts` (used by checkout UI). Redemption helpers: `src/lib/rewardPointsRedemption.ts` (keep in sync with payment backend / PostgreSQL).
 
-## Earning (eligible merchandise subtotal in USD, regular-price lines only)
+## Earning (eligible purchase amount in USD)
 
 - 0–72 USD → 2% back in points
 - 72–180 USD → 3.5% back in points
@@ -13,7 +13,8 @@
 Example: 200 USD eligible at 5% → 10 USD reward value → 110 points.
 
 **Notes:**
-- Eligible subtotal = sum of non-discounted items only.
+- Eligible purchase amount excludes: delivery/shipping fees, additional services, non-eligible items, and any discounted/promotional items.
+- Points are earned on full-price items only.
 - Points are calculated per order and rounded down to nearest whole point.
 - Reward rates are intentionally conservative to protect premium positioning.
 
@@ -21,8 +22,9 @@ Example: 200 USD eligible at 5% → 10 USD reward value → 110 points.
 
 - Points can be applied as a discount at checkout via “Use my points”.
 - 11 points = 1 USD discount value (converted to AZN at checkout).
-- Points can only be applied to non-discounted items within the cart.
-- Points cannot exceed the value of eligible (non-discounted) items.
+- Points may be redeemed in full or in part.
+- Points are applied to the total purchase amount excluding delivery/shipping fees.
+- The maximum redemption value of points per order is limited to 50% of the eligible purchase amount.
 - Partial redemption is allowed.
 - Points expire after 12 months (rolling basis, enforced server-side).
 
@@ -66,7 +68,7 @@ Example: 200 USD eligible at 5% → 10 USD reward value → 110 points.
 
 - Membership discounts do not apply to discounted or promotional items.
 - Membership discounts do not stack with other promotions.
-- Points redemption applies only to non-discounted items.
+- Promotions, discounts, and points cannot be combined on the same item.
 
 ## Implementation notes
 
