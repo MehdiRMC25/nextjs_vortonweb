@@ -1,26 +1,33 @@
 'use client'
 
+import { config } from '@/config'
+import { useAuth } from '@/context/AuthContext'
+import { useLocale } from '@/context/LocaleContext'
+import { buildWhatsAppHref, selectWhatsAppDigits } from '@/lib/whatsappRouting'
 import styles from './WhatsAppButton.module.css'
 
 type Props = {
   pageTag?: string
 }
 
-function toDigits(value: string): string {
-  return value.replace(/[^\d]/g, '')
-}
-
 export default function WhatsAppButton({ pageTag }: Props) {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ''
-  const message =
-    process.env.NEXT_PUBLIC_WHATSAPP_DEFAULT_MESSAGE ??
-    'Hello, I would like to contact Vorton support.'
-
-  const digits = toDigits(number)
+  const { isAuthenticated, user } = useAuth()
+  const { locale, geoCountry } = useLocale()
+  const digits = selectWhatsAppDigits({
+    isAuthenticated,
+    userCountry: typeof user?.country === 'string' ? user.country : undefined,
+    locale,
+    geoCountry,
+    phoneAz: config.whatsapp.phoneAz,
+    phoneIntl: config.whatsapp.phoneIntl,
+    phoneFallback: config.whatsapp.phoneFallback,
+    phoneLegacy: config.whatsapp.phoneLegacy,
+  })
   if (!digits) return null
 
-  const taggedMessage = pageTag ? `${message} [${pageTag}]` : message
-  const href = `https://wa.me/${digits}?text=${encodeURIComponent(taggedMessage)}`
+  const baseMessage = config.whatsapp.defaultMessage
+  const taggedMessage = baseMessage ? (pageTag ? `${baseMessage} [${pageTag}]` : baseMessage) : ''
+  const href = buildWhatsAppHref(digits, taggedMessage)
 
   return (
     <a

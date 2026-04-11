@@ -33,9 +33,9 @@ const BENEFIT_KEYS: Record<MembershipLevel, string[]> = {
 }
 
 const DISCOUNT_PERCENT: Record<MembershipLevel, string> = {
-    silver: '5%',
-    gold: '10%',
-    platinum: '15–20%',
+    silver: '3%',
+    gold: '5%',
+    platinum: '8%',
 }
 
 /** Tier thresholds in AZN total sales — same card design for all levels */
@@ -117,6 +117,20 @@ export default function Account() {
         typeof user?.created_at === 'string' && user.created_at
             ? new Date(user.created_at).toLocaleDateString(locale === 'az' ? 'az-AZ' : 'en-GB')
             : t('notProvided')
+
+    const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
+    const formatFullMemberDate = (iso: string) => {
+        try {
+            const date = new Date(iso)
+            const day = date.getDate()
+            const month = date.toLocaleString(dateFormat, { month: 'short' })
+            const year = date.getFullYear()
+            return `${day} ${month} ${year}`
+        } catch {
+            return iso
+        }
+    }
+
     const membershipNumber =
         typeof user?.membership_number === 'string' && user.membership_number
             ? user.membership_number
@@ -126,26 +140,15 @@ export default function Account() {
     const level = getLevelFromSales(totalSalesAzn, user?.membership_level)
     const levelLabel = t(LEVEL_KEYS[level])
     const benefitKeys = BENEFIT_KEYS[level]
-    const memberSinceYear =
+    const memberSinceFull =
         typeof user?.created_at === 'string' && user.created_at
-            ? String(new Date(user.created_at).getFullYear())
-            : joinedDate
+            ? formatFullMemberDate(user.created_at)
+            : t('notProvided')
 
     const role: UserRole = (user?.role as UserRole) ?? 'customer'
     const isCustomer = role !== 'employee' && role !== 'manager'
 
-    const dateFormat = locale === 'az' ? 'az-AZ' : 'en-GB'
-    const formatDate = (d: string) => {
-        try {
-            const date = new Date(d)
-            const day = date.getDate()
-            const month = date.toLocaleString(dateFormat, { month: 'short' })
-            const year = date.getFullYear()
-            return `${day} ${month} ${year}`
-        } catch {
-            return d
-        }
-    }
+    const formatDate = (d: string) => formatFullMemberDate(d)
 
     function handleSignOut() {
         logout()
@@ -208,11 +211,15 @@ export default function Account() {
                             <div className={styles.membershipDetails}>
                                 <div className={styles.membershipDetail}>
                                     <span className={styles.membershipDetailLabel}>{t('overallDiscount')}</span>
-                                    <span className={styles.membershipDetailValue}>{DISCOUNT_PERCENT[level]}</span>
+                                    <span
+                                        className={`${styles.membershipDetailValue} ${styles.membershipDetailValueDiscount}`}
+                                    >
+                                        {DISCOUNT_PERCENT[level]}
+                                    </span>
                                 </div>
                                 <div className={styles.membershipDetail}>
                                     <span className={styles.membershipDetailLabel}>{t('memberSince')}</span>
-                                    <span className={styles.membershipDetailValue}>{memberSinceYear}</span>
+                                    <span className={styles.membershipDetailValue}>{memberSinceFull}</span>
                                 </div>
                             </div>
                             <div className={styles.membershipBenefits}>
@@ -252,6 +259,14 @@ export default function Account() {
                         <div>
                             <p className={styles.label}>{t('email')}</p>
                             <p className={styles.text}>{displayEmail}</p>
+                            {user?.email?.trim() && user.email_verified !== true && (
+                                <p className={styles.emailVerifyRow}>
+                                    <span className={styles.emailNotVerifiedBadge}>{t('emailNotVerifiedBadge')}</span>
+                                    <Link href="/account/edit-profile?verifyEmail=1" className={styles.verifyNowLink}>
+                                        {t('verifyEmailNow')}
+                                    </Link>
+                                </p>
+                            )}
                         </div>
                         <div>
                             <p className={styles.label}>{t('mobileLabel')}</p>
@@ -264,10 +279,32 @@ export default function Account() {
                         <div>
                             <p className={styles.label}>{t('secondEmail')}</p>
                             <p className={styles.text}>{displaySecondEmail}</p>
+                            {user?.second_email?.trim() && user.second_email_verified !== true && (
+                                <p className={styles.emailVerifyRow}>
+                                    <span className={styles.emailNotVerifiedBadge}>{t('emailNotVerifiedBadge')}</span>
+                                    <Link
+                                        href="/account/edit-profile?verifyEmail=1&slot=second"
+                                        className={styles.verifyNowLink}
+                                    >
+                                        {t('verifyEmailNow')}
+                                    </Link>
+                                </p>
+                            )}
                         </div>
                         <div>
                             <p className={styles.label}>{t('thirdEmail')}</p>
                             <p className={styles.text}>{displayThirdEmail}</p>
+                            {user?.third_email?.trim() && user.third_email_verified !== true && (
+                                <p className={styles.emailVerifyRow}>
+                                    <span className={styles.emailNotVerifiedBadge}>{t('emailNotVerifiedBadge')}</span>
+                                    <Link
+                                        href="/account/edit-profile?verifyEmail=1&slot=third"
+                                        className={styles.verifyNowLink}
+                                    >
+                                        {t('verifyEmailNow')}
+                                    </Link>
+                                </p>
+                            )}
                         </div>
                         <div>
                             <p className={styles.label}>{t('secondMobile')}</p>

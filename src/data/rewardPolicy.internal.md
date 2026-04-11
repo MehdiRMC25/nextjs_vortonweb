@@ -78,3 +78,9 @@ Example: 200 USD eligible at 5% → 10 USD reward value → 110 points.
 - Never delete reward history (append-only ledger).
 - Orders must remain immutable for audit and reporting.
 - All calculations must be validated server-side (never trust client input).
+
+## Server truth (auth, payment, membership)
+
+Full contract and payement-backend alignment: **`docs/server-truth-payment.md`**.
+
+**Summary:** Coordinate with payement-backend: read tier from `GET /api/v1/auth/me` → **`membership`**; send order lines with the same flags/prices the backend validates; treat membership discount as **server-authoritative** once the API recomputes totals (including `membership_discount_azn`) and rejects mismatched `total_price`. Until then, the website breakdown is UX-only for membership and totals.

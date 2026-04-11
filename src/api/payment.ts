@@ -14,7 +14,12 @@ export type PaymentOrderPayload = {
   items: Array<{
     name: string
     quantity: number
+    /** Catalogue list unit; server applies membership on non-promo lines. */
     price: number
+    /** Promo/sale unit when below list — server skips membership stacking on these lines. */
+    discounted_price?: number
+    /** Same as discounted_price; some API layers use camelCase. */
+    discountedPrice?: number
     sku_color?: string
     size?: string
     product_id?: string
@@ -71,6 +76,21 @@ const PAYMENT_TIMEOUT_MS = 120_000 // Render free tier cold start can take 1–2
 /** Use in checkout to show translated copy instead of raw gateway text. */
 export const PAYMENT_ERROR_GENERIC = 'PAYMENT_GATEWAY_UNAVAILABLE'
 
+/**
+ * Internal validation / accounting copy from the API — never show raw to customers.
+ * Checkout maps this to `paymentFailedMessage`.
+ */
+export const PAYMENT_ERROR_FAILED_GENERIC = 'PAYMENT_FAILED_GENERIC'
+
+/** Replace backend-only wording with a stable client code before throwing. */
+function normalizePaymentErrorMessage(raw: string): string {
+  const m = raw.trim()
+  if (!m) return PAYMENT_ERROR_GENERIC
+  if (/payment amount must equal/i.test(m)) return PAYMENT_ERROR_FAILED_GENERIC
+  if (/merchandise excl/i.test(m)) return PAYMENT_ERROR_FAILED_GENERIC
+  return m
+}
+
 /** Never surface raw HTML or huge JSON bodies from the payment API in the UI. */
 function messageFromPaymentErrorResponse(status: number, bodyText: string): string {
   const t = bodyText.trim()
@@ -79,13 +99,24 @@ function messageFromPaymentErrorResponse(status: number, bodyText: string): stri
   }
   if (t.startsWith('{')) {
     try {
-      const j = JSON.parse(t) as { error?: string; message?: string }
+      const j = JSON.parse(t) as {
+        error?: string
+        message?: string
+        expectedPayableAzn?: number
+        computed?: { expectedPayableAzn?: number }
+      }
       const msg = (typeof j.error === 'string' && j.error.trim()) || (typeof j.message === 'string' && j.message.trim())
       if (msg) {
         if (msg.length > 800 || /<html|<!DOCTYPE/i.test(msg)) {
           return PAYMENT_ERROR_GENERIC
         }
-        return msg
+        const normalized = normalizePaymentErrorMessage(msg)
+        const expected = j.expectedPayableAzn ?? j.computed?.expectedPayableAzn
+        const devHint =
+          process.env.NODE_ENV === 'development' && typeof expected === 'number'
+            ? ` [dev: expected ${expected} AZN]`
+            : ''
+        return normalized + devHint
       }
     } catch {
       /* not JSON */
@@ -97,7 +128,7 @@ function messageFromPaymentErrorResponse(status: number, bodyText: string): stri
   if (t.length > 400) {
     return PAYMENT_ERROR_GENERIC
   }
-  return t
+  return normalizePaymentErrorMessage(t)
 }
 
 /** Call after redirect from bank: confirms payment and triggers backend to create order + emit order_created for Delivery and Order Tracking. */

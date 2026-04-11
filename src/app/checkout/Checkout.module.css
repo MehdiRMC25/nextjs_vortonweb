@@ -7,6 +7,9 @@
 .wrap {
   max-width: 480px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 @media (min-width: 768px) {
@@ -19,11 +22,330 @@
   }
 }
 
-.summaryCard {
+.card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  padding: 16px;
+}
+
+.guestCard {
   padding: 24px;
+}
+
+.cardTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.rewardsLine {
+  margin: 0 0 6px;
+  line-height: 1.45;
+}
+
+.rewardsStrong {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.rewardsMuted {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.rewardsHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.orderSummaryCard {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.pointsCard {
+  padding: 18px;
+  background: var(--bg-card);
+}
+
+.pointsHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pointsSectionTitle {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.pointsHeaderRow .pointsSectionTitle {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.pointsHelperLine {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.pointsMobLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 2px;
+}
+
+.pointsToApplyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pointsToApplyLabelLeft {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.pointsToApplyValueRight {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.pointsStepperRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: nowrap;
+}
+
+.pointsApplyMaxBtn {
+  appearance: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  min-width: 176px;
+  padding: 12px 26px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.pointsApplyMaxBtn:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.pointsApplyMaxBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pointsDiscountFromLine {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.pointsDiscountFromLine strong {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pointsPayFullText {
+  align-self: flex-start;
+  margin: 0;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-align: left;
+}
+
+.pointsPayFullText:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.pointsPayFullText:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 400px) {
+  .pointsStepperRow {
+    flex-wrap: wrap;
+  }
+
+  .pointsApplyMaxBtn {
+    min-width: 0;
+    width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+.toggle {
+  position: relative;
+  width: 60px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.toggleTrack {
+  width: 60px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.45);
+  border: 1px solid var(--border);
+  transition: background 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.toggleTrack::after {
+  content: '';
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.toggle input:checked + .toggleTrack {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle input:checked + .toggleTrack::after {
+  /* 60px track − 22px thumb − 2px inset each side */
+  transform: translateX(34px);
+}
+
+.toggle input:disabled + .toggleTrack {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pointsBalanceLine {
+  margin: 0 0 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.pointsBalanceApprox {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.pointsStepper {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.stepperBtn {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.stepperBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+}
+
+.shippingZoneHint {
+  font-weight: 400;
+  font-size: 0.82em;
+  color: var(--text-muted);
+}
+
+.summaryRowDiscount {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.summaryRowTotal {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-primary);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.summaryTotalValue {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.actionsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+@media (max-width: 420px) {
+  .actionsRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 .guestFields {
@@ -97,44 +419,11 @@
   margin: 0 0 12px;
 }
 
-.pointsPanel {
-  margin: 0 0 16px;
-  padding: 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-primary);
-}
-
-.pointsTitle {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  margin: 0 0 10px;
-}
-
-.pointsEstimateLine {
-  font-size: 1rem;
-  color: var(--text-primary);
-  margin: 0 0 8px;
-  line-height: 1.45;
-}
-
-.pointsEstimateStrong {
-  color: var(--accent);
-  font-weight: 700;
-}
-
 .pointsHint {
   font-size: 0.9rem;
   color: var(--text-secondary);
-  margin: 0 0 10px;
+  margin: 0;
   line-height: 1.45;
-}
-
-.pointsBalance {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 10px;
-  color: var(--text-primary);
 }
 
 .pointsRowActions {
@@ -156,32 +445,6 @@
   justify-content: space-between;
   gap: 12px;
   margin-top: 8px;
-}
-
-.discountRow {
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  color: var(--accent);
-  margin: 0 0 8px;
-}
-
-.payableRow {
-  display: flex;
-  justify-content: space-between;
-  font-size: 1.1875rem;
-  font-weight: 700;
-  margin: 0 0 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.note {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.45;
 }
 
 .error {
@@ -272,4 +535,70 @@
   color: var(--text-muted);
   margin: 10px 0 0;
   line-height: 1.45;
+}
+
+.compactProductsCard {
+  padding: 16px;
+}
+
+.compactProductsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compactProductRow {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.compactProductRow:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.compactProductImage {
+  position: relative;
+  width: 56px;
+  height: 68px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.compactProductImageFill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.compactProductInfo {
+  min-width: 0;
+}
+
+.compactProductName {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.compactProductMeta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.compactProductTotal {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
 }

@@ -18,7 +18,7 @@ function AccountLocaleLinksInner() {
 
   // Domain-specific behavior:
   // - vorton.uk: show Language = English only (no cross-site link)
-  // - vorton.az: show Azerbaijani + hint for English on vorton.com
+  // - vorton.az: show Language = Azerbaijani only (non-clickable)
   if (host === VORTON_HOST_UK) {
     return (
       <div className={`${styles.langOptions} ${styles.langOptionsSingle}`}>
@@ -29,16 +29,8 @@ function AccountLocaleLinksInner() {
 
   if (host === VORTON_HOST_AZ || locale === 'az') {
     return (
-      <div className={styles.langOptions}>
+      <div className={`${styles.langOptions} ${styles.langOptionsSingle}`}>
         <span className={`${styles.langOption} ${styles.langOptionActive}`}>{t('azerbaijani')}</span>
-        <a
-          href="https://vorton.com"
-          className={styles.langOption}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {t('accountLanguageEnglishOnDotCom')}
-        </a>
       </div>
     )
   }

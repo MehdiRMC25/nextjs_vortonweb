@@ -1,11 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
-import { createPayment, PAYMENT_ERROR_GENERIC, type PaymentOrderPayload } from '@/api/payment'
+import {
+    createPayment,
+    PAYMENT_ERROR_FAILED_GENERIC,
+    PAYMENT_ERROR_GENERIC,
+    type PaymentOrderPayload,
+} from '@/api/payment'
 import { appendCheckoutDelivery } from '@/api/auth'
 import type { AuthUser } from '@/api/auth'
 import type { CartItem } from '@/types'
@@ -23,27 +28,19 @@ import WhatsAppButton from '@/components/WhatsAppButton'
 import { productDisplayName } from '@/lib/productDisplay'
 import { isValidPhone } from '@/utils/validation'
 import { getPaymentReturnUrl } from '@/lib/paymentReturnUrl'
+import {
+    cartItemKey,
+    cartLineListAndEffective,
+    computeCheckoutMerchandiseSummary,
+} from '@/lib/checkoutMerchandise'
+import { shippingZoneAndFee } from '@/lib/shippingAzn'
+import { buildCheckoutOrderLineItems } from '@/lib/checkoutOrderLineItems'
+import {
+    postCheckoutPreview,
+    postCheckoutPreviewGuest,
+    type CheckoutPreviewBreakdown,
+} from '@/api/checkoutPreview'
 import styles from './Checkout.module.css'
-
-function getItemPrice(item: CartItem): number {
-    const v = item.product.variants?.[item.variantIndex]
-    if (v) return v.discountedPrice ?? v.price
-    return item.product.salePrice ?? item.product.price
-}
-
-const PRICE_EPS = 0.005
-
-/** Lines below list/variant price or marked sale/discount do not earn reward points. */
-function lineExcludedFromRewardPoints(item: CartItem): boolean {
-    const p = item.product
-    const v = p.variants?.[item.variantIndex]
-    const listPrice = v != null ? v.price : p.price
-    const paid = getItemPrice(item)
-    if (paid < listPrice - PRICE_EPS) return true
-    if (v?.isDiscounted === true) return true
-    if (p.onSale === true && p.salePrice != null && p.salePrice < p.price - PRICE_EPS) return true
-    return false
-}
 
 function parseCustomerId(u: AuthUser | null | undefined): number | undefined {
     if (u == null || u.id == null) return undefined
@@ -58,6 +55,11 @@ function pointsBalanceFromUser(u: AuthUser | null | undefined): number {
 
 const today = () => new Date().toISOString().slice(0, 10)
 
+function getItemImage(item: CartItem) {
+    const v = item.product.variants?.[item.variantIndex]
+    return v?.image || item.product.image
+}
+
 export default function Checkout() {
     const { t, locale } = useLocale()
     const { user, token, isAuthenticated, refreshUser } = useAuth()
@@ -68,6 +70,7 @@ export default function Checkout() {
     const [guestMobile, setGuestMobile] = useState('')
     const [guestAddress, setGuestAddress] = useState('')
     const [useRewardPoints, setUseRewardPoints] = useState(false)
+    const [pointsToApply, setPointsToApply] = useState(0)
     const [deliveryMobile, setDeliveryMobile] = useState('')
     const [deliveryAddress, setDeliveryAddress] = useState('')
     const [deliveryEditing, setDeliveryEditing] = useState(false)
@@ -75,6 +78,16 @@ export default function Checkout() {
     const [deliveryError, setDeliveryError] = useState<string | null>(null)
     /** Set when user saves checkout delivery — sent with payment order to link log row to created order. */
     const [deliveryContactLogId, setDeliveryContactLogId] = useState<number | null>(null)
+
+    const [previewBreakdown, setPreviewBreakdown] = useState<CheckoutPreviewBreakdown | null>(null)
+    const [previewLoading, setPreviewLoading] = useState(false)
+    const [previewError, setPreviewError] = useState<string | null>(null)
+    const previewAbortRef = useRef<AbortController | null>(null)
+
+    const cartFingerprint = useMemo(
+        () => items.map((it) => `${cartItemKey(it)}:${it.quantity}`).join('|'),
+        [items]
+    )
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -90,22 +103,124 @@ export default function Checkout() {
         }
     }, [isAuthenticated, user])
 
-    const subtotal = Math.round(items.reduce((sum, i) => sum + getItemPrice(i) * i.quantity, 0) * 100) / 100
-    const eligibleSubtotal = Math.round(
-        items
-            .filter((i) => !lineExcludedFromRewardPoints(i))
-            .reduce((sum, i) => sum + getItemPrice(i) * i.quantity, 0) * 100
-    ) / 100
+    const merch = computeCheckoutMerchandiseSummary(items, isAuthenticated, user)
+    const subtotalBeforeMembership = merch.subtotalBeforeMembership
+    const merchandiseNet = merch.merchandiseSubtotalAfterMembership
+    const membershipDiscountAzn = merch.membershipDiscountAzn
+    const membershipRatePct = Math.round((merch.membershipFraction || 0) * 100)
+    const eligibleSubtotal = merch.eligibleSubtotalPostMembership
 
     const earnRate = earnRateFromEligibleSubtotal(eligibleSubtotal)
     const estimatedEarnPoints = estimatedEarnPointsFromEligible(eligibleSubtotal)
     const pointsBalance = pointsBalanceFromUser(user)
-    const maxPointsForCart = maxRedeemablePoints(subtotal, pointsBalance)
-    const chosenPointsRaw =
-        useRewardPoints && isAuthenticated && maxPointsForCart > 0 ? maxPointsForCart : 0
-    const chosenPoints = clampRedemptionForMinPayable(subtotal, chosenPointsRaw)
+    const maxPointsForCart = maxRedeemablePoints(merchandiseNet, pointsBalance)
+    const chosenPointsRaw = useRewardPoints && isAuthenticated ? pointsToApply : 0
+    const chosenPoints = clampRedemptionForMinPayable(
+        merchandiseNet,
+        Math.max(0, Math.min(maxPointsForCart, Math.floor(chosenPointsRaw)))
+    )
     const discountAzn = discountAznFromRedeemPoints(chosenPoints)
-    const payableTotal = Math.round((subtotal - discountAzn) * 100) / 100
+    const { zone: shippingZone, shippingAzn } = shippingZoneAndFee(
+        isAuthenticated,
+        user,
+        deliveryAddress,
+        guestAddress
+    )
+    const payableTotal =
+        Math.round((merchandiseNet - discountAzn + shippingAzn) * 100) / 100
+    const balanceAzn = discountAznFromRedeemPoints(pointsBalance)
+    const maxUseAzn = discountAznFromRedeemPoints(maxPointsForCart)
+    const pointsAtMaximum =
+        useRewardPoints && maxPointsForCart > 0 && chosenPoints >= maxPointsForCart
+
+    const displayPayableTotal = previewBreakdown?.payableTotalAzn ?? payableTotal
+    const displayMembershipDiscountAzn =
+        previewBreakdown?.membershipDiscountAzn ?? membershipDiscountAzn
+    const displayPointsDiscountAzn = previewBreakdown?.pointsDiscountAzn ?? discountAzn
+    const displayShippingAzn = previewBreakdown?.shippingAzn ?? shippingAzn
+
+    useEffect(() => {
+        if (!useRewardPoints) {
+            setPointsToApply(0)
+            return
+        }
+        if (!isAuthenticated) return
+        setPointsToApply((v) => {
+            const next = v > 0 ? v : maxPointsForCart
+            return Math.max(0, Math.min(maxPointsForCart, Math.floor(next)))
+        })
+    }, [useRewardPoints, isAuthenticated, maxPointsForCart])
+
+    useEffect(() => {
+        if (items.length === 0) return
+        if (isAuthenticated && !token) {
+            setPreviewBreakdown(null)
+            setPreviewLoading(false)
+            return
+        }
+
+        const ac = new AbortController()
+        previewAbortRef.current?.abort()
+        previewAbortRef.current = ac
+
+        const timer = window.setTimeout(() => {
+            void (async () => {
+                setPreviewLoading(true)
+                setPreviewError(null)
+                try {
+                    const lineItems = buildCheckoutOrderLineItems(
+                        items,
+                        isAuthenticated,
+                        user,
+                        deliveryAddress,
+                        guestAddress
+                    )
+                    if (isAuthenticated && token) {
+                        const ptsPreview = useRewardPoints ? chosenPoints : 0
+                        const res = await postCheckoutPreview(
+                            token,
+                            {
+                                items: lineItems,
+                                points_to_redeem: ptsPreview > 0 ? ptsPreview : undefined,
+                            },
+                            ac.signal
+                        )
+                        if (!ac.signal.aborted) {
+                            setPreviewBreakdown(res.breakdown)
+                        }
+                    } else {
+                        const res = await postCheckoutPreviewGuest({ items: lineItems }, ac.signal)
+                        if (!ac.signal.aborted) {
+                            setPreviewBreakdown(res.breakdown)
+                        }
+                    }
+                } catch (e) {
+                    if (e instanceof Error && e.name === 'AbortError') return
+                    if (!ac.signal.aborted) {
+                        setPreviewBreakdown(null)
+                        setPreviewError(e instanceof Error ? e.message : 'Preview failed')
+                    }
+                } finally {
+                    if (!ac.signal.aborted) setPreviewLoading(false)
+                }
+            })()
+        }, 380)
+
+        return () => {
+            window.clearTimeout(timer)
+            ac.abort()
+        }
+    }, [
+        cartFingerprint,
+        isAuthenticated,
+        token,
+        user,
+        deliveryAddress,
+        guestAddress,
+        useRewardPoints,
+        chosenPoints,
+        items.length,
+    ])
 
     if (items.length === 0) {
         return (
@@ -124,41 +239,39 @@ export default function Checkout() {
         )
     }
 
-    function buildOrderPayload(netPay: number, pointsToRedeem: number): PaymentOrderPayload {
-        const customer_name = isAuthenticated && user
-            ? ((user.name ?? ([user.first_name, user.last_name].filter(Boolean).join(' ') || 'Customer')).trim() || 'Customer')
+    function buildOrderPayload(
+        netPay: number,
+        pointsToRedeem: number,
+        /** Fresh profile after refreshUser — keeps line prices in sync with payment */
+        profileForOrder?: AuthUser | null
+    ): PaymentOrderPayload {
+        const u = profileForOrder ?? user
+        const customer_name = isAuthenticated && u
+            ? ((u.name ?? ([u.first_name, u.last_name].filter(Boolean).join(' ') || 'Customer')).trim() || 'Customer')
             : guestName.trim()
         const mobile =
-            isAuthenticated && user
-                ? (deliveryMobile.trim() || (user.phone ?? '').trim() || '')
+            isAuthenticated && u
+                ? (deliveryMobile.trim() || (u.phone ?? '').trim() || '')
                 : guestMobile.trim() || ''
         const address =
-            isAuthenticated && user
+            isAuthenticated && u
                 ? (deliveryAddress.trim() ||
-                      (user.address ??
-                          [user.address_line1, user.address_line2, user.city, user.postcode, user.country]
+                      (u.address ??
+                          [u.address_line1, u.address_line2, u.city, u.postcode, u.country]
                               .filter(Boolean)
                               .join(', ')
                               .trim()) ||
                       null)
                 : guestAddress.trim() || null
-        const membership_level = (isAuthenticated && user && user.membership_level) ? user.membership_level : 'none'
-        const customer_id = parseCustomerId(user)
-        const orderItems = items.map((item) => {
-            const price = getItemPrice(item)
-            const v = item.product.variants?.[item.variantIndex]
-            const excluded = lineExcludedFromRewardPoints(item)
-            return {
-                name: item.product.name,
-                quantity: item.quantity,
-                price,
-                sku_color: v?.skuColor ?? item.product.sku,
-                size: item.size || undefined,
-                product_id: item.product.id,
-                ...(excluded ? { is_discounted: true as const } : {}),
-                ...(item.product.onSale === true && !excluded ? { promotional: true as const } : {}),
-            }
-        })
+        const membership_level = (isAuthenticated && u && u.membership_level) ? u.membership_level : 'none'
+        const customer_id = parseCustomerId(u)
+        const orderItems = buildCheckoutOrderLineItems(
+            items,
+            Boolean(isAuthenticated && u),
+            u,
+            deliveryAddress,
+            guestAddress
+        )
         return {
             ...(customer_id !== undefined ? { customer_id } : {}),
             customer_name: customer_name || 'Customer',
@@ -171,7 +284,7 @@ export default function Checkout() {
             total_price: netPay,
             ...(pointsToRedeem > 0 ? { points_to_redeem: pointsToRedeem } : {}),
             ...(isAuthenticated &&
-            user &&
+            u &&
             deliveryContactLogId != null &&
             deliveryContactLogId > 0
                 ? { delivery_contact_log_id: deliveryContactLogId }
@@ -187,24 +300,49 @@ export default function Checkout() {
         }
         setLoading(true)
         try {
+            if (isAuthenticated && !token) {
+                setError(t('signIn'))
+                setLoading(false)
+                return
+            }
             let profile = user
-            if (useRewardPoints && isAuthenticated) {
+            if (isAuthenticated) {
                 profile = (await refreshUser()) ?? user
             }
+            const summaryPay = computeCheckoutMerchandiseSummary(items, isAuthenticated, profile)
+            const merchNetPay = summaryPay.merchandiseSubtotalAfterMembership
             const bal = pointsBalanceFromUser(profile)
-            const maxP = maxRedeemablePoints(subtotal, bal)
-            let pts = useRewardPoints && isAuthenticated && maxP > 0 ? maxP : 0
-            pts = clampRedemptionForMinPayable(subtotal, pts)
+            const maxP = maxRedeemablePoints(merchNetPay, bal)
+            let pts = useRewardPoints && isAuthenticated ? Math.max(0, Math.floor(pointsToApply)) : 0
+            pts = Math.min(maxP, pts)
+            pts = clampRedemptionForMinPayable(merchNetPay, pts)
             if (pts > 0 && parseCustomerId(profile) == null) {
                 setError(t('signIn'))
                 setLoading(false)
                 return
             }
-            const disc = discountAznFromRedeemPoints(pts)
-            const net = Math.round((subtotal - disc) * 100) / 100
+            const lineItems = buildCheckoutOrderLineItems(
+                items,
+                isAuthenticated,
+                profile,
+                deliveryAddress,
+                guestAddress
+            )
+            let payable: number
+            if (isAuthenticated && token) {
+                const prev = await postCheckoutPreview(token, {
+                    items: lineItems,
+                    points_to_redeem: pts > 0 ? pts : undefined,
+                })
+                payable = prev.breakdown.payableTotalAzn
+            } else {
+                const prev = await postCheckoutPreviewGuest({ items: lineItems })
+                payable = prev.breakdown.payableTotalAzn
+            }
+            const net = Math.round(payable * 100) / 100
 
             const returnUrl = getPaymentReturnUrl()
-            const order = buildOrderPayload(net, pts)
+            const order = buildOrderPayload(net, isAuthenticated ? pts : 0, profile)
             const res = await createPayment({
                 amount: net,
                 currency: 'AZN',
@@ -222,13 +360,23 @@ export default function Checkout() {
                     ? `${t('paymentCorsError')} (${t('youAreOn')}: ${window.location.origin})`
                     : null
             const gatewayMsg = msg === PAYMENT_ERROR_GENERIC ? t('paymentGatewayUnavailable') : null
+            const friendlyFailMsg = msg === PAYMENT_ERROR_FAILED_GENERIC ? t('paymentFailedMessage') : null
             setError(
                 msg === 'PAYMENT_TIMEOUT'
                     ? t('paymentTimeoutMessage')
-                    : corsMsg ?? gatewayMsg ?? msg
+                    : corsMsg ?? gatewayMsg ?? friendlyFailMsg ?? msg
             )
             setLoading(false)
         }
+    }
+
+    async function applyRewardPointsPrimary() {
+        setError(null)
+        const profile = (await refreshUser()) ?? user
+        const balNow = pointsBalanceFromUser(profile)
+        const maxP = maxRedeemablePoints(merchandiseNet, balNow)
+        setUseRewardPoints(true)
+        setPointsToApply(maxP)
     }
 
     async function saveCheckoutDelivery() {
@@ -266,206 +414,344 @@ export default function Checkout() {
             <div className="container">
                 <h1 className={styles.title}>{t('checkout')}</h1>
                 <div className={styles.wrap}>
-                    <div className={styles.summaryCard}>
                     {!isAuthenticated && (
-                        <div className={styles.guestFields}>
-                            <h3 className={styles.guestTitle}>{t('contactDetails')}</h3>
-                            <label className={styles.guestLabel}>
-                                {t('nameLabel')} *
-                                <input
-                                    type="text"
-                                    className={styles.guestInput}
-                                    value={guestName}
-                                    onChange={(e) => setGuestName(e.target.value)}
-                                    placeholder={t('yourName')}
-                                />
-                            </label>
-                            <label className={styles.guestLabel}>
-                                {t('mobileLabel')} *
-                                <input
-                                    type="text"
-                                    className={styles.guestInput}
-                                    value={guestMobile}
-                                    onChange={(e) => setGuestMobile(e.target.value)}
-                                    placeholder="+994..."
-                                />
-                            </label>
-                            <label className={styles.guestLabel}>
-                                {t('addressOptional')}
-                                <input
-                                    type="text"
-                                    className={styles.guestInput}
-                                    value={guestAddress}
-                                    onChange={(e) => setGuestAddress(e.target.value)}
-                                    placeholder={t('optional')}
-                                />
-                            </label>
+                        <div className={`${styles.card} ${styles.guestCard}`}>
+                            <div className={styles.guestFields}>
+                                <h3 className={styles.guestTitle}>{t('contactDetails')}</h3>
+                                <label className={styles.guestLabel}>
+                                    {t('nameLabel')} *
+                                    <input
+                                        type="text"
+                                        className={styles.guestInput}
+                                        value={guestName}
+                                        onChange={(e) => setGuestName(e.target.value)}
+                                        placeholder={t('yourName')}
+                                    />
+                                </label>
+                                <label className={styles.guestLabel}>
+                                    {t('mobileLabel')} *
+                                    <input
+                                        type="text"
+                                        className={styles.guestInput}
+                                        value={guestMobile}
+                                        onChange={(e) => setGuestMobile(e.target.value)}
+                                        placeholder="+994..."
+                                    />
+                                </label>
+                                <label className={styles.guestLabel}>
+                                    {t('addressOptional')}
+                                    <input
+                                        type="text"
+                                        className={styles.guestInput}
+                                        value={guestAddress}
+                                        onChange={(e) => setGuestAddress(e.target.value)}
+                                        placeholder={t('optional')}
+                                    />
+                                </label>
+                            </div>
                         </div>
                     )}
-                    <h2 className={styles.summaryTitle}>{t('orderSummary')}</h2>
-                    <ul className={styles.itemList}>
-                        {items.map((item) => {
-                            const price = getItemPrice(item)
-                            const lineTotal = price * item.quantity
-                            return (
-                                <li key={`${item.product.id}-${item.variantIndex}-${item.size}`}>
-                                    <span>{productDisplayName(item.product, locale)} × {item.quantity}</span>
-                                    <span>₼{lineTotal.toFixed(2)}</span>
-                                </li>
-                            )
-                        })}
-                    </ul>
-                    <p className={styles.totalRow}>
-                        <span>{t('merchandiseSubtotal')}</span>
-                        <span>₼{subtotal.toFixed(2)}</span>
-                    </p>
 
-                    <div className={styles.pointsPanel}>
-                        <h3 className={styles.pointsTitle}>{t('rewardPointsEstimateTitle')}</h3>
-                        <p className={styles.pointsEstimateLine}>
+                    <div className={`${styles.card} ${styles.compactProductsCard}`}>
+                        <h3 className={styles.cardTitle}>{t('cart')}</h3>
+                        <div className={styles.compactProductsList}>
+                            {items.map((item) => {
+                                const basis = cartLineListAndEffective(item)
+                                const listUnit = basis.listUnit
+                                const lineTotal = listUnit * item.quantity
+                                const colorName = item.product.variants?.[item.variantIndex]?.color
+                                const lineTitle = productDisplayName(item.product, locale)
+                                return (
+                                    <div
+                                        key={`${item.product.id}-${item.variantIndex}-${item.size}`}
+                                        className={styles.compactProductRow}
+                                    >
+                                        <div className={styles.compactProductImage}>
+                                            <img
+                                                src={getItemImage(item)}
+                                                alt={lineTitle}
+                                                className={styles.compactProductImageFill}
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        </div>
+                                        <div className={styles.compactProductInfo}>
+                                            <p className={styles.compactProductName}>{lineTitle}</p>
+                                            <p className={styles.compactProductMeta}>
+                                                {colorName && `${colorName} · `}
+                                                {t('sizeLabel')}: {item.size} · ₼{listUnit.toFixed(2)} {t('each')} · x{item.quantity}
+                                            </p>
+                                        </div>
+                                        <div className={styles.compactProductTotal}>₼{lineTotal.toFixed(2)}</div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    <div className={`${styles.card} ${styles.rewardsCard}`}>
+                        <h3 className={styles.cardTitle}>{t('rewardPoints')}</h3>
+                        <p className={styles.rewardsLine}>
                             {t('rewardPointsEstimatePrefix')}{' '}
-                            <strong className={styles.pointsEstimateStrong}>{estimatedEarnPoints.toLocaleString()}</strong>{' '}
+                            <strong className={styles.rewardsStrong}>{estimatedEarnPoints.toLocaleString()}</strong>{' '}
                             {t('orderPointsColumn')}
                         </p>
-                        <p className={styles.pointsHint}>
+                        <p className={styles.rewardsMuted}>{t('rewardPointsBalanceHint')}</p>
+                        <p className={styles.rewardsHint}>
                             {t('eligibleSubtotalLabel')}: ₼{eligibleSubtotal.toFixed(2)} • {formatEarnPercentLabel(earnRate)}%
                         </p>
+                    </div>
 
+                    <div className={`${styles.card} ${styles.pointsCard}`}>
                         {isAuthenticated ? (
-                            <>
-                                <h3 className={styles.pointsTitle}>{t('useMyPoints')}</h3>
-                                <p className={styles.pointsBalance}>
-                                    {t('rewardPointsBalance')}: {pointsBalance.toLocaleString()} {t('orderPointsColumn')}
-                                </p>
-                                {canOptIntoPoints ? (
-                                    <div className={styles.pointsRowActions}>
-                                        {!useRewardPoints ? (
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary"
-                                                onClick={async () => {
-                                                    await refreshUser()
-                                                    setUseRewardPoints(true)
+                            canOptIntoPoints ? (
+                                <>
+                                    <div className={styles.pointsHeaderRow}>
+                                        <h3 className={styles.pointsSectionTitle}>{t('useMyPoints')}</h3>
+                                        <label className={styles.toggle}>
+                                            <input
+                                                type="checkbox"
+                                                aria-label={t('useMyPoints')}
+                                                checked={useRewardPoints}
+                                                onChange={(e) => {
+                                                    setError(null)
+                                                    const on = e.target.checked
+                                                    setUseRewardPoints(on)
+                                                    if (on) void refreshUser()
                                                 }}
-                                            >
-                                                {t('useMyPoints')}
-                                            </button>
-                                        ) : (
+                                                disabled={loading}
+                                            />
+                                            <span className={styles.toggleTrack} />
+                                        </label>
+                                    </div>
+                                    <p className={styles.pointsBalanceLine}>
+                                        {t('checkoutPointsBalanceLine')
+                                            .replace('{{points}}', String(pointsBalance.toLocaleString()))
+                                            .replace('{{azn}}', balanceAzn.toFixed(2))}
+                                    </p>
+                                    <p className={styles.pointsHelperLine}>
+                                        {t('checkoutPointsUseUpTo').replace('{{amount}}', maxUseAzn.toFixed(2))}
+                                    </p>
+
+                                    {useRewardPoints && (
+                                        <div className={styles.pointsMobLayout}>
+                                            <div className={styles.pointsToApplyRow}>
+                                                <span className={styles.pointsToApplyLabelLeft}>
+                                                    {t('checkoutPointsToApply')}
+                                                </span>
+                                                <span className={styles.pointsToApplyValueRight}>{chosenPoints}</span>
+                                            </div>
+                                            <div className={styles.pointsStepperRow}>
+                                                <div className={styles.pointsStepper}>
+                                                    <button
+                                                        type="button"
+                                                        className={styles.stepperBtn}
+                                                        onClick={() => setPointsToApply((v) => Math.max(0, v - 1))}
+                                                        disabled={loading}
+                                                    >
+                                                        −1
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={styles.stepperBtn}
+                                                        onClick={() =>
+                                                            setPointsToApply((v) => Math.min(maxPointsForCart, v + 1))
+                                                        }
+                                                        disabled={loading}
+                                                    >
+                                                        +1
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className={styles.pointsApplyMaxBtn}
+                                                    onClick={() => void applyRewardPointsPrimary()}
+                                                    disabled={loading || pointsAtMaximum}
+                                                >
+                                                    {t('applyMaximum')}
+                                                </button>
+                                            </div>
+                                            <p className={styles.pointsDiscountFromLine}>
+                                                <span>{t('checkoutDiscountFromPoints')}</span>{' '}
+                                                <strong>₼{discountAzn.toFixed(2)}</strong>
+                                            </p>
                                             <button
                                                 type="button"
-                                                className="btn btn-secondary"
-                                                onClick={() => setUseRewardPoints(false)}
+                                                className={styles.pointsPayFullText}
+                                                onClick={() => {
+                                                    setError(null)
+                                                    setUseRewardPoints(false)
+                                                }}
+                                                disabled={loading}
                                             >
-                                                {t('removePointsDiscount')}
+                                                {t('useNoPointsPayFullPrice')}
                                             </button>
-                                        )}
-                                    </div>
-                                ) : (
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <h3 className={styles.pointsSectionTitle}>{t('useMyPoints')}</h3>
                                     <p className={styles.pointsMuted}>{t('checkoutNoPointsBalance')}</p>
-                                )}
-                            </>
+                                </>
+                            )
                         ) : (
-                            <div className={styles.pointsSignInRow}>
-                                <p className={styles.pointsMuted}>{t('signInToUsePoints')}</p>
-                                <Link href="/signin" className="btn btn-secondary">
-                                    {t('signIn')}
-                                </Link>
-                            </div>
+                            <>
+                                <h3 className={styles.pointsSectionTitle}>{t('useMyPoints')}</h3>
+                                <div className={styles.pointsSignInRow}>
+                                    <p className={styles.pointsMuted}>{t('signInToUsePoints')}</p>
+                                    <Link href="/signin" className="btn btn-secondary">
+                                        {t('signIn')}
+                                    </Link>
+                                </div>
+                            </>
                         )}
                     </div>
 
                     {isAuthenticated && user && (
-                        <div className={styles.deliveryPanel}>
-                            <div className={styles.deliveryHeader}>
-                                <h3 className={styles.deliveryTitle}>{t('checkDeliveryDetails')}</h3>
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={() => {
-                                        setDeliveryError(null)
-                                        setDeliveryEditing((v) => !v)
-                                    }}
-                                >
-                                    {t('checkDeliveryUpdate')}
-                                </button>
-                            </div>
-                            {!deliveryEditing ? (
-                                <div className={styles.deliveryReadonly}>
-                                    <p className={styles.deliveryLine}>
-                                        <span className={styles.deliveryLabel}>{t('mobileLabel')}:</span>{' '}
-                                        {deliveryMobile.trim() || t('notProvided')}
-                                    </p>
-                                    <p className={styles.deliveryLine}>
-                                        <span className={styles.deliveryLabel}>{t('address')}:</span>{' '}
-                                        {deliveryAddress.trim() || t('notProvided')}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className={styles.deliveryEdit}>
-                                    <label className={styles.guestLabel}>
-                                        {t('mobileLabel')}
-                                        <input
-                                            type="text"
-                                            className={styles.guestInput}
-                                            value={deliveryMobile}
-                                            onChange={(e) => setDeliveryMobile(e.target.value)}
-                                            placeholder="+994..."
-                                        />
-                                    </label>
-                                    <label className={styles.guestLabel}>
-                                        {t('address')}
-                                        <input
-                                            type="text"
-                                            className={styles.guestInput}
-                                            value={deliveryAddress}
-                                            onChange={(e) => setDeliveryAddress(e.target.value)}
-                                            placeholder={t('optional')}
-                                        />
-                                    </label>
-                                    {deliveryError && <p className={styles.error}>{deliveryError}</p>}
+                        <div className={`${styles.card} ${styles.deliveryCard}`}>
+                            {/* Keep delivery details UX as-is */}
+                            <div className={styles.deliveryPanel}>
+                                <div className={styles.deliveryHeader}>
+                                    <h3 className={styles.deliveryTitle}>{t('checkDeliveryDetails')}</h3>
                                     <button
                                         type="button"
-                                        className="btn btn-primary"
-                                        style={{ width: '100%', marginTop: 8 }}
-                                        onClick={() => void saveCheckoutDelivery()}
-                                        disabled={deliveryBusy}
+                                        className="btn btn-secondary"
+                                        onClick={() => {
+                                            setDeliveryError(null)
+                                            setDeliveryEditing((v) => !v)
+                                        }}
                                     >
-                                        {deliveryBusy ? t('loading') : t('saveDeliveryDetails')}
+                                        {t('checkDeliveryUpdate')}
                                     </button>
                                 </div>
-                            )}
-                            <p className={styles.deliveryHint}>{t('checkDeliveryAccountHint')}</p>
+                                {!deliveryEditing ? (
+                                    <div className={styles.deliveryReadonly}>
+                                        <p className={styles.deliveryLine}>
+                                            <span className={styles.deliveryLabel}>{t('mobileLabel')}:</span>{' '}
+                                            {deliveryMobile.trim() || t('notProvided')}
+                                        </p>
+                                        <p className={styles.deliveryLine}>
+                                            <span className={styles.deliveryLabel}>{t('address')}:</span>{' '}
+                                            {deliveryAddress.trim() || t('notProvided')}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className={styles.deliveryEdit}>
+                                        <label className={styles.guestLabel}>
+                                            {t('mobileLabel')}
+                                            <input
+                                                type="text"
+                                                className={styles.guestInput}
+                                                value={deliveryMobile}
+                                                onChange={(e) => setDeliveryMobile(e.target.value)}
+                                                placeholder="+994..."
+                                            />
+                                        </label>
+                                        <label className={styles.guestLabel}>
+                                            {t('address')}
+                                            <input
+                                                type="text"
+                                                className={styles.guestInput}
+                                                value={deliveryAddress}
+                                                onChange={(e) => setDeliveryAddress(e.target.value)}
+                                                placeholder={t('optional')}
+                                            />
+                                        </label>
+                                        {deliveryError && <p className={styles.error}>{deliveryError}</p>}
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            style={{ width: '100%', marginTop: 8 }}
+                                            onClick={() => void saveCheckoutDelivery()}
+                                            disabled={deliveryBusy}
+                                        >
+                                            {deliveryBusy ? t('loading') : t('saveDeliveryDetails')}
+                                        </button>
+                                    </div>
+                                )}
+                                <p className={styles.deliveryHint}>{t('checkDeliveryAccountHint')}</p>
+                            </div>
                         </div>
                     )}
 
-                    {chosenPoints > 0 && (
-                        <p className={styles.discountRow}>
-                            <span>{t('pointsDiscount')} (−{chosenPoints} {t('orderPointsColumn')})</span>
-                            <span>−₼{discountAzn.toFixed(2)}</span>
-                        </p>
-                    )}
-                    <p className={styles.payableRow}>
-                        <span>{t('amountToPay')}</span>
-                        <span>₼{payableTotal.toFixed(2)}</span>
-                    </p>
-                    <p className={styles.note}>{t('shippingNote')}</p>
-                    {error && <p className={styles.error}>{error}</p>}
-                    <button
-                        type="button"
-                        className="btn btn-primary"
-                        style={{ width: '100%', marginTop: 16 }}
-                        onClick={handleProceedToPayment}
-                        disabled={loading}
-                    >
-                        {loading ? t('loading') : t('proceedToPayment')}
-                    </button>
-                    {loading && (
-                        <p className={styles.loadingHint}>{t('paymentLoadingHint')}</p>
-                    )}
-                        <Link href="/cart" className={styles.backLink}>
-                            ← {t('cart')}
-                        </Link>
+                    <div className={`${styles.card} ${styles.orderSummaryCard}`}>
+                        <h2 className={styles.summaryTitle}>{t('orderSummary')}</h2>
+                        <div className={styles.summaryRows}>
+                            <div className={styles.summaryRow}>
+                                <span>{t('merchandiseSubtotalBeforeMembership')}</span>
+                                <span>₼{subtotalBeforeMembership.toFixed(2)}</span>
+                            </div>
+                            {displayMembershipDiscountAzn > 0 && (
+                                <div className={`${styles.summaryRow} ${styles.summaryRowDiscount}`}>
+                                    <span>
+                                        {t('membershipDiscount')}
+                                        {membershipRatePct > 0 ? ` (${membershipRatePct}%)` : ''}
+                                    </span>
+                                    <span>−₼{displayMembershipDiscountAzn.toFixed(2)}</span>
+                                </div>
+                            )}
+                            {chosenPoints > 0 && (
+                                <div className={`${styles.summaryRow} ${styles.summaryRowDiscount}`}>
+                                    <span>{t('pointsDiscount')}</span>
+                                    <span>−₼{displayPointsDiscountAzn.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className={styles.summaryRow}>
+                                <span>
+                                    {t('shipping')}
+                                    <span className={styles.shippingZoneHint}>
+                                        {' '}
+                                        (
+                                        {shippingZone === 'baku'
+                                            ? t('shippingRateBakuHint')
+                                            : t('shippingRateNationalHint')}
+                                        )
+                                    </span>
+                                </span>
+                                <span>₼{displayShippingAzn.toFixed(2)}</span>
+                            </div>
+                            <div className={`${styles.summaryRow} ${styles.summaryRowTotal}`}>
+                                <span>{t('amountToPay')}</span>
+                                <span className={styles.summaryTotalValue}>
+                                    ₼{displayPayableTotal.toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+
+                        {previewLoading && (
+                            <p className={styles.deliveryHint} role="status">
+                                {t('loading')}
+                            </p>
+                        )}
+                        {previewError && (
+                            <p className={styles.deliveryHint} role="status">
+                                {previewError}
+                            </p>
+                        )}
+
+                        {error && <p className={styles.error}>{error}</p>}
                     </div>
+
+                    <div className={styles.actionsRow}>
+                        <Link href="/shop" className="btn btn-secondary">
+                            {t('continueShopping')}
+                        </Link>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleProceedToPayment}
+                            disabled={loading}
+                        >
+                            {loading ? t('loading') : t('proceedToPayment')}
+                        </button>
+                    </div>
+
+                    {loading && <p className={styles.loadingHint}>{t('paymentLoadingHint')}</p>}
+
+                    <Link href="/cart" className={styles.backLink}>
+                        ← {t('cart')}
+                    </Link>
                 </div>
             </div>
             <WhatsAppButton pageTag="checkout" />

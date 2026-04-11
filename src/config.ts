@@ -4,6 +4,13 @@
 const PRODUCTS_BASE = 'https://vorton-payement.onrender.com'
 const e = (key: string, fallback: string) => (process.env[key] || fallback).replace(/\/$/, '')
 
+function envNumber(key: string, fallback: number): number {
+  const v = process.env[key]
+  if (v == null || v === '') return fallback
+  const n = Number(v)
+  return Number.isFinite(n) && n >= 0 ? n : fallback
+}
+
 export const config = {
   /** Base URL for products API. Defaults to vorton-payement. */
   apiUrl: e('NEXT_PUBLIC_API_URL', e('NEXT_PUBLIC_PRODUCTS_API_URL', PRODUCTS_BASE)),
@@ -48,6 +55,28 @@ export const config = {
   cloudinary: {
     cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '',
     folder: process.env.NEXT_PUBLIC_CLOUDINARY_FOLDER || 'vorton-products',
+  },
+  whatsapp: {
+    phoneAz: (process.env.NEXT_PUBLIC_WHATSAPP_PHONE_AZ || '').trim(),
+    phoneIntl: (process.env.NEXT_PUBLIC_WHATSAPP_PHONE_INTL || '').trim(),
+    // Explicit unknown-country fallback. If omitted, AZ number is used as default fallback.
+    phoneFallback: (process.env.NEXT_PUBLIC_WHATSAPP_PHONE_FALLBACK || '').trim(),
+    // Legacy single-number keys; keep compatibility with existing setups.
+    phoneLegacy: (process.env.NEXT_PUBLIC_WHATSAPP_PHONE || process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '').trim(),
+    defaultMessage: (process.env.NEXT_PUBLIC_WHATSAPP_DEFAULT_MESSAGE || '').trim(),
+  },
+  /**
+   * Checkout delivery (₼). Server should recompute on order create; this is UX + payment amount preview.
+   * Baku = address/city mentions Baku; otherwise national (rest of Azerbaijan / unspecified).
+   */
+  shipping: {
+    bakuAzn: envNumber('NEXT_PUBLIC_SHIPPING_BAKU_AZN', 5),
+    nationalAzn: envNumber('NEXT_PUBLIC_SHIPPING_NATIONAL_AZN', 12),
+    /**
+     * If true (default): empty or non-Baku-looking address uses national rate.
+     * Set env to "0" to use Baku rate when zone is unknown (e.g. only local customers).
+     */
+    unknownAddressUsesNational: process.env.NEXT_PUBLIC_SHIPPING_UNKNOWN_USES_NATIONAL !== '0',
   },
 }
 

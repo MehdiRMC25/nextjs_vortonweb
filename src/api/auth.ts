@@ -8,8 +8,12 @@ export type AuthUser = {
   id: string | number
   role?: UserRole
   email?: string
+  /** Server truth for verification; omit/undefined treated as unknown legacy. */
+  email_verified?: boolean
   second_email?: string
+  second_email_verified?: boolean
   third_email?: string
+  third_email_verified?: boolean
   phone?: string
   second_phone?: string
   third_phone?: string
@@ -19,6 +23,12 @@ export type AuthUser = {
   membership_number?: string
   /** Membership tier: new signups = silver; gold/platinum earned by purchases */
   membership_level?: MembershipLevel
+  /** Raw API value (e.g. "Platinum Plus") — used for discount % when not overridden by numbers below */
+  membership_tier_raw?: string
+  /** Server override 0–100 */
+  membership_discount_pct?: number
+  /** Server override 0–1 */
+  membership_discount_fraction?: number
   /** Loyalty/earned credits (points) */
   loyalty_credits?: number
   /** Total discount saved due to membership (e.g. in currency) */
@@ -127,6 +137,40 @@ function pickFirstString(record: Record<string, unknown>, keys: string[]): strin
   return undefined
 }
 
+function mergeUserAndMembership(
+  userPayload: unknown,
+  membershipPayload: unknown
+): Record<string, unknown> {
+  const userObj =
+    userPayload && typeof userPayload === 'object' ? { ...(userPayload as Record<string, unknown>) } : {}
+  if (!membershipPayload || typeof membershipPayload !== 'object') return userObj
+  const m = membershipPayload as Record<string, unknown>
+
+  // Keep user fields as base; prefer explicit membership service values when present.
+  if (typeof m.name === 'string' && m.name.trim()) {
+    userObj.membership_level = m.name
+  }
+  if (typeof m.membership_level === 'string' && m.membership_level.trim()) {
+    userObj.membership_level = m.membership_level
+  }
+  if (typeof m.tier === 'string' && m.tier.trim()) {
+    userObj.membership_level = m.tier
+  }
+  if (typeof m.discount_pct === 'number') {
+    userObj.membership_discount_pct = m.discount_pct
+  }
+  if (typeof m.membership_discount_pct === 'number') {
+    userObj.membership_discount_pct = m.membership_discount_pct
+  }
+  if (typeof m.discount_fraction === 'number') {
+    userObj.membership_discount_fraction = m.discount_fraction
+  }
+  if (typeof m.membership_discount_fraction === 'number') {
+    userObj.membership_discount_fraction = m.membership_discount_fraction
+  }
+  return userObj
+}
+
 function toAuthUser(user: unknown): AuthUser {
   if (!user || typeof user !== 'object') return { id: 'user' }
   const u = user as Record<string, unknown>
@@ -170,8 +214,26 @@ function toAuthUser(user: unknown): AuthUser {
             ? 'customer'
             : undefined,
     email: typeof u.email === 'string' ? u.email : undefined,
+    email_verified:
+      typeof u.email_verified === 'boolean'
+        ? u.email_verified
+        : typeof u.is_email_verified === 'boolean'
+          ? u.is_email_verified
+          : undefined,
     second_email: secondEmail,
+    second_email_verified:
+      typeof u.second_email_verified === 'boolean'
+        ? u.second_email_verified
+        : typeof u.secondEmailVerified === 'boolean'
+          ? u.secondEmailVerified
+          : undefined,
     third_email: thirdEmail,
+    third_email_verified:
+      typeof u.third_email_verified === 'boolean'
+        ? u.third_email_verified
+        : typeof u.thirdEmailVerified === 'boolean'
+          ? u.thirdEmailVerified
+          : undefined,
     phone:
       (typeof u.phone === 'string' ? u.phone : undefined) ??
       (typeof u.mobile === 'string' ? u.mobile : undefined) ??
@@ -182,12 +244,33 @@ function toAuthUser(user: unknown): AuthUser {
     first_name: firstName || undefined,
     last_name: lastName || undefined,
     membership_number: typeof u.membership_number === 'string' ? u.membership_number : undefined,
-    membership_level:
-      (u.membership_level as 'silver' | 'gold' | 'platinum') === 'platinum'
-        ? 'platinum'
-        : (u.membership_level as 'silver' | 'gold') === 'gold'
-          ? 'gold'
+    membership_tier_raw: typeof u.membership_level === 'string' ? u.membership_level : undefined,
+    membership_discount_pct:
+      typeof u.membership_discount_pct === 'number'
+        ? u.membership_discount_pct
+        : typeof u.membershipDiscountPct === 'number'
+          ? u.membershipDiscountPct
           : undefined,
+    membership_discount_fraction:
+      typeof u.membership_discount_fraction === 'number'
+        ? u.membership_discount_fraction
+        : typeof u.membershipDiscountFraction === 'number'
+          ? u.membershipDiscountFraction
+          : undefined,
+    membership_level: (() => {
+      const ml = u.membership_level
+      if (ml === 'platinum' || ml === 'gold' || ml === 'silver') return ml
+      if (typeof ml === 'string') {
+        const k = ml
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, '_')
+        if (k.startsWith('platinum')) return 'platinum'
+        if (k === 'gold') return 'gold'
+        if (k === 'silver') return 'silver'
+      }
+      return undefined
+    })(),
     loyalty_credits:
       typeof u.reward_points_balance === 'number'
         ? u.reward_points_balance
@@ -383,7 +466,7 @@ export async function getMe(token: string): Promise<AuthUser> {
         const d = data as Record<string, unknown>
         // GET /auth/me — { user, membership } from Node backend
         if ('user' in d && d.user != null) {
-          return toAuthUser(d.user)
+          return toAuthUser(mergeUserAndMembership(d.user, d.membership))
         }
       }
       return toAuthUser(data)
@@ -392,12 +475,15 @@ export async function getMe(token: string): Promise<AuthUser> {
 }
 
 export type ProfileUpdatePayload = {
-  email?: string
-  second_email?: string
-  third_email?: string
-  phone?: string
-  second_phone?: string
-  third_phone?: string
+  first_name?: string
+  last_name?: string
+  /** Use `null` to clear optional fields on the server (omit key to leave unchanged). */
+  email?: string | null
+  second_email?: string | null
+  third_email?: string | null
+  phone?: string | null
+  second_phone?: string | null
+  third_phone?: string | null
   address_line1?: string
   address_line2?: string
   city?: string
@@ -410,6 +496,8 @@ export type ProfileUpdatePayload = {
 function buildProfileBody(payload: ProfileUpdatePayload): Record<string, unknown> {
   const body: Record<string, unknown> = {}
   const keys: (keyof ProfileUpdatePayload)[] = [
+    'first_name',
+    'last_name',
     'email',
     'second_email',
     'third_email',
@@ -426,7 +514,12 @@ function buildProfileBody(payload: ProfileUpdatePayload): Record<string, unknown
   ]
   for (const k of keys) {
     const v = payload[k]
-    if (v !== undefined && v !== '') {
+    if (v === undefined) continue
+    if (v === null) {
+      body[k] = null
+      continue
+    }
+    if (typeof v === 'string' && v !== '') {
       body[k] = v
     }
   }

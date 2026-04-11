@@ -21,7 +21,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const isHome = pathname === '/'
-  const currentYear = new Date().getFullYear()
   const role: UserRole = (user?.role as UserRole) ?? 'customer'
   const isStaff = role === 'employee' || role === 'manager'
 
@@ -103,16 +102,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <main className={`${styles.main} ${isHome ? '' : styles.mainPadded}`.trim()}>{children}</main>
       <footer className={styles.footer}>
         <div className={styles.footerBottom}>
-          <span>© {currentYear} Vorton. All rights reserved.</span>
-          <span className={styles.footerLinks}>
+          <span className={styles.footerCopyright}>
+            © Vorton. All rights reserved.
+            {' '}
+            <a href="https://rewiremodel.com/" target="_blank" rel="noopener noreferrer">
+              Developed by RMG Group
+            </a>
+          </span>
+          <span className={styles.footerPolicyCenter}>
             <Link href="/reward-points" className={styles.footerPolicyLink}>
               {t('footerMembershipPolicyLink')}
             </Link>
-            <span className={styles.footerLinksSep} aria-hidden="true">
-              ·
-            </span>
-            <span className={styles.footerTagline}>{t('footerTagline')}</span>
           </span>
+          <span className={styles.footerTagline}>{t('footerTagline')}</span>
         </div>
       </footer>
     </div>

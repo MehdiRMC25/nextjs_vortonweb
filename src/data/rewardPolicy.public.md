@@ -11,6 +11,7 @@ $72–$180 → 3.5% back
 $180+ → 5% back
 
 Points are calculated on the eligible purchase amount (excluding delivery, services, non-eligible items, and any discounted or promotional items).  
+
 Points are earned on full-price items only.
 
 Conversion: 1 USD reward value = 11 points
