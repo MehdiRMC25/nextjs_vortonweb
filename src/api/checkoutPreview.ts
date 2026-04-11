@@ -1,5 +1,7 @@
 import { config } from '@/config'
 
+export type CheckoutQuoteCurrency = 'AZN' | 'USD' | 'GBP'
+
 /** Matches payement-backend checkout preview JSON (camelCase + optional snake_case). */
 export type CheckoutPreviewBreakdown = {
   payableTotalAzn: number
@@ -7,6 +9,13 @@ export type CheckoutPreviewBreakdown = {
   membershipDiscountAzn?: number
   pointsDiscountAzn?: number
   shippingAzn?: number
+  /** Server-provided quote for the shipping row (preferred for display). */
+  shippingQuoteAmount?: number
+  shippingQuoteCurrency?: string
+  shippingInternationalFeeUsd?: number
+  shippingDomesticFeeAzn?: number
+  shippingZone?: string
+  shippingCountryIso2?: string
   [key: string]: unknown
 }
 
@@ -15,6 +24,18 @@ export type CheckoutPreviewResponse = {
   audience: 'guest' | 'member'
   note?: string
   breakdown: CheckoutPreviewBreakdown
+}
+
+export class CheckoutPreviewRequestError extends Error {
+  readonly code: string
+  readonly countryIso2?: string
+
+  constructor(opts: { code: string; message: string; countryIso2?: string }) {
+    super(opts.message)
+    this.name = 'CheckoutPreviewRequestError'
+    this.code = opts.code
+    this.countryIso2 = opts.countryIso2
+  }
 }
 
 function apiV1Url(path: string): string {
@@ -56,6 +77,23 @@ function parseBreakdown(raw: unknown): CheckoutPreviewBreakdown {
       num(b.membershipDiscountAzn) ?? num(b.membership_discount_azn) ?? num(b.membershipDiscount),
     pointsDiscountAzn: num(b.pointsDiscountAzn) ?? num(b.points_discount_azn),
     shippingAzn: num(b.shippingAzn) ?? num(b.shipping_azn),
+    shippingQuoteAmount: num(b.shippingQuoteAmount) ?? num(b.shipping_quote_amount),
+    shippingQuoteCurrency:
+      typeof b.shippingQuoteCurrency === 'string'
+        ? b.shippingQuoteCurrency
+        : typeof b.shipping_quote_currency === 'string'
+          ? b.shipping_quote_currency
+          : undefined,
+    shippingInternationalFeeUsd:
+      num(b.shippingInternationalFeeUsd) ?? num(b.shipping_international_fee_usd),
+    shippingDomesticFeeAzn: num(b.shippingDomesticFeeAzn) ?? num(b.shipping_domestic_fee_azn),
+    shippingZone: typeof b.shippingZone === 'string' ? b.shippingZone : typeof b.shipping_zone === 'string' ? b.shipping_zone : undefined,
+    shippingCountryIso2:
+      typeof b.shippingCountryIso2 === 'string'
+        ? b.shippingCountryIso2
+        : typeof b.shipping_country_iso2 === 'string'
+          ? b.shipping_country_iso2
+          : undefined,
   } as CheckoutPreviewBreakdown
 }
 
@@ -72,17 +110,42 @@ function parsePreviewResponse(json: unknown): CheckoutPreviewResponse {
   }
 }
 
-async function readPreviewError(res: Response): Promise<string> {
+async function parsePreviewFailure(res: Response): Promise<never> {
   const t = await res.text()
-  if (!t.trim()) return `CHECKOUT_PREVIEW_${res.status}`
+  let j: Record<string, unknown> = {}
   try {
-    const j = JSON.parse(t) as { error?: string; message?: string }
-    const m = (typeof j.error === 'string' && j.error.trim()) || (typeof j.message === 'string' && j.message.trim())
-    if (m) return m.length > 500 ? 'CHECKOUT_PREVIEW_ERROR' : m
+    j = t.trim() ? (JSON.parse(t) as Record<string, unknown>) : {}
   } catch {
-    /* ignore */
+    throw new CheckoutPreviewRequestError({
+      code: `HTTP_${res.status}`,
+      message: t.length > 200 ? 'CHECKOUT_PREVIEW_ERROR' : t || 'Preview failed',
+    })
   }
-  return t.length > 200 ? 'CHECKOUT_PREVIEW_ERROR' : t
+  const code =
+    (typeof j.code === 'string' && j.code.trim()) ||
+    (typeof j.error === 'string' && j.error === 'SHIPPING_UNAVAILABLE' ? 'SHIPPING_UNAVAILABLE' : '') ||
+    ''
+  const countryIso2 =
+    (typeof j.countryIso2 === 'string' && j.countryIso2) ||
+    (typeof j.country_iso2 === 'string' && j.country_iso2) ||
+    undefined
+  const msg =
+    (typeof j.message === 'string' && j.message.trim()) ||
+    (typeof j.error === 'string' && j.error.trim() && j.error !== 'SHIPPING_UNAVAILABLE' ? j.error : '') ||
+    'Preview failed'
+
+  if (code === 'SHIPPING_UNAVAILABLE' || j.error === 'SHIPPING_UNAVAILABLE') {
+    throw new CheckoutPreviewRequestError({
+      code: 'SHIPPING_UNAVAILABLE',
+      message: msg,
+      countryIso2,
+    })
+  }
+  throw new CheckoutPreviewRequestError({
+    code: code || `HTTP_${res.status}`,
+    message: msg.length > 500 ? 'CHECKOUT_PREVIEW_ERROR' : msg,
+    countryIso2,
+  })
 }
 
 const MEMBER_PREVIEW_PATH =
@@ -90,53 +153,77 @@ const MEMBER_PREVIEW_PATH =
 const GUEST_PREVIEW_PATH =
   process.env.NEXT_PUBLIC_CHECKOUT_PREVIEW_GUEST_PATH || 'checkout/preview-guest'
 
-export type PreviewMemberBody = {
+export type PreviewDeliveryContext = {
+  delivery_country: string
+  /** Required for domestic Azerbaijan routing when applicable. */
+  delivery_city?: string | null
+  checkout_currency: CheckoutQuoteCurrency
+}
+
+export type PreviewMemberBody = PreviewDeliveryContext & {
   items: unknown[]
   points_to_redeem?: number
 }
 
+function mergePreviewPayload(
+  body: PreviewMemberBody | (PreviewDeliveryContext & { items: unknown[] })
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    items: body.items,
+    delivery_country: body.delivery_country.trim(),
+    checkout_currency: body.checkout_currency,
+  }
+  if (body.delivery_city != null && String(body.delivery_city).trim() !== '') {
+    payload.delivery_city = String(body.delivery_city).trim()
+  }
+  if ('points_to_redeem' in body && body.points_to_redeem != null && body.points_to_redeem > 0) {
+    payload.points_to_redeem = Math.floor(body.points_to_redeem)
+  }
+  return payload
+}
+
 /**
- * Authenticated member preview — same breakdown shape as guest; server applies membership + points.
+ * Authenticated member preview — JWT + items + delivery + checkout_currency + optional points.
  */
 export async function postCheckoutPreview(
   token: string,
   body: PreviewMemberBody,
   signal?: AbortSignal
 ): Promise<CheckoutPreviewResponse> {
-  const payload: Record<string, unknown> = { items: body.items }
-  if (body.points_to_redeem != null && body.points_to_redeem > 0) {
-    payload.points_to_redeem = Math.floor(body.points_to_redeem)
-  }
   const res = await fetch(apiV1Url(MEMBER_PREVIEW_PATH), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(mergePreviewPayload(body)),
     signal,
   })
   if (!res.ok) {
-    throw new Error(await readPreviewError(res))
+    await parsePreviewFailure(res)
   }
   return parsePreviewResponse(await res.json())
 }
 
 /**
- * Guest preview — items only; no points (server rejects points_to_redeem &gt; 0).
+ * Guest preview — items + delivery + checkout_currency (no JWT).
  */
 export async function postCheckoutPreviewGuest(
-  body: { items: unknown[] },
+  body: PreviewDeliveryContext & { items: unknown[] },
   signal?: AbortSignal
 ): Promise<CheckoutPreviewResponse> {
   const res = await fetch(apiV1Url(GUEST_PREVIEW_PATH), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items: body.items }),
+    body: JSON.stringify(mergePreviewPayload(body)),
     signal,
   })
   if (!res.ok) {
-    throw new Error(await readPreviewError(res))
+    await parsePreviewFailure(res)
   }
   return parsePreviewResponse(await res.json())
+}
+
+export function isCheckoutPreviewRequestError(e: unknown): e is CheckoutPreviewRequestError {
+  return e instanceof CheckoutPreviewRequestError
 }

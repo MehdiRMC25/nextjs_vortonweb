@@ -32,6 +32,12 @@ export type PaymentOrderPayload = {
   points_to_redeem?: number
   /** From POST /auth/checkout-delivery — linked to the order after payment. */
   delivery_contact_log_id?: number
+  /** ISO country for server shipping (align with checkout preview). */
+  delivery_country?: string
+  /** City — used for Azerbaijan domestic routing when applicable. */
+  delivery_city?: string | null
+  /** Display / quote currency used at checkout (AZN | USD | GBP). */
+  checkout_currency?: string
 }
 
 export type CreatePaymentRequest = {

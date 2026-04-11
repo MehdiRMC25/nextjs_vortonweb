@@ -27,19 +27,31 @@ import {
 import WhatsAppButton from '@/components/WhatsAppButton'
 import { productDisplayName } from '@/lib/productDisplay'
 import { isValidPhone } from '@/utils/validation'
+import { guestPhoneToE164, isValidGuestPhone } from '@/lib/guestPhone'
+import {
+    countryLabel,
+    phoneCountryOptionLabel,
+    sortedCountryCodes,
+} from '@/lib/checkoutCountryLists'
+import type { CountryCode } from 'libphonenumber-js'
 import { getPaymentReturnUrl } from '@/lib/paymentReturnUrl'
 import {
     cartItemKey,
     cartLineListAndEffective,
     computeCheckoutMerchandiseSummary,
 } from '@/lib/checkoutMerchandise'
-import { shippingZoneAndFee } from '@/lib/shippingAzn'
+import { checkoutShippingDisplayCurrency, shippingZoneAndFee } from '@/lib/shippingAzn'
 import { buildCheckoutOrderLineItems } from '@/lib/checkoutOrderLineItems'
 import {
+    isCheckoutPreviewRequestError,
     postCheckoutPreview,
     postCheckoutPreviewGuest,
     type CheckoutPreviewBreakdown,
+    type CheckoutPreviewResponse,
+    type CheckoutQuoteCurrency,
 } from '@/api/checkoutPreview'
+import { shippingLineLabelFromBreakdown } from '@/lib/checkoutShippingDisplay'
+import { formatCheckoutMoneyFromAzn } from '@/lib/checkoutDisplayFx'
 import styles from './Checkout.module.css'
 
 function parseCustomerId(u: AuthUser | null | undefined): number | undefined {
@@ -61,18 +73,25 @@ function getItemImage(item: CartItem) {
 }
 
 export default function Checkout() {
-    const { t, locale } = useLocale()
+    const { t, locale, geoCountry } = useLocale()
+    const shippingUnavailableCopy = t('shippingUnavailableMessage')
     const { user, token, isAuthenticated, refreshUser } = useAuth()
     const { items } = useCart()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [guestName, setGuestName] = useState('')
-    const [guestMobile, setGuestMobile] = useState('')
+    const [guestPhoneCountryIso, setGuestPhoneCountryIso] = useState<CountryCode>('AZ')
+    const [guestPhoneLocal, setGuestPhoneLocal] = useState('')
     const [guestAddress, setGuestAddress] = useState('')
+    /** Delivery country — ISO2 from dropdown (internal). */
+    const [guestCountry, setGuestCountry] = useState('')
+    const [guestCity, setGuestCity] = useState('')
     const [useRewardPoints, setUseRewardPoints] = useState(false)
     const [pointsToApply, setPointsToApply] = useState(0)
     const [deliveryMobile, setDeliveryMobile] = useState('')
     const [deliveryAddress, setDeliveryAddress] = useState('')
+    const [deliveryCountry, setDeliveryCountry] = useState('')
+    const [deliveryCity, setDeliveryCity] = useState('')
     const [deliveryEditing, setDeliveryEditing] = useState(false)
     const [deliveryBusy, setDeliveryBusy] = useState(false)
     const [deliveryError, setDeliveryError] = useState<string | null>(null)
@@ -82,12 +101,15 @@ export default function Checkout() {
     const [previewBreakdown, setPreviewBreakdown] = useState<CheckoutPreviewBreakdown | null>(null)
     const [previewLoading, setPreviewLoading] = useState(false)
     const [previewError, setPreviewError] = useState<string | null>(null)
+    const [shippingUnavailable, setShippingUnavailable] = useState(false)
     const previewAbortRef = useRef<AbortController | null>(null)
 
     const cartFingerprint = useMemo(
         () => items.map((it) => `${cartItemKey(it)}:${it.quantity}`).join('|'),
         [items]
     )
+
+    const countryCodesSorted = useMemo(() => sortedCountryCodes(locale), [locale])
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -100,6 +122,8 @@ export default function Checkout() {
                           .join(', ')
                           .trim()
             setDeliveryAddress(composed)
+            setDeliveryCountry(typeof user.country === 'string' ? user.country.trim() : '')
+            setDeliveryCity(typeof user.city === 'string' ? user.city.trim() : '')
         }
     }, [isAuthenticated, user])
 
@@ -120,14 +144,56 @@ export default function Checkout() {
         Math.max(0, Math.min(maxPointsForCart, Math.floor(chosenPointsRaw)))
     )
     const discountAzn = discountAznFromRedeemPoints(chosenPoints)
-    const { zone: shippingZone, shippingAzn } = shippingZoneAndFee(
+    const guestDeliveryForShipping = useMemo(
+        () =>
+            !isAuthenticated
+                ? { countryIso: guestCountry || undefined, city: guestCity || undefined }
+                : null,
+        [isAuthenticated, guestCountry, guestCity]
+    )
+
+    const { shippingAzn: clientFallbackShippingAzn } = shippingZoneAndFee(
         isAuthenticated,
         user,
         deliveryAddress,
-        guestAddress
+        guestAddress,
+        guestDeliveryForShipping
     )
+
+    const checkoutCurrency = checkoutShippingDisplayCurrency(locale, geoCountry) as CheckoutQuoteCurrency
+
+    const resolvedDeliveryCountry = useMemo(() => {
+        if (isAuthenticated) {
+            return (
+                deliveryCountry.trim() ||
+                (typeof user?.country === 'string' ? user.country.trim() : '') ||
+                ''
+            ).trim()
+        }
+        return guestCountry.trim()
+    }, [isAuthenticated, deliveryCountry, user, guestCountry])
+
+    const resolvedDeliveryCity = useMemo(() => {
+        if (isAuthenticated) {
+            return (
+                deliveryCity.trim() ||
+                (typeof user?.city === 'string' ? user.city.trim() : '') ||
+                ''
+            ).trim()
+        }
+        return guestCity.trim()
+    }, [isAuthenticated, deliveryCity, user, guestCity])
+
+    const shippingLineFormatted = useMemo(
+        () =>
+            shippingLineLabelFromBreakdown(previewBreakdown, clientFallbackShippingAzn, checkoutCurrency),
+        [previewBreakdown, clientFallbackShippingAzn, checkoutCurrency]
+    )
+
+    const payBlockedByShipping =
+        shippingUnavailable || previewError === shippingUnavailableCopy
     const payableTotal =
-        Math.round((merchandiseNet - discountAzn + shippingAzn) * 100) / 100
+        Math.round((merchandiseNet - discountAzn + clientFallbackShippingAzn) * 100) / 100
     const balanceAzn = discountAznFromRedeemPoints(pointsBalance)
     const maxUseAzn = discountAznFromRedeemPoints(maxPointsForCart)
     const pointsAtMaximum =
@@ -137,7 +203,6 @@ export default function Checkout() {
     const displayMembershipDiscountAzn =
         previewBreakdown?.membershipDiscountAzn ?? membershipDiscountAzn
     const displayPointsDiscountAzn = previewBreakdown?.pointsDiscountAzn ?? discountAzn
-    const displayShippingAzn = previewBreakdown?.shippingAzn ?? shippingAzn
 
     useEffect(() => {
         if (!useRewardPoints) {
@@ -159,6 +224,14 @@ export default function Checkout() {
             return
         }
 
+        if (!resolvedDeliveryCountry) {
+            setPreviewBreakdown(null)
+            setShippingUnavailable(false)
+            setPreviewError(t('deliveryCountryRequired'))
+            setPreviewLoading(false)
+            return
+        }
+
         const ac = new AbortController()
         previewAbortRef.current?.abort()
         previewAbortRef.current = ac
@@ -167,20 +240,21 @@ export default function Checkout() {
             void (async () => {
                 setPreviewLoading(true)
                 setPreviewError(null)
+                setShippingUnavailable(false)
                 try {
-                    const lineItems = buildCheckoutOrderLineItems(
-                        items,
-                        isAuthenticated,
-                        user,
-                        deliveryAddress,
-                        guestAddress
-                    )
+                    const previewItems = buildCheckoutOrderLineItems(items, null)
+                    const base = {
+                        delivery_country: resolvedDeliveryCountry,
+                        ...(resolvedDeliveryCity ? { delivery_city: resolvedDeliveryCity } : {}),
+                        checkout_currency: checkoutCurrency,
+                        items: previewItems,
+                    }
                     if (isAuthenticated && token) {
                         const ptsPreview = useRewardPoints ? chosenPoints : 0
                         const res = await postCheckoutPreview(
                             token,
                             {
-                                items: lineItems,
+                                ...base,
                                 points_to_redeem: ptsPreview > 0 ? ptsPreview : undefined,
                             },
                             ac.signal
@@ -189,7 +263,7 @@ export default function Checkout() {
                             setPreviewBreakdown(res.breakdown)
                         }
                     } else {
-                        const res = await postCheckoutPreviewGuest({ items: lineItems }, ac.signal)
+                        const res = await postCheckoutPreviewGuest(base, ac.signal)
                         if (!ac.signal.aborted) {
                             setPreviewBreakdown(res.breakdown)
                         }
@@ -198,7 +272,13 @@ export default function Checkout() {
                     if (e instanceof Error && e.name === 'AbortError') return
                     if (!ac.signal.aborted) {
                         setPreviewBreakdown(null)
-                        setPreviewError(e instanceof Error ? e.message : 'Preview failed')
+                        if (isCheckoutPreviewRequestError(e) && e.code === 'SHIPPING_UNAVAILABLE') {
+                            setShippingUnavailable(true)
+                            setPreviewError(shippingUnavailableCopy)
+                        } else {
+                            setShippingUnavailable(false)
+                            setPreviewError(e instanceof Error ? e.message : 'Preview failed')
+                        }
                     }
                 } finally {
                     if (!ac.signal.aborted) setPreviewLoading(false)
@@ -215,11 +295,14 @@ export default function Checkout() {
         isAuthenticated,
         token,
         user,
-        deliveryAddress,
-        guestAddress,
+        resolvedDeliveryCountry,
+        resolvedDeliveryCity,
+        checkoutCurrency,
         useRewardPoints,
         chosenPoints,
         items.length,
+        t,
+        shippingUnavailableCopy,
     ])
 
     if (items.length === 0) {
@@ -243,7 +326,13 @@ export default function Checkout() {
         netPay: number,
         pointsToRedeem: number,
         /** Fresh profile after refreshUser — keeps line prices in sync with payment */
-        profileForOrder?: AuthUser | null
+        profileForOrder: AuthUser | null | undefined,
+        serverShippingAzn: number,
+        deliveryMeta: {
+            delivery_country: string
+            delivery_city?: string | null
+            checkout_currency: CheckoutQuoteCurrency
+        }
     ): PaymentOrderPayload {
         const u = profileForOrder ?? user
         const customer_name = isAuthenticated && u
@@ -252,7 +341,7 @@ export default function Checkout() {
         const mobile =
             isAuthenticated && u
                 ? (deliveryMobile.trim() || (u.phone ?? '').trim() || '')
-                : guestMobile.trim() || ''
+                : guestPhoneToE164(guestPhoneCountryIso, guestPhoneLocal).trim() || ''
         const address =
             isAuthenticated && u
                 ? (deliveryAddress.trim() ||
@@ -265,13 +354,7 @@ export default function Checkout() {
                 : guestAddress.trim() || null
         const membership_level = (isAuthenticated && u && u.membership_level) ? u.membership_level : 'none'
         const customer_id = parseCustomerId(u)
-        const orderItems = buildCheckoutOrderLineItems(
-            items,
-            Boolean(isAuthenticated && u),
-            u,
-            deliveryAddress,
-            guestAddress
-        )
+        const orderItems = buildCheckoutOrderLineItems(items, serverShippingAzn)
         return {
             ...(customer_id !== undefined ? { customer_id } : {}),
             customer_name: customer_name || 'Customer',
@@ -282,6 +365,9 @@ export default function Checkout() {
             delivery_due_date: null,
             items: orderItems,
             total_price: netPay,
+            delivery_country: deliveryMeta.delivery_country,
+            delivery_city: deliveryMeta.delivery_city,
+            checkout_currency: deliveryMeta.checkout_currency,
             ...(pointsToRedeem > 0 ? { points_to_redeem: pointsToRedeem } : {}),
             ...(isAuthenticated &&
             u &&
@@ -294,8 +380,22 @@ export default function Checkout() {
 
     async function handleProceedToPayment() {
         setError(null)
-        if (!isAuthenticated && (!guestName.trim() || !guestMobile.trim())) {
-            setError(t('checkoutGuestFields'))
+        if (!isAuthenticated) {
+            if (!guestName.trim() || !guestCountry.trim() || !guestCity.trim() || !guestAddress.trim()) {
+                setError(t('checkoutGuestAllFieldsRequired'))
+                return
+            }
+            if (!isValidGuestPhone(guestPhoneCountryIso, guestPhoneLocal)) {
+                setError(t('invalidMobileNumber'))
+                return
+            }
+        }
+        if (!resolvedDeliveryCountry.trim()) {
+            setError(t('deliveryCountryRequired'))
+            return
+        }
+        if (shippingUnavailable || previewError === shippingUnavailableCopy) {
+            setError(shippingUnavailableCopy)
             return
         }
         setLoading(true)
@@ -321,28 +421,40 @@ export default function Checkout() {
                 setLoading(false)
                 return
             }
-            const lineItems = buildCheckoutOrderLineItems(
-                items,
-                isAuthenticated,
-                profile,
-                deliveryAddress,
-                guestAddress
-            )
-            let payable: number
+            const deliveryMeta = {
+                delivery_country: resolvedDeliveryCountry.trim(),
+                delivery_city: resolvedDeliveryCity.trim() || null,
+                checkout_currency: checkoutCurrency,
+            }
+            const previewItems = buildCheckoutOrderLineItems(items, null)
+            let prev: CheckoutPreviewResponse
             if (isAuthenticated && token) {
-                const prev = await postCheckoutPreview(token, {
-                    items: lineItems,
+                prev = await postCheckoutPreview(token, {
+                    ...deliveryMeta,
+                    items: previewItems,
                     points_to_redeem: pts > 0 ? pts : undefined,
                 })
-                payable = prev.breakdown.payableTotalAzn
             } else {
-                const prev = await postCheckoutPreviewGuest({ items: lineItems })
-                payable = prev.breakdown.payableTotalAzn
+                prev = await postCheckoutPreviewGuest({
+                    ...deliveryMeta,
+                    items: previewItems,
+                })
             }
+            const serverShip =
+                typeof prev.breakdown.shippingAzn === 'number' && Number.isFinite(prev.breakdown.shippingAzn)
+                    ? prev.breakdown.shippingAzn
+                    : 0
+            const payable = prev.breakdown.payableTotalAzn
             const net = Math.round(payable * 100) / 100
 
             const returnUrl = getPaymentReturnUrl()
-            const order = buildOrderPayload(net, isAuthenticated ? pts : 0, profile)
+            const order = buildOrderPayload(
+                net,
+                isAuthenticated ? pts : 0,
+                profile,
+                serverShip,
+                deliveryMeta
+            )
             const res = await createPayment({
                 amount: net,
                 currency: 'AZN',
@@ -354,6 +466,13 @@ export default function Checkout() {
             if (url) window.location.href = url
             else throw new Error('No payment URL returned')
         } catch (e) {
+            if (isCheckoutPreviewRequestError(e) && e.code === 'SHIPPING_UNAVAILABLE') {
+                setShippingUnavailable(true)
+                setPreviewBreakdown(null)
+                setError(shippingUnavailableCopy)
+                setLoading(false)
+                return
+            }
             const msg = e instanceof Error ? e.message : 'Payment failed'
             const corsMsg =
                 msg === 'PAYMENT_CORS_OR_NETWORK'
@@ -426,26 +545,78 @@ export default function Checkout() {
                                         value={guestName}
                                         onChange={(e) => setGuestName(e.target.value)}
                                         placeholder={t('yourName')}
+                                        autoComplete="name"
                                     />
                                 </label>
                                 <label className={styles.guestLabel}>
                                     {t('mobileLabel')} *
+                                    <div className={styles.guestPhoneRow}>
+                                        <select
+                                            className={styles.guestPhoneCodeSelect}
+                                            value={guestPhoneCountryIso}
+                                            onChange={(e) => setGuestPhoneCountryIso(e.target.value as CountryCode)}
+                                            aria-label={t('mobileLabel')}
+                                        >
+                                            {countryCodesSorted.map((iso) => (
+                                                <option key={iso} value={iso}>
+                                                    {phoneCountryOptionLabel(iso, locale)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="tel"
+                                            className={styles.guestPhoneNationalInput}
+                                            value={guestPhoneLocal}
+                                            onChange={(e) => setGuestPhoneLocal(e.target.value)}
+                                            placeholder="501234567"
+                                            autoComplete="tel-national"
+                                            inputMode="numeric"
+                                        />
+                                    </div>
+                                </label>
+                                <label className={styles.guestLabel}>
+                                    {t('deliveryCountryLabel')} *
+                                    <select
+                                        className={styles.guestSelect}
+                                        value={guestCountry}
+                                        onChange={(e) => {
+                                            setGuestCountry(e.target.value)
+                                            setShippingUnavailable(false)
+                                        }}
+                                        autoComplete="country"
+                                    >
+                                        <option value="">{t('selectCountry')}</option>
+                                        {countryCodesSorted.map((iso) => (
+                                            <option key={`d-${iso}`} value={iso}>
+                                                {countryLabel(iso, locale)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                                <label className={styles.guestLabel}>
+                                    {t('deliveryCityLabel')} *
                                     <input
                                         type="text"
                                         className={styles.guestInput}
-                                        value={guestMobile}
-                                        onChange={(e) => setGuestMobile(e.target.value)}
-                                        placeholder="+994..."
+                                        value={guestCity}
+                                        onChange={(e) => {
+                                            setGuestCity(e.target.value)
+                                            setShippingUnavailable(false)
+                                        }}
+                                        autoComplete="address-level2"
                                     />
                                 </label>
                                 <label className={styles.guestLabel}>
-                                    {t('addressOptional')}
+                                    {t('deliveryAddressLabel')} *
                                     <input
                                         type="text"
                                         className={styles.guestInput}
                                         value={guestAddress}
-                                        onChange={(e) => setGuestAddress(e.target.value)}
-                                        placeholder={t('optional')}
+                                        onChange={(e) => {
+                                            setGuestAddress(e.target.value)
+                                            setShippingUnavailable(false)
+                                        }}
+                                        autoComplete="street-address"
                                     />
                                 </label>
                             </div>
@@ -479,10 +650,13 @@ export default function Checkout() {
                                             <p className={styles.compactProductName}>{lineTitle}</p>
                                             <p className={styles.compactProductMeta}>
                                                 {colorName && `${colorName} · `}
-                                                {t('sizeLabel')}: {item.size} · ₼{listUnit.toFixed(2)} {t('each')} · x{item.quantity}
+                                                {t('sizeLabel')}: {item.size} ·{' '}
+                                                {formatCheckoutMoneyFromAzn(listUnit, checkoutCurrency)} {t('each')} · x{item.quantity}
                                             </p>
                                         </div>
-                                        <div className={styles.compactProductTotal}>₼{lineTotal.toFixed(2)}</div>
+                                        <div className={styles.compactProductTotal}>
+                                            {formatCheckoutMoneyFromAzn(lineTotal, checkoutCurrency)}
+                                        </div>
                                     </div>
                                 )
                             })}
@@ -498,7 +672,9 @@ export default function Checkout() {
                         </p>
                         <p className={styles.rewardsMuted}>{t('rewardPointsBalanceHint')}</p>
                         <p className={styles.rewardsHint}>
-                            {t('eligibleSubtotalLabel')}: ₼{eligibleSubtotal.toFixed(2)} • {formatEarnPercentLabel(earnRate)}%
+                            {t('eligibleSubtotalLabel')}:{' '}
+                            {formatCheckoutMoneyFromAzn(eligibleSubtotal, checkoutCurrency)} •{' '}
+                            {formatEarnPercentLabel(earnRate)}%
                         </p>
                     </div>
 
@@ -527,10 +703,16 @@ export default function Checkout() {
                                     <p className={styles.pointsBalanceLine}>
                                         {t('checkoutPointsBalanceLine')
                                             .replace('{{points}}', String(pointsBalance.toLocaleString()))
-                                            .replace('{{azn}}', balanceAzn.toFixed(2))}
+                                            .replace(
+                                                '{{azn}}',
+                                                formatCheckoutMoneyFromAzn(balanceAzn, checkoutCurrency)
+                                            )}
                                     </p>
                                     <p className={styles.pointsHelperLine}>
-                                        {t('checkoutPointsUseUpTo').replace('{{amount}}', maxUseAzn.toFixed(2))}
+                                        {t('checkoutPointsUseUpTo').replace(
+                                            '{{amount}}',
+                                            formatCheckoutMoneyFromAzn(maxUseAzn, checkoutCurrency)
+                                        )}
                                     </p>
 
                                     {useRewardPoints && (
@@ -573,7 +755,9 @@ export default function Checkout() {
                                             </div>
                                             <p className={styles.pointsDiscountFromLine}>
                                                 <span>{t('checkoutDiscountFromPoints')}</span>{' '}
-                                                <strong>₼{discountAzn.toFixed(2)}</strong>
+                                                <strong>
+                                                    {formatCheckoutMoneyFromAzn(discountAzn, checkoutCurrency)}
+                                                </strong>
                                             </p>
                                             <button
                                                 type="button"
@@ -632,6 +816,14 @@ export default function Checkout() {
                                             {deliveryMobile.trim() || t('notProvided')}
                                         </p>
                                         <p className={styles.deliveryLine}>
+                                            <span className={styles.deliveryLabel}>{t('deliveryCountryLabel')}:</span>{' '}
+                                            {deliveryCountry.trim() || t('notProvided')}
+                                        </p>
+                                        <p className={styles.deliveryLine}>
+                                            <span className={styles.deliveryLabel}>{t('deliveryCityLabel')}:</span>{' '}
+                                            {deliveryCity.trim() || t('notProvided')}
+                                        </p>
+                                        <p className={styles.deliveryLine}>
                                             <span className={styles.deliveryLabel}>{t('address')}:</span>{' '}
                                             {deliveryAddress.trim() || t('notProvided')}
                                         </p>
@@ -646,6 +838,32 @@ export default function Checkout() {
                                                 value={deliveryMobile}
                                                 onChange={(e) => setDeliveryMobile(e.target.value)}
                                                 placeholder="+994..."
+                                            />
+                                        </label>
+                                        <label className={styles.guestLabel}>
+                                            {t('deliveryCountryLabel')} *
+                                            <input
+                                                type="text"
+                                                className={styles.guestInput}
+                                                value={deliveryCountry}
+                                                onChange={(e) => {
+                                                    setDeliveryCountry(e.target.value)
+                                                    setShippingUnavailable(false)
+                                                }}
+                                                autoComplete="country"
+                                            />
+                                        </label>
+                                        <label className={styles.guestLabel}>
+                                            {t('deliveryCityLabel')} *
+                                            <input
+                                                type="text"
+                                                className={styles.guestInput}
+                                                value={deliveryCity}
+                                                onChange={(e) => {
+                                                    setDeliveryCity(e.target.value)
+                                                    setShippingUnavailable(false)
+                                                }}
+                                                autoComplete="address-level2"
                                             />
                                         </label>
                                         <label className={styles.guestLabel}>
@@ -680,7 +898,9 @@ export default function Checkout() {
                         <div className={styles.summaryRows}>
                             <div className={styles.summaryRow}>
                                 <span>{t('merchandiseSubtotalBeforeMembership')}</span>
-                                <span>₼{subtotalBeforeMembership.toFixed(2)}</span>
+                                <span>
+                                    {formatCheckoutMoneyFromAzn(subtotalBeforeMembership, checkoutCurrency)}
+                                </span>
                             </div>
                             {displayMembershipDiscountAzn > 0 && (
                                 <div className={`${styles.summaryRow} ${styles.summaryRowDiscount}`}>
@@ -688,33 +908,27 @@ export default function Checkout() {
                                         {t('membershipDiscount')}
                                         {membershipRatePct > 0 ? ` (${membershipRatePct}%)` : ''}
                                     </span>
-                                    <span>−₼{displayMembershipDiscountAzn.toFixed(2)}</span>
+                                    <span>
+                                        −{formatCheckoutMoneyFromAzn(displayMembershipDiscountAzn, checkoutCurrency)}
+                                    </span>
                                 </div>
                             )}
                             {chosenPoints > 0 && (
                                 <div className={`${styles.summaryRow} ${styles.summaryRowDiscount}`}>
                                     <span>{t('pointsDiscount')}</span>
-                                    <span>−₼{displayPointsDiscountAzn.toFixed(2)}</span>
+                                    <span>
+                                        −{formatCheckoutMoneyFromAzn(displayPointsDiscountAzn, checkoutCurrency)}
+                                    </span>
                                 </div>
                             )}
                             <div className={styles.summaryRow}>
-                                <span>
-                                    {t('shipping')}
-                                    <span className={styles.shippingZoneHint}>
-                                        {' '}
-                                        (
-                                        {shippingZone === 'baku'
-                                            ? t('shippingRateBakuHint')
-                                            : t('shippingRateNationalHint')}
-                                        )
-                                    </span>
-                                </span>
-                                <span>₼{displayShippingAzn.toFixed(2)}</span>
+                                <span>{t('shipping')}</span>
+                                <span>{shippingLineFormatted}</span>
                             </div>
                             <div className={`${styles.summaryRow} ${styles.summaryRowTotal}`}>
                                 <span>{t('amountToPay')}</span>
                                 <span className={styles.summaryTotalValue}>
-                                    ₼{displayPayableTotal.toFixed(2)}
+                                    {formatCheckoutMoneyFromAzn(displayPayableTotal, checkoutCurrency)}
                                 </span>
                             </div>
                         </div>
@@ -725,12 +939,30 @@ export default function Checkout() {
                             </p>
                         )}
                         {previewError && (
-                            <p className={styles.deliveryHint} role="status">
+                            <p
+                                className={
+                                    previewError === shippingUnavailableCopy
+                                        ? styles.shippingUnavailableMessage
+                                        : styles.deliveryHint
+                                }
+                                role={previewError === shippingUnavailableCopy ? 'alert' : 'status'}
+                            >
                                 {previewError}
                             </p>
                         )}
 
-                        {error && <p className={styles.error}>{error}</p>}
+                        {error && (
+                            <p
+                                className={
+                                    error === shippingUnavailableCopy
+                                        ? styles.shippingUnavailableMessage
+                                        : styles.error
+                                }
+                                role={error === shippingUnavailableCopy ? 'alert' : undefined}
+                            >
+                                {error}
+                            </p>
+                        )}
                     </div>
 
                     <div className={styles.actionsRow}>
@@ -739,9 +971,15 @@ export default function Checkout() {
                         </Link>
                         <button
                             type="button"
-                            className="btn btn-primary"
+                            className={`btn btn-primary ${styles.proceedToPaymentBtn}`}
                             onClick={handleProceedToPayment}
-                            disabled={loading}
+                            disabled={
+                                loading ||
+                                previewLoading ||
+                                payBlockedByShipping ||
+                                !resolvedDeliveryCountry.trim() ||
+                                !previewBreakdown
+                            }
                         >
                             {loading ? t('loading') : t('proceedToPayment')}
                         </button>

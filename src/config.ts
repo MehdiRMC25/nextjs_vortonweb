@@ -66,17 +66,39 @@ export const config = {
     defaultMessage: (process.env.NEXT_PUBLIC_WHATSAPP_DEFAULT_MESSAGE || '').trim(),
   },
   /**
-   * Checkout delivery (₼). Server should recompute on order create; this is UX + payment amount preview.
-   * Baku = address/city mentions Baku; otherwise national (rest of Azerbaijan / unspecified).
+   * Checkout delivery — amounts in AZN are sent on payments/create (__delivery__).
+   * USD/GBP are display-only rates for the shipping row when that currency is selected in checkout.
+   * Keep env in sync with payement-backend validation.
    */
   shipping: {
     bakuAzn: envNumber('NEXT_PUBLIC_SHIPPING_BAKU_AZN', 5),
-    nationalAzn: envNumber('NEXT_PUBLIC_SHIPPING_NATIONAL_AZN', 12),
+    /** Rest of Azerbaijan (not Baku). Legacy env name kept. */
+    azerbaijanAzn: envNumber(
+      'NEXT_PUBLIC_SHIPPING_AZERBAIJAN_AZN',
+      envNumber('NEXT_PUBLIC_SHIPPING_NATIONAL_AZN', 10)
+    ),
+    /** Outside Azerbaijan — AZN (set explicitly; not in USD/GBP table). */
+    internationalAzn: envNumber('NEXT_PUBLIC_SHIPPING_INTERNATIONAL_AZN', 85),
+    bakuUsd: envNumber('NEXT_PUBLIC_SHIPPING_BAKU_USD', 3),
+    azerbaijanUsd: envNumber('NEXT_PUBLIC_SHIPPING_AZERBAIJAN_USD', 5.9),
+    internationalUsd: envNumber('NEXT_PUBLIC_SHIPPING_INTERNATIONAL_USD', 50),
+    bakuGbp: envNumber('NEXT_PUBLIC_SHIPPING_BAKU_GBP', 2.3),
+    azerbaijanGbp: envNumber('NEXT_PUBLIC_SHIPPING_AZERBAIJAN_GBP', 4.3),
+    internationalGbp: envNumber('NEXT_PUBLIC_SHIPPING_INTERNATIONAL_GBP', 37),
     /**
-     * If true (default): empty or non-Baku-looking address uses national rate.
-     * Set env to "0" to use Baku rate when zone is unknown (e.g. only local customers).
+     * If true (default): empty or non-Baku-looking address uses Azerbaijan (non-Baku) rate, not international.
+     * Set env to "0" to use Baku rate when zone is unknown.
      */
     unknownAddressUsesNational: process.env.NEXT_PUBLIC_SHIPPING_UNKNOWN_USES_NATIONAL !== '0',
+  },
+  /**
+   * UI-only FX for converting AZN → USD/GBP in checkout when the API omits quote fields (e.g. local dev).
+   * Values are “AZN per 1 unit” of foreign currency (e.g. $1 = 1.7 AZN → enter 1.7).
+   * Payment and settlement remain AZN.
+   */
+  displayFx: {
+    aznPerUsd: envNumber('NEXT_PUBLIC_FX_AZN_PER_USD', 1.7),
+    aznPerGbp: envNumber('NEXT_PUBLIC_FX_AZN_PER_GBP', 2.15),
   },
 }
 

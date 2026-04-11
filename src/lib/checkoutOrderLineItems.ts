@@ -1,25 +1,23 @@
 /**
- * Order line items for checkout preview and payments/create — same shape, same builder.
+ * Order line items for checkout preview and payments/create — same shape.
+ * __delivery__ price must match server preview (AZN).
  */
-import type { AuthUser } from '@/api/auth'
 import type { PaymentOrderPayload } from '@/api/payment'
 import type { CartItem } from '@/types'
 import {
   cartLineListAndEffective,
   lineExcludedFromRewardPoints,
 } from '@/lib/checkoutMerchandise'
-import { shippingZoneAndFee } from '@/lib/shippingAzn'
 
 export type CheckoutOrderLineItem = PaymentOrderPayload['items'][number]
 
+/**
+ * @param deliveryLinePriceAzn — `null` = omit __delivery__ (e.g. POST /checkout/preview with server-side shipping from country).
+ */
 export function buildCheckoutOrderLineItems(
   cartItems: CartItem[],
-  isAuthenticated: boolean,
-  user: AuthUser | null | undefined,
-  deliveryAddress: string,
-  guestAddress: string
+  deliveryLinePriceAzn: number | null
 ): CheckoutOrderLineItem[] {
-  const { shippingAzn } = shippingZoneAndFee(isAuthenticated, user, deliveryAddress, guestAddress)
   const lines: CheckoutOrderLineItem[] = cartItems.map((item) => {
     const basis = cartLineListAndEffective(item)
     const v = item.product.variants?.[item.variantIndex]
@@ -38,11 +36,11 @@ export function buildCheckoutOrderLineItems(
       ...(item.product.onSale === true && !excluded ? { promotional: true as const } : {}),
     }
   })
-  if (shippingAzn > 0) {
+  if (deliveryLinePriceAzn != null && deliveryLinePriceAzn > 0) {
     lines.push({
       name: 'Delivery',
       quantity: 1,
-      price: shippingAzn,
+      price: deliveryLinePriceAzn,
       product_id: '__delivery__',
     })
   }

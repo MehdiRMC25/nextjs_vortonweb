@@ -311,12 +311,6 @@
   color: var(--text-secondary);
 }
 
-.shippingZoneHint {
-  font-weight: 400;
-  font-size: 0.82em;
-  color: var(--text-muted);
-}
-
 .summaryRowDiscount {
   color: #16a34a;
   font-weight: 600;
@@ -340,6 +334,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: stretch;
+}
+
+.proceedToPaymentBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 @media (max-width: 420px) {
@@ -385,6 +384,56 @@
 }
 
 .guestInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.guestPhoneRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.guestPhoneCodeSelect {
+  flex: 0 1 min(100%, 220px);
+  min-width: 0;
+  padding: 10px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  background: var(--bg-primary);
+}
+
+.guestPhoneNationalInput {
+  flex: 1 1 140px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background: var(--bg-primary);
+}
+
+.guestPhoneCodeSelect:focus,
+.guestPhoneNationalInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.guestSelect {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background: var(--bg-primary);
+}
+
+.guestSelect:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -534,6 +583,15 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   margin: 10px 0 0;
+  line-height: 1.45;
+}
+
+/** Shipping unavailable (SHIPPING_UNAVAILABLE) — high-visibility warning */
+.shippingUnavailableMessage {
+  margin: 12px 0 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #b91c1c;
   line-height: 1.45;
 }
 
