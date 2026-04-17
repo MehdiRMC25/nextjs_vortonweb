@@ -106,21 +106,68 @@ function findJwtInObject(obj: Record<string, unknown>): string | undefined {
   return undefined
 }
 
+function mapEmailVerifyCodeToMessage(code: string | undefined, fallback: string): string {
+  switch (code) {
+    case 'UNAUTHENTICATED':
+      return 'Please sign in again.'
+    case 'INVALID_EMAIL':
+      return 'Invalid email address.'
+    case 'INVALID_EMAIL_OR_CODE':
+      return 'Invalid email or verification code.'
+    case 'ACCOUNT_NOT_FOUND':
+      return 'Account not found.'
+    case 'EMAIL_TAKEN':
+      return 'This email is already registered.'
+    case 'NO_PENDING_EMAIL_CHANGE':
+      return 'No pending verification. Please request a new code.'
+    case 'PENDING_EMAIL_MISMATCH':
+      return 'Email does not match pending verification.'
+    case 'EMAIL_CODE_EXPIRED':
+      return 'Code expired. Please request a new code.'
+    case 'INVALID_VERIFICATION_CODE':
+      return 'Invalid verification code.'
+    case 'EMAIL_DELIVERY_UNAVAILABLE':
+      return 'Email delivery is unavailable. Please try again later.'
+    case 'EMAIL_CODE_SEND_FAILED':
+      return 'Could not send verification code.'
+    case 'EMAIL_CONFIRM_FAILED':
+      return 'Could not confirm verification code.'
+    default:
+      return fallback
+  }
+}
+
 async function readErrorMessage(res: Response): Promise<string> {
   const text = await res.text()
   if (!text) return ''
   const isHtml = /<\s*!?\s*DOCTYPE|<\s*html|<\s*pre\s*>/i.test(text)
   if (isHtml || text.includes('Cannot POST') || text.includes('Not Found')) return ''
+
   try {
     const j = JSON.parse(text) as {
-      message?: string
-      error?: string
-      details?: string
-      errors?: string[] | string
+      code?: unknown
+      message?: unknown
+      error?: unknown
+      details?: unknown
+      errors?: unknown
     }
-    if (Array.isArray(j.errors)) return j.errors.join(', ')
-    if (typeof j.errors === 'string') return j.errors
-    return j.message ?? j.error ?? j.details ?? ''
+
+    const code = typeof j.code === 'string' ? j.code : undefined
+
+    let base = ''
+    if (Array.isArray(j.errors)) {
+      base = j.errors.filter((x): x is string => typeof x === 'string').join(', ')
+    } else if (typeof j.errors === 'string') {
+      base = j.errors
+    } else if (typeof j.message === 'string') {
+      base = j.message
+    } else if (typeof j.error === 'string') {
+      base = j.error
+    } else if (typeof j.details === 'string') {
+      base = j.details
+    }
+
+    return mapEmailVerifyCodeToMessage(code, base || '')
   } catch {
     return text.slice(0, 300)
   }
