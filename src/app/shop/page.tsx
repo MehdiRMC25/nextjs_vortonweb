@@ -68,18 +68,14 @@ export default function Shop() {
     const searchQuery = (searchParams.get('q') ?? '').trim()
     const { products, loading, error, retry } = useProducts()
     const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
-    const [selectedColor, setSelectedColor] = useState<string>('')
-    const [selectedSize, setSelectedSize] = useState<string>('')
-    const [favoritesOnly, setFavoritesOnly] = useState(false)
-    const [priceSort, setPriceSort] = useState<'' | 'priceAsc' | 'priceDesc'>('')
     const [showRefresh, setShowRefresh] = useState(false)
 
-    useEffect(() => {
-        const color = searchParams.get('color')
-        const size = searchParams.get('size')
-        if (color) setSelectedColor(color)
-        if (size) setSelectedSize(size)
-    }, [searchParams])
+    const selectedColor = searchParams.get('color') ?? ''
+    const selectedSize = searchParams.get('size') ?? ''
+    const favoritesOnly = searchParams.get('favorites') === '1'
+    const sortParam = searchParams.get('sort')
+    const priceSort: '' | 'priceAsc' | 'priceDesc' =
+        sortParam === 'priceAsc' || sortParam === 'priceDesc' ? sortParam : ''
 
     useEffect(() => {
         if (error) setShowRefresh(true)
@@ -110,6 +106,68 @@ export default function Shop() {
             router.replace(`/shop?${next.toString()}`, { scroll: false })
         },
         [searchParams, router]
+    )
+
+    const replaceShopQuery = useCallback(
+        (mutate: (next: URLSearchParams) => void) => {
+            const next = new URLSearchParams(searchParams.toString())
+            mutate(next)
+            const qs = next.toString()
+            router.replace(qs ? `/shop?${qs}` : '/shop', { scroll: false })
+        },
+        [searchParams, router]
+    )
+
+    const setSelectedColor = useCallback(
+        (value: string) => {
+            replaceShopQuery((next) => {
+                if (value.trim()) {
+                    next.set('color', value.trim())
+                } else {
+                    next.delete('color')
+                }
+            })
+        },
+        [replaceShopQuery]
+    )
+
+    const setSelectedSize = useCallback(
+        (value: string) => {
+            replaceShopQuery((next) => {
+                if (value.trim()) {
+                    next.set('size', value.trim())
+                } else {
+                    next.delete('size')
+                }
+            })
+        },
+        [replaceShopQuery]
+    )
+
+    const setFavoritesOnly = useCallback(
+        (value: boolean) => {
+            replaceShopQuery((next) => {
+                if (value) {
+                    next.set('favorites', '1')
+                } else {
+                    next.delete('favorites')
+                }
+            })
+        },
+        [replaceShopQuery]
+    )
+
+    const setPriceSort = useCallback(
+        (value: '' | 'priceAsc' | 'priceDesc') => {
+            replaceShopQuery((next) => {
+                if (value === 'priceAsc' || value === 'priceDesc') {
+                    next.set('sort', value)
+                } else {
+                    next.delete('sort')
+                }
+            })
+        },
+        [replaceShopQuery]
     )
 
     const byCategory = useMemo(() => {

@@ -536,6 +536,12 @@ export default function Checkout() {
                     {!isAuthenticated && (
                         <div className={`${styles.card} ${styles.guestCard}`}>
                             <div className={styles.guestFields}>
+                                <p className={styles.guestIntro}>
+                                    Have an account?{'\u00a0\u00a0'}
+                                    <Link href="/signin"style={{ fontSize: '1.125rem' }}>{t('signIn')}</Link>
+                                    {' '}
+                                    for faster checkout — or continue as a guest below.
+                                </p>
                                 <h3 className={styles.guestTitle}>{t('contactDetails')}</h3>
                                 <label className={styles.guestLabel}>
                                     {t('nameLabel')} *

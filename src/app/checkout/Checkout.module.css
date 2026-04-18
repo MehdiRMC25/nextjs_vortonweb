@@ -353,6 +353,24 @@
   border-bottom: 1px solid var(--border);
 }
 
+.guestIntro {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.guestIntro a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.guestIntro a:hover {
+  color: var(--accent-hover);
+}
+
 .guestTitle {
   font-size: 1.0625rem;
   font-weight: 600;
