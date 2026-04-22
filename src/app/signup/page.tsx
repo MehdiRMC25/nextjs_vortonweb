@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
@@ -9,12 +9,16 @@ import { AuthApiError } from '@/api/auth'
 import { isValidEmail, isValidPhone } from '@/utils/validation'
 import { PhoneInput } from '@/components/PhoneInput'
 import { signupHostFromBrowser } from '@/lib/domainConfig'
+import { countryLabel, sortedCountryCodes } from '@/lib/checkoutCountryLists'
 import styles from '@/app/signin/SignIn.module.css'
 
 export default function SignUp() {
-    const { t } = useLocale()
+    const { t, locale } = useLocale()
     const { signup } = useAuth()
     const router = useRouter()
+    const uiLocale: 'az' | 'en' = locale === 'az' ? 'az' : 'en'
+    const countryCodes = useMemo(() => sortedCountryCodes(uiLocale), [uiLocale])
+
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
     const [firstName, setFirstName] = useState('')
@@ -248,15 +252,22 @@ export default function SignUp() {
                     </label>
                     <label className={styles.label}>
                         {t('countryLabel')}
-                        <input
-                            type="text"
-                            autoComplete="country-name"
+                        <select
+                            autoComplete="country"
                             className={styles.input}
-                            placeholder=""
                             value={country}
                             onChange={(e) => setCountry(e.target.value)}
-                            maxLength={100}
-                        />
+                        >
+                            <option value="">{t('selectCountry')}</option>
+                            {countryCodes.map((iso) => {
+                                const name = countryLabel(iso, uiLocale)
+                                return (
+                                    <option key={iso} value={name}>
+                                        {name}
+                                    </option>
+                                )
+                            })}
+                        </select>
                     </label>
                     <label className={styles.label}>
                         {t('passwordLabel')}
