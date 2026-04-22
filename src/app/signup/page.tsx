@@ -254,7 +254,7 @@ export default function SignUp() {
                         {t('countryLabel')}
                         <select
                             autoComplete="country"
-                            className={styles.input}
+                            className={`${styles.input} ${styles.countrySelect}`}
                             value={country}
                             onChange={(e) => setCountry(e.target.value)}
                         >

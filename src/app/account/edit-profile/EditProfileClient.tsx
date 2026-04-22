@@ -287,7 +287,7 @@ export function EditProfileClient() {
         setInlineError(null)
     }
 
-    /** Deep link ?verifyEmail=1 — open card and strip query immediately. */
+    /** Deep link ?verifyEmail=1 — open card and scroll to panel, then strip query. */
     useEffect(() => {
         if (searchParams.get('verifyEmail') !== '1') return
         if (deepLinkRef.current) return
@@ -299,6 +299,9 @@ export function EditProfileClient() {
         setPendingVerifySlot(slot)
         setVerificationDismissed(false)
         setShowVerificationCard(true)
+        requestAnimationFrame(() => {
+            document.getElementById('email-verify-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        })
         router.replace('/account/edit-profile', { scroll: false })
     }, [searchParams, router])
 

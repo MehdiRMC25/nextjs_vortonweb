@@ -40,7 +40,8 @@ const BRAND_NAME = 'VORTON'
 const SITE_URL = 'https://vorton.uk'
 
 function formatCurrency(amount: number): string {
-  return `₼${Math.round(amount)}`
+  const value = Number.isFinite(Number(amount)) ? Number(amount) : 0
+  return `₼${value.toFixed(2)}`
 }
 
 function formatDateShort(d: string, locale: string): string {

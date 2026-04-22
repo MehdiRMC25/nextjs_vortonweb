@@ -262,7 +262,10 @@ export default function Account() {
                             {user?.email?.trim() && user.email_verified !== true && (
                                 <p className={styles.emailVerifyRow}>
                                     <span className={styles.emailNotVerifiedBadge}>{t('emailNotVerifiedBadge')}</span>
-                                    <Link href="/account/edit-profile?verifyEmail=1" className={styles.verifyNowLink}>
+                                    <Link
+                                        href="/account/edit-profile?verifyEmail=1#email-verify-title"
+                                        className={styles.verifyNowLink}
+                                    >
                                         {t('verifyEmailNow')}
                                     </Link>
                                 </p>
@@ -283,7 +286,7 @@ export default function Account() {
                                 <p className={styles.emailVerifyRow}>
                                     <span className={styles.emailNotVerifiedBadge}>{t('emailNotVerifiedBadge')}</span>
                                     <Link
-                                        href="/account/edit-profile?verifyEmail=1&slot=second"
+                                        href="/account/edit-profile?verifyEmail=1&slot=second#email-verify-title"
                                         className={styles.verifyNowLink}
                                     >
                                         {t('verifyEmailNow')}
@@ -298,7 +301,7 @@ export default function Account() {
                                 <p className={styles.emailVerifyRow}>
                                     <span className={styles.emailNotVerifiedBadge}>{t('emailNotVerifiedBadge')}</span>
                                     <Link
-                                        href="/account/edit-profile?verifyEmail=1&slot=third"
+                                        href="/account/edit-profile?verifyEmail=1&slot=third#email-verify-title"
                                         className={styles.verifyNowLink}
                                     >
                                         {t('verifyEmailNow')}
