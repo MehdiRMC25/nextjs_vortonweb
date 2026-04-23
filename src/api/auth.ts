@@ -128,6 +128,10 @@ function mapEmailVerifyCodeToMessage(code: string | undefined, fallback: string)
       return 'Invalid verification code.'
     case 'EMAIL_DELIVERY_UNAVAILABLE':
       return 'Email delivery is unavailable. Please try again later.'
+    case 'EMAIL_CODE_COOLDOWN':
+      return 'Please wait a bit before requesting another code.'
+    case 'EMAIL_CODE_RATE_LIMIT':
+      return 'Too many verification requests. Please try again later.'
     case 'EMAIL_CODE_SEND_FAILED':
       return 'Could not send verification code.'
     case 'EMAIL_CONFIRM_FAILED':
@@ -601,35 +605,44 @@ export async function updateProfile(token: string, payload: ProfileUpdatePayload
   )
 }
 
-export async function requestEmailChangeCode(token: string, newEmail: string): Promise<{ ok: boolean; error?: string }> {
+export async function requestEmailChangeCode(
+    token: string,
+    newEmail: string
+): Promise<{ ok: boolean; error?: string; retryAfterSec?: number }> {
   const paths = [
     '/api/v1/auth/profile/email/request-code',
     '/api/v1/auth/email/change/request',
     '/auth/email/verify/request',
   ]
-  try {
-    await requestWithFallback(
-      paths,
-      {
+
+  for (const path of dedupePaths(paths)) {
+    try {
+      const res = await fetch(buildUrl(path), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email: newEmail.trim(), new_email: newEmail.trim() }),
-      },
-      async (res) => {
-        await res.json()
-        return null
-      }
-    )
-    return { ok: true }
-  } catch (e) {
-    if (e instanceof AuthApiError && (e.status === 404 || e.status === 405)) {
-      return { ok: false, error: 'EMAIL_CODE_UNAVAILABLE' }
+      })
+
+      if (res.ok) return { ok: true }
+
+      if (res.status === 404 || res.status === 405) continue
+
+      const retryRaw = res.headers.get('Retry-After')
+      const retryAfterSecParsed = retryRaw ? Number.parseInt(retryRaw, 10) : NaN
+      const retryAfterSec =
+          Number.isFinite(retryAfterSecParsed) && retryAfterSecParsed > 0 ? retryAfterSecParsed : undefined
+
+      const msg = await readErrorMessage(res)
+      return { ok: false, error: msg || res.statusText, retryAfterSec }
+    } catch {
+      // try next fallback path
     }
-    return { ok: false, error: e instanceof Error ? e.message : 'Request failed' }
   }
+
+  return { ok: false, error: 'EMAIL_CODE_UNAVAILABLE' }
 }
 
 export async function confirmEmailChange(token: string, newEmail: string, code: string): Promise<AuthUser> {

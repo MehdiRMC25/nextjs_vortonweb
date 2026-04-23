@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
@@ -36,6 +36,10 @@ export default function SignUp() {
     const [phoneError, setPhoneError] = useState(false)
     const [secondPhoneError, setSecondPhoneError] = useState(false)
     const [emailError, setEmailError] = useState(false)
+    const [countryOptionsReady, setCountryOptionsReady] = useState(false)
+    useEffect(() => {
+        setCountryOptionsReady(true)
+    }, [])
 
     function validateForm(): boolean {
         setMessage(null)
@@ -259,7 +263,8 @@ export default function SignUp() {
                             onChange={(e) => setCountry(e.target.value)}
                         >
                             <option value="">{t('selectCountry')}</option>
-                            {countryCodes.map((iso) => {
+                            { countryOptionsReady &&
+                                countryCodes.map((iso) => {
                                 const name = countryLabel(iso, uiLocale)
                                 return (
                                     <option key={iso} value={name}>

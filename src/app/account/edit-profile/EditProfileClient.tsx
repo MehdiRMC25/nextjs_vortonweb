@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
@@ -32,6 +32,7 @@ function EmailVerificationPanel(props: {
     setEmailCode: (v: string) => void
     inlineError: { field: InlineField; message: string } | null
     busy: string | null
+    resendCooldownSec: number
     onResend: () => void
     onConfirm: () => void
     onVerifyLater: () => void
@@ -45,6 +46,7 @@ function EmailVerificationPanel(props: {
         setEmailCode,
         inlineError,
         busy,
+        resendCooldownSec,
         onResend,
         onConfirm,
         onVerifyLater,
@@ -61,9 +63,13 @@ function EmailVerificationPanel(props: {
                     type="button"
                     className="btn btn-secondary"
                     onClick={() => void onResend()}
-                    disabled={busy !== null}
+                    disabled={busy !== null || resendCooldownSec > 0}
                 >
-                    {busy === 'email-send' ? t('loading') : t('emailVerificationResend')}
+                    {busy === 'email-send'
+                        ? t('loading')
+                        : resendCooldownSec > 0
+                            ? `${t('emailVerificationResend')} (${resendCooldownSec}s)`
+                            : t('emailVerificationResend')}
                 </button>
             </div>
             <label className={s.label}>
@@ -137,6 +143,39 @@ export function EditProfileClient() {
     const [showPhone3, setShowPhone3] = useState(false)
 
     const [busy, setBusy] = useState<string | null>(null)
+    const [resendCooldownUntilMs, setResendCooldownUntilMs] = useState<number | null>(null)
+    const [nowMs, setNowMs] = useState(() => Date.now())
+
+    const resendCooldownSec = useMemo(() => {
+        if (!resendCooldownUntilMs) return 0
+        return Math.max(0, Math.ceil((resendCooldownUntilMs - nowMs) / 1000))
+    }, [resendCooldownUntilMs, nowMs])
+
+    const setResendCooldownSec = useCallback((secs: number) => {
+        if (!Number.isFinite(secs) || secs <= 0) {
+            setResendCooldownUntilMs(null)
+            setNowMs(Date.now())
+            return
+        }
+        const now = Date.now()
+        setResendCooldownUntilMs(now + secs * 1000)
+        setNowMs(now)
+    }, [])
+
+    useEffect(() => {
+        if (!resendCooldownUntilMs) return
+        const tick = () => {
+            const now = Date.now()
+            setNowMs(now)
+            if (now >= resendCooldownUntilMs) {
+                setResendCooldownUntilMs(null)
+            }
+        }
+        tick()
+        const id = setInterval(tick, 1000)
+        return () => clearInterval(id)
+    }, [resendCooldownUntilMs])
+
     const [msg, setMsg] = useState<string | null>(null)
     const [inlineError, setInlineError] = useState<{ field: InlineField; message: string } | null>(null)
     const [saveNotice, setSaveNotice] = useState(false)
@@ -231,6 +270,9 @@ export function EditProfileClient() {
                 if (res.error === 'EMAIL_CODE_UNAVAILABLE') {
                     setInlineError({ field: 'emailCode', message: t('editProfileEmailBackendHint') })
                 } else {
+                    if (res.retryAfterSec != null && res.retryAfterSec > 0) {
+                        setResendCooldownSec(Math.max(resendCooldownSec, res.retryAfterSec))
+                    }
                     setInlineError({ field: 'emailCode', message: res.error || 'Request failed' })
                 }
                 return false
@@ -470,6 +512,7 @@ export function EditProfileClient() {
         setEmailCode,
         inlineError,
         busy,
+        resendCooldownSec,
         onResend: onResendVerificationCode,
         onConfirm: onConfirmVerification,
         onVerifyLater,
