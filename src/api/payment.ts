@@ -8,7 +8,7 @@ export type PaymentOrderPayload = {
   customer_name: string
   mobile: string
   address?: string | null
-  membership_level?: 'silver' | 'gold' | 'platinum' | 'none'
+  membership_level?: 'silver' | 'gold' | 'platinum' | 'platinum_plus' | 'none'
   order_date: string
   delivery_due_date?: string | null
   items: Array<{
