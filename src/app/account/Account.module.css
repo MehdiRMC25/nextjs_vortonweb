@@ -120,10 +120,19 @@
 .membershipCard_platinum .membershipCardInner {
   background-color: #2d3748;
   background-image:
-    linear-gradient(135deg, rgba(226, 232, 240, 0.12) 0%, transparent 45%),
-    linear-gradient(225deg, rgba(0, 0, 0, 0.2) 0%, transparent 45%),
-    linear-gradient(315deg, rgba(148, 163, 184, 0.15) 0%, transparent 50%),
-    linear-gradient(45deg, rgba(71, 85, 105, 0.5) 0%, transparent 40%);
+          linear-gradient(135deg, rgba(226, 232, 240, 0.12) 0%, transparent 45%),
+          linear-gradient(225deg, rgba(0, 0, 0, 0.2) 0%, transparent 45%),
+          linear-gradient(315deg, rgba(148, 163, 184, 0.15) 0%, transparent 50%),
+          linear-gradient(45deg, rgba(71, 85, 105, 0.5) 0%, transparent 40%);
+}
+
+.membershipCard_platinum_plus .membershipCardInner {
+  background-color: #1f2937;
+  background-image:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, transparent 45%),
+          linear-gradient(225deg, rgba(0, 0, 0, 0.26) 0%, transparent 45%),
+          linear-gradient(315deg, rgba(148, 163, 184, 0.2) 0%, transparent 50%),
+          linear-gradient(45deg, rgba(147, 51, 234, 0.28) 0%, transparent 42%);
 }
 
 .membershipCardHeader {
@@ -143,7 +152,8 @@
 
 .membershipCard_silver .membershipLevelName { color: #1f2937; }
 .membershipCard_gold .membershipLevelName { color: #1a1508; }
-.membershipCard_platinum .membershipLevelName { color: #e2e8f0; }
+.membershipCard_platinum .membershipLevelName,
+.membershipCard_platinum_plus .membershipLevelName { color: #e2e8f0; }
 
 .membershipMemberLabel {
   display: block;
@@ -156,7 +166,8 @@
 }
 
 .membershipCard_gold .membershipMemberLabel { color: #422a0a; }
-.membershipCard_platinum .membershipMemberLabel { color: #94a3b8; }
+.membershipCard_platinum .membershipMemberLabel,
+.membershipCard_platinum_plus .membershipMemberLabel { color: #94a3b8; }
 
 /* Compact light band under header — membership number only */
 .membershipNumberBand {
@@ -172,7 +183,8 @@
   background: rgba(254, 249, 231, 0.55);
 }
 
-.membershipCard_platinum .membershipNumberBand {
+.membershipCard_platinum .membershipNumberBand,
+.membershipCard_platinum_plus .membershipNumberBand {
   background: rgba(30, 41, 59, 0.45);
 }
 
@@ -186,13 +198,26 @@
   text-align: center;
 }
 
-.membershipCard_silver .membershipNumberBand .membershipNumber { color: #111827; }
-.membershipCard_gold .membershipNumberBand .membershipNumber { color: #1a1508; }
-.membershipCard_platinum .membershipNumberBand .membershipNumber { color: #f1f5f9; }
+.membershipCard_platinum .membershipNumberBand .membershipNumber,
+.membershipCard_platinum_plus .membershipNumberBand .membershipNumber { color: #f1f5f9; }
 
-.membershipCard_silver .membershipCardName { color: #111827; }
-.membershipCard_gold .membershipCardName { color: #1a1508; }
-.membershipCard_platinum .membershipCardName { color: #f1f5f9; }
+.membershipCard_platinum .membershipCardName,
+.membershipCard_platinum_plus .membershipCardName { color: #f1f5f9; }
+
+.membershipCard_platinum .membershipDetailLabel,
+.membershipCard_platinum_plus .membershipDetailLabel { color: #94a3b8; }
+
+.membershipCard_platinum .membershipDetailValue,
+.membershipCard_platinum_plus .membershipDetailValue { color: #f1f5f9; }
+
+.membershipCard_platinum .membershipBenefits,
+.membershipCard_platinum_plus .membershipBenefits { border-top-color: rgba(255, 255, 255, 0.12); }
+
+.membershipCard_platinum .membershipBenefitsTitle,
+.membershipCard_platinum_plus .membershipBenefitsTitle { color: #94a3b8; }
+
+.membershipCard_platinum .membershipBenefitsItem,
+.membershipCard_platinum_plus .membershipBenefitsItem { color: #e2e8f0; }
 
 /* Two columns under the band */
 .membershipDetails {

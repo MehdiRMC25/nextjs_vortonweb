@@ -23,7 +23,7 @@ Example: 200 USD eligible at 5% → 10 USD reward value → 110 points.
 - Points can be applied as a discount at checkout via “Use my points”.
 - 11 points = 1 USD discount value (converted to AZN at checkout).
 - Points may be redeemed in full or in part.
-- Points are applied to the total purchase amount excluding delivery/shipping fees.
+6460- Points are applied to the total purchase amount excluding delivery/shipping fees.
 - The maximum redemption value of points per order is limited to 50% of the eligible purchase amount.
 - Partial redemption is allowed.
 - Points expire after 12 months (rolling basis, enforced server-side).

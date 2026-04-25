@@ -27,7 +27,7 @@ export interface Order {
   customer_id: number
   customer_name: string
   mobile: string
-  membership_level: 'silver' | 'gold' | 'platinum' | 'none'
+  membership_level: 'silver' | 'gold' | 'platinum' | 'platinum_plus' | 'none'
   address: string | null
   items: OrderItem[]
   total_price: number

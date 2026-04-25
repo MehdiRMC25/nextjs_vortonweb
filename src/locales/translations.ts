@@ -146,6 +146,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     membershipSilver: 'Gümüş',
     membershipGold: 'Qızıl',
     membershipPlatinum: 'Platin',
+    membershipPlatinumPlus: 'Platin+',
     overallDiscount: 'Ümumi endirim %',
     yourBenefits: 'Sizin imtiyazlarınız',
     benefitSilver1: '3% endirim',
@@ -157,7 +158,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     benefitPlatinum2: 'Məhdud / eksklüziv məhsullara birinci giriş',
     benefitPlatinum3: 'Pulsuz çatdırılma və ya prioritet göndərmə',
     benefitPlatinum4: 'Xüsusi satış və ya özəl təkliflərə dəvətlər',
-    tierThresholds: 'Qızıl: 5.000 AZN ümumi satış • Platin: 10.000 AZN ümumi satış',
+    benefitPlatinumPlus1: '10% endirim',
+    benefitPlatinumPlus2: 'Yeni kolleksiyalara ən erkən giriş',
+    benefitPlatinumPlus3: 'Eksklüziv kampaniyalara prioritet giriş',
+    benefitPlatinumPlus4: 'Prioritet müştəri dəstəyi',
+    benefitPlatinumPlus5: 'Yalnız üzvlərə özəl təkliflər',
+    tierThresholds: 'Qızıl: 5.100 AZN • Platin: 12.240 AZN • Platin+: 20.400 AZN (USD siyasəti üzrə)',
 
     footerTagline:
       'Müasir həyat, rahatlıq və hərəkət üçün nəzərdə tutulmuş gündəlik geyim.',
@@ -514,6 +520,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     membershipSilver: 'Silver',
     membershipGold: 'Gold',
     membershipPlatinum: 'Platinum',
+    membershipPlatinumPlus: 'Platinum+',
     overallDiscount: 'Overall discount %',
     yourBenefits: 'Your benefits',
     benefitSilver1: '3% discount',
@@ -525,7 +532,12 @@ export const translations: Record<Locale, Record<string, string>> = {
     benefitPlatinum2: 'First access to limited / exclusive items',
     benefitPlatinum3: 'Free delivery or priority shipping',
     benefitPlatinum4: 'Invitations to special sales or private drops',
-    tierThresholds: 'Gold: 5,000 AZN total sales • Platinum: 10,000 AZN total sales',
+    benefitPlatinumPlus1: '10% discount',
+    benefitPlatinumPlus2: 'Earliest access to new collections',
+    benefitPlatinumPlus3: 'Priority access to exclusive promotions',
+    benefitPlatinumPlus4: 'Priority customer support',
+    benefitPlatinumPlus5: 'Members-only exclusive offers',
+    tierThresholds: 'Gold: 5,100 AZN • Platinum: 12,240 AZN • Platinum+: 20,400 AZN (USD policy converted)',
 
     footerTagline:
       'Contemporary everyday wear designed\nfor comfort, movement, and modern life.',

@@ -1,6 +1,6 @@
 import { config } from '../config'
 
-export type MembershipLevel = 'silver' | 'gold' | 'platinum'
+export type MembershipLevel = 'silver' | 'gold' | 'platinum' | 'platinum_plus'
 
 export type UserRole = 'customer' | 'employee' | 'manager'
 
@@ -310,12 +310,13 @@ function toAuthUser(user: unknown): AuthUser {
           : undefined,
     membership_level: (() => {
       const ml = u.membership_level
-      if (ml === 'platinum' || ml === 'gold' || ml === 'silver') return ml
+      if (ml === 'platinum_plus' || ml === 'platinum' || ml === 'gold' || ml === 'silver') return ml
       if (typeof ml === 'string') {
         const k = ml
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, '_')
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '_')
+        if (k === 'platinum_plus' || k === 'platinum+' || k === 'platinum-plus') return 'platinum_plus'
         if (k.startsWith('platinum')) return 'platinum'
         if (k === 'gold') return 'gold'
         if (k === 'silver') return 'silver'

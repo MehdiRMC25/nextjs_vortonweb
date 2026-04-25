@@ -24,30 +24,42 @@ const LEVEL_KEYS: Record<MembershipLevel, string> = {
     silver: 'membershipSilver',
     gold: 'membershipGold',
     platinum: 'membershipPlatinum',
+    platinum_plus: 'membershipPlatinumPlus',
 }
 
 const BENEFIT_KEYS: Record<MembershipLevel, string[]> = {
     silver: ['benefitSilver1', 'benefitSilver2'],
     gold: ['benefitGold1', 'benefitGold2', 'benefitGold3'],
     platinum: ['benefitPlatinum1', 'benefitPlatinum2', 'benefitPlatinum3', 'benefitPlatinum4'],
+    platinum_plus: [
+        'benefitPlatinumPlus1',
+        'benefitPlatinumPlus2',
+        'benefitPlatinumPlus3',
+        'benefitPlatinumPlus4',
+        'benefitPlatinumPlus5',
+    ],
 }
 
 const DISCOUNT_PERCENT: Record<MembershipLevel, string> = {
     silver: '3%',
     gold: '5%',
     platinum: '8%',
+    platinum_plus: '10%',
 }
 
-/** Tier thresholds in AZN total sales — same card design for all levels */
-const GOLD_THRESHOLD_AZN = 5000
-const PLATINUM_THRESHOLD_AZN = 10000
+/** USD policy thresholds converted to AZN (keep in sync with backend REWARD_AZN_PER_USD default). */
+const AZN_PER_USD = 1.7
+const GOLD_THRESHOLD_AZN = 3000 * AZN_PER_USD
+const PLATINUM_THRESHOLD_AZN = 7200 * AZN_PER_USD
+const PLATINUM_PLUS_THRESHOLD_AZN = 12000 * AZN_PER_USD
 
 function getLevelFromSales(totalSalesAzn: number | undefined, apiLevel?: MembershipLevel): MembershipLevel {
     if (typeof totalSalesAzn === 'number') {
+        if (totalSalesAzn >= PLATINUM_PLUS_THRESHOLD_AZN) return 'platinum_plus'
         if (totalSalesAzn >= PLATINUM_THRESHOLD_AZN) return 'platinum'
         if (totalSalesAzn >= GOLD_THRESHOLD_AZN) return 'gold'
     }
-    if (apiLevel === 'platinum' || apiLevel === 'gold') return apiLevel
+    if (apiLevel === 'platinum_plus' || apiLevel === 'platinum' || apiLevel === 'gold') return apiLevel
     return 'silver'
 }
 

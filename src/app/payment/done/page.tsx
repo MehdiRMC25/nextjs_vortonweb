@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useLocale } from '@/context/LocaleContext'
 import { useCart } from '@/context/CartContext'
+import { useAuth } from '@/context/AuthContext'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { confirmPayment, type CreatePaymentResponse } from '@/api/payment'
 import { orderPointsEarned } from '@/lib/rewardPointsDisplay'
@@ -16,6 +17,7 @@ const CANCELLED_STATUSES = ['Cancelled', 'Canceled', 'Rejected']
 function PaymentDoneContent() {
     const { t } = useLocale()
     const { clearCart } = useCart()
+    const { refreshUser } = useAuth()
     const searchParams = useSearchParams()
     const status = (searchParams.get('STATUS') ?? '').trim()
     const bankOrderId = searchParams.get('ID') ?? ''
@@ -28,15 +30,16 @@ function PaymentDoneContent() {
 
     useEffect(() => {
         if (isSuccess) clearCart()
-    }, [isSuccess])
+    }, [isSuccess, clearCart])
 
     useEffect(() => {
         if (!isSuccess || !bankOrderId || confirmSent.current) return
         confirmSent.current = true
-        confirmPayment(bankOrderId, status).then((res) => {
+        confirmPayment(bankOrderId, status).then(async (res) => {
             if (res?.createdOrder) setCreatedOrder(res.createdOrder)
+            await refreshUser()
         }).catch(() => {})
-    }, [isSuccess, bankOrderId, status])
+    }, [isSuccess, bankOrderId, status, refreshUser])
 
     const title = isSuccess
         ? t('paymentSuccess')
