@@ -49,9 +49,26 @@ function getStoredToken(): string | null {
   }
 }
 
+function isAuthInvalidError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : ''
+  return (
+      msg === 'Invalid credentials' ||
+      msg === 'Account not found' ||
+      msg === 'Invalid or expired token' ||
+      msg === 'Please sign in again.'
+  )
+}
+
+function clearStoredSession(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(STORAGE_USER_KEY)
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [token, setToken] = useState<string | null>(getStoredToken)
+  const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -77,8 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const me = await getMe(stored)
             setUser(me)
             if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(me))
-          } catch {
-            /* keep token + cached user */
+          } catch (e) {
+            if (isAuthInvalidError(e)) {
+              clearStoredSession()
+              setToken(null)
+              setUser(null)
+            }
           }
         })()
         return
@@ -185,7 +206,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(me)
       if (typeof window !== 'undefined') localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(me))
       return me
-    } catch {
+    } catch (e) {
+      if (isAuthInvalidError(e)) {
+        clearStoredSession()
+        setToken(null)
+        setUser(null)
+      }
       return null
     }
   }, [token])

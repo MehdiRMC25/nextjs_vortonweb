@@ -82,6 +82,7 @@ export default function Checkout() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [promoCode, setPromoCode] = useState('')
+    const [appliedPromoCode, setAppliedPromoCode] = useState('')
     const [guestName, setGuestName] = useState('')
     const [guestPhoneCountryIso, setGuestPhoneCountryIso] = useState<CountryCode>('AZ')
     const [guestPhoneLocal, setGuestPhoneLocal] = useState('')
@@ -210,6 +211,7 @@ export default function Checkout() {
     const displayMembershipDiscountAzn =
         previewBreakdown?.membershipDiscountAzn ?? membershipDiscountAzn
     const displayPointsDiscountAzn = previewBreakdown?.pointsDiscountAzn ?? discountAzn
+    const displayPromoDiscountAzn = previewBreakdown?.promoDiscountAzn ?? 0
 
     useEffect(() => {
         if (!useRewardPoints) {
@@ -263,6 +265,7 @@ export default function Checkout() {
                             {
                                 ...base,
                                 points_to_redeem: ptsPreview > 0 ? ptsPreview : undefined,
+                                promo_code: appliedPromoCode || undefined,
                             },
                             ac.signal
                         )
@@ -307,6 +310,7 @@ export default function Checkout() {
         checkoutCurrency,
         useRewardPoints,
         chosenPoints,
+        appliedPromoCode,
         items.length,
         t,
         shippingUnavailableCopy,
@@ -375,6 +379,7 @@ export default function Checkout() {
             delivery_country: deliveryMeta.delivery_country,
             delivery_city: deliveryMeta.delivery_city,
             checkout_currency: deliveryMeta.checkout_currency,
+            ...(appliedPromoCode ? { promo_code: appliedPromoCode } : {}),
             ...(pointsToRedeem > 0 ? { points_to_redeem: pointsToRedeem } : {}),
             ...(isAuthenticated &&
             u &&
@@ -440,6 +445,7 @@ export default function Checkout() {
                     ...deliveryMeta,
                     items: previewItems,
                     points_to_redeem: pts > 0 ? pts : undefined,
+                    promo_code: appliedPromoCode || undefined,
                 })
             } else {
                 prev = await postCheckoutPreviewGuest({
@@ -823,7 +829,9 @@ export default function Checkout() {
                                     className="btn btn-secondary"
                                     onClick={() => {
                                         setError(null)
-                                        setPromoCode((v) => v.trim().toUpperCase())
+                                        const normalized = promoCode.trim().toUpperCase()
+                                        setPromoCode(normalized)
+                                        setAppliedPromoCode(normalized)
                                     }}
                                     disabled={!promoCode.trim()}
                                 >
@@ -950,6 +958,14 @@ export default function Checkout() {
                                     </span>
                                     <span>
                                         −{formatCheckoutMoneyFromAzn(displayMembershipDiscountAzn, checkoutCurrency)}
+                                    </span>
+                                </div>
+                            )}
+                            {displayPromoDiscountAzn > 0 && (
+                                <div className={`${styles.summaryRow} ${styles.summaryRowDiscount}`}>
+                                    <span>{t('promoCode')}</span>
+                                    <span>
+                                        −{formatCheckoutMoneyFromAzn(displayPromoDiscountAzn, checkoutCurrency)}
                                     </span>
                                 </div>
                             )}

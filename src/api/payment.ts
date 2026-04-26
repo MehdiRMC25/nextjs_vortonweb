@@ -38,6 +38,7 @@ export type PaymentOrderPayload = {
   delivery_city?: string | null
   /** Display / quote currency used at checkout (AZN | USD | GBP). */
   checkout_currency?: string
+  promo_code?: string
 }
 
 export type CreatePaymentRequest = {

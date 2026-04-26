@@ -57,7 +57,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             <Link href="/cart" className={styles.cartLink + (pathname === '/cart' ? ' ' + styles.navActive : '')}>
               {t('cart')}
-              {totalItems > 0 && <span className={styles.cartBadge}>{totalItems}</span>}
+              {mounted && totalItems > 0 && <span className={styles.cartBadge}>{totalItems}</span>}
             </Link>
             {!mounted ? (
               <Link href="/signin" className={pathname === '/signin' ? styles.navActive : ''}>

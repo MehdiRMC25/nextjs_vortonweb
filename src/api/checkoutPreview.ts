@@ -8,6 +8,7 @@ export type CheckoutPreviewBreakdown = {
   merchandiseSubtotalAzn?: number
   membershipDiscountAzn?: number
   pointsDiscountAzn?: number
+  promoDiscountAzn?: number
   shippingAzn?: number
   /** Server-provided quote for the shipping row (preferred for display). */
   shippingQuoteAmount?: number
@@ -74,8 +75,9 @@ function parseBreakdown(raw: unknown): CheckoutPreviewBreakdown {
       num(b.merchandiseExclShippingAzn) ??
       num(b.merchandise_excl_shipping_azn),
     membershipDiscountAzn:
-      num(b.membershipDiscountAzn) ?? num(b.membership_discount_azn) ?? num(b.membershipDiscount),
+        num(b.membershipDiscountAzn) ?? num(b.membership_discount_azn) ?? num(b.membershipDiscount),
     pointsDiscountAzn: num(b.pointsDiscountAzn) ?? num(b.points_discount_azn),
+    promoDiscountAzn: num(b.promoDiscountAzn) ?? num(b.promo_discount_azn),
     shippingAzn: num(b.shippingAzn) ?? num(b.shipping_azn),
     shippingQuoteAmount: num(b.shippingQuoteAmount) ?? num(b.shipping_quote_amount),
     shippingQuoteCurrency:
@@ -163,6 +165,7 @@ export type PreviewDeliveryContext = {
 export type PreviewMemberBody = PreviewDeliveryContext & {
   items: unknown[]
   points_to_redeem?: number
+  promo_code?: string
 }
 
 function mergePreviewPayload(
@@ -178,6 +181,9 @@ function mergePreviewPayload(
   }
   if ('points_to_redeem' in body && body.points_to_redeem != null && body.points_to_redeem > 0) {
     payload.points_to_redeem = Math.floor(body.points_to_redeem)
+  }
+  if ('promo_code' in body && typeof body.promo_code === 'string' && body.promo_code.trim() !== '') {
+    payload.promo_code = body.promo_code.trim().toUpperCase()
   }
   return payload
 }
