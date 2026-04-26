@@ -1,29 +1,17 @@
 "use client";
 
-import { createContext, useContext, useEffect, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useReducer, useRef, type ReactNode } from 'react'
 import type { CartItem } from '../types'
 
 type CartState = { items: CartItem[] }
 type CartAction =
-  | { type: 'ADD'; item: CartItem }
-  | { type: 'REMOVE'; productId: string; variantIndex: number; size: string }
-  | { type: 'UPDATE_QTY'; productId: string; variantIndex: number; size: string; quantity: number }
-  | { type: 'CLEAR' }
+    | { type: 'ADD'; item: CartItem }
+    | { type: 'REMOVE'; productId: string; variantIndex: number; size: string }
+    | { type: 'UPDATE_QTY'; productId: string; variantIndex: number; size: string; quantity: number }
+    | { type: 'CLEAR' }
+    | { type: 'HYDRATE'; items: CartItem[] }
 
 const CART_STORAGE_KEY = 'vorton_cart_v1'
-
-function loadInitialCartState(): CartState {
-    if (typeof window === 'undefined') return { items: [] }
-    try {
-        const raw = localStorage.getItem(CART_STORAGE_KEY)
-        if (!raw) return { items: [] }
-        const parsed = JSON.parse(raw) as CartState
-        if (!parsed || !Array.isArray(parsed.items)) return { items: [] }
-        return { items: parsed.items }
-    } catch {
-        return { items: [] }
-    }
-}
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -68,6 +56,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       }
     case 'CLEAR':
       return { items: [] }
+    case 'HYDRATE':
+      return { items: Array.isArray(action.items) ? action.items : [] }
     default:
       return state
   }
@@ -83,10 +73,30 @@ const CartContext = createContext<{
 } | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialCartState)
+  const [state, dispatch] = useReducer(cartReducer, { items: [] })
   const totalItems = state.items.reduce((s, i) => s + i.quantity, 0)
+  const hydratedRef = useRef(false)
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CART_STORAGE_KEY)
+      if (!raw) {
+        hydratedRef.current = true
+        return
+      }
+      const parsed = JSON.parse(raw) as CartState
+      if (parsed && Array.isArray(parsed.items)) {
+        dispatch({ type: 'HYDRATE', items: parsed.items })
+      }
+    } catch {
+      // ignore storage read errors
+    } finally {
+      hydratedRef.current = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hydratedRef.current) return
     try {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: state.items }))
     } catch {
