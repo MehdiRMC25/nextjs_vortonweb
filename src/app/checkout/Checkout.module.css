@@ -39,6 +39,46 @@
   margin: 0 0 10px;
 }
 
+.promoCard {
+  padding: 16px;
+}
+
+.promoRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.promoInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.promoInput:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.promoHint {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .promoRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 .rewardsLine {
   margin: 0 0 6px;
   line-height: 1.45;

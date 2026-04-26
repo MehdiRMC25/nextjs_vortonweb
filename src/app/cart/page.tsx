@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
@@ -21,6 +22,8 @@ function getItemPrice(item: { product: { price: number; salePrice?: number; vari
 export default function Cart() {
     const { t, locale } = useLocale()
     const { items, removeItem, updateQuantity } = useCart()
+    const [promoOpen, setPromoOpen] = useState(false)
+    const [promoCode, setPromoCode] = useState('')
 
     if (items.length === 0) {
         return (
@@ -43,6 +46,8 @@ export default function Cart() {
         const price = getItemPrice(i)
         return sum + price * i.quantity
     }, 0)
+    const promoTrimmed = promoCode.trim()
+    const checkoutHref = promoTrimmed ? `/checkout?promo=${encodeURIComponent(promoTrimmed)}` : '/checkout'
 
     return (
         <>
@@ -115,8 +120,29 @@ export default function Cart() {
                                 <span>{t('subtotal')}</span>
                                 <span>₼{subtotal.toFixed(2)}</span>
                             </p>
+                            <button
+                                type="button"
+                                className={styles.promoToggle}
+                                onClick={() => setPromoOpen((v) => !v)}
+                            >
+                                {t('havePromoCode')}
+                            </button>
+
+                            {promoOpen && (
+                                <div className={styles.promoPanel}>
+                                    <input
+                                        type="text"
+                                        className={styles.promoInput}
+                                        placeholder={t('promoCodePlaceholder')}
+                                        value={promoCode}
+                                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                        autoComplete="off"
+                                    />
+                                    <p className={styles.promoHint}>{t('promoCodeCartHint')}</p>
+                                </div>
+                            )}
                             <p className={styles.note}>{t('shippingNote')}</p>
-                            <Link href="/checkout" className="btn btn-primary" style={{ width: '100%', marginTop: 16 }}>
+                            <Link href={checkoutHref} className="btn btn-primary" style={{ width: '100%', marginTop: 16 }}>
                                 {t('checkout')}
                             </Link>
                             <Link href="/shop" className={styles.continue}>

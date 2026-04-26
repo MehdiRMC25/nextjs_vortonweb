@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
@@ -74,11 +75,13 @@ function getItemImage(item: CartItem) {
 
 export default function Checkout() {
     const { t, locale, geoCountry } = useLocale()
+    const searchParams = useSearchParams()
     const shippingUnavailableCopy = t('shippingUnavailableMessage')
     const { user, token, isAuthenticated, refreshUser } = useAuth()
     const { items } = useCart()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [promoCode, setPromoCode] = useState('')
     const [guestName, setGuestName] = useState('')
     const [guestPhoneCountryIso, setGuestPhoneCountryIso] = useState<CountryCode>('AZ')
     const [guestPhoneLocal, setGuestPhoneLocal] = useState('')
@@ -110,6 +113,10 @@ export default function Checkout() {
     )
 
     const countryCodesSorted = useMemo(() => sortedCountryCodes(locale), [locale])
+    useEffect(() => {
+        const promo = (searchParams.get('promo') ?? '').trim()
+        if (promo) setPromoCode(promo.toUpperCase())
+    }, [searchParams])
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -799,6 +806,23 @@ export default function Checkout() {
                     </div>
 
                     {isAuthenticated && user && (
+                        <div className={`${styles.card} ${styles.promoCard}`}>
+                            <h3 className={styles.cardTitle}>{t('promoCode')}</h3>
+                            <div className={styles.promoRow}>
+                                <input
+                                    type="text"
+                                    className={styles.promoInput}
+                                    placeholder={t('promoCodePlaceholder')}
+                                    value={promoCode}
+                                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                    autoComplete="off"
+                                />
+                                <button type="button" className="btn btn-secondary" disabled={!promoCode.trim()}>
+                                    {t('applyPromoCode')}
+                                </button>
+                            </div>
+                            <p className={styles.promoHint}>{t('promoCodeCheckoutHint')}</p>
+                        </div>
                         <div className={`${styles.card} ${styles.deliveryCard}`}>
                             {/* Keep delivery details UX as-is */}
                             <div className={styles.deliveryPanel}>
