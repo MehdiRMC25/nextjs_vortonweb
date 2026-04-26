@@ -92,7 +92,7 @@
   position: relative;
   height: 100%;
   min-height: 0;
-  padding: 18px 20px 16px;
+  padding: 12px 20px 22px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -171,12 +171,19 @@
 
 /* Compact light band under header — membership number only */
 .membershipNumberBand {
-  padding: 6px 12px 8px;
-  margin: 0 0 12px;
+  padding: 10px 18px;
+  margin: 0 auto 12px;
+  align-self: center;
   background: rgba(255, 255, 255, 0.4);
-  border-radius: 6px;
+  border-radius: 8px;
   backdrop-filter: blur(6px);
   min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 320px;
+  max-width: calc(100% - 24px);
 }
 
 .membershipCard_gold .membershipNumberBand {
@@ -189,13 +196,17 @@
 }
 
 .membershipNumberBand .membershipNumber {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.04em;
+  margin: 10;
+  line-height: 1;
+  letter-spacing: 0.02em;
   color: #1a1a1a;
-  word-break: break-all;
   text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .membershipCard_platinum .membershipNumberBand .membershipNumber,
@@ -273,7 +284,7 @@
 /* Full name in bottom-right; absolutely positioned so card layout is unchanged */
 .membershipCardName {
   position: absolute;
-  bottom: 16px;
+  bottom: 20px;
   right: 20px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -608,6 +619,9 @@
 
   .membershipCardInner {
     padding: 16px 18px 14px;
+    align-items: center;
+    margin: 0 auto 12px;
+    align-self: center;
   }
 
   .membershipNumberBand {
