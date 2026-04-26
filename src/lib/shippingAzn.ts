@@ -95,8 +95,9 @@ export function formatShippingDisplay(amount: number, currency: CheckoutShipping
  * Driven by site language (and optional geo hint for English): az → AZN; en + GB → GBP; else en → USD.
  */
 export function checkoutShippingDisplayCurrency(locale: string, geoCountry?: string): CheckoutShippingCurrency {
-  if (locale === 'az') return 'AZN'
   const gc = (geoCountry ?? '').trim().toUpperCase()
+  if (gc === 'AZ') return 'AZN'
+  if (locale === 'az') return 'AZN'
   if (locale === 'en' && (gc === 'GB' || gc === 'UK')) return 'GBP'
   if (locale === 'en') return 'USD'
   return 'USD'
