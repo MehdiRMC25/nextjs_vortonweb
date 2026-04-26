@@ -545,7 +545,7 @@ export default function Checkout() {
                             <div className={styles.guestFields}>
                                 <p className={styles.guestIntro}>
                                     Have an account?{'\u00a0\u00a0'}
-                                    <Link href="/signin"style={{ fontSize: '1.125rem' }}>{t('signIn')}</Link>
+                                    <Link href="/signin" style={{ fontSize: '1.125rem' }}>{t('signIn')}</Link>
                                     {' '}
                                     for faster checkout — or continue as a guest below.
                                 </p>
@@ -806,6 +806,7 @@ export default function Checkout() {
                     </div>
 
                     {isAuthenticated && user && (
+                        <>
                         <div className={`${styles.card} ${styles.promoCard}`}>
                             <h3 className={styles.cardTitle}>{t('promoCode')}</h3>
                             <div className={styles.promoRow}>
@@ -921,6 +922,7 @@ export default function Checkout() {
                                 <p className={styles.deliveryHint}>{t('checkDeliveryAccountHint')}</p>
                             </div>
                         </div>
+                        </>
                     )}
 
                     <div className={`${styles.card} ${styles.orderSummaryCard}`}>
