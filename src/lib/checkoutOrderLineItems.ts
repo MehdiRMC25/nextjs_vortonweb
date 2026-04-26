@@ -33,7 +33,7 @@ export function buildCheckoutOrderLineItems(
       size: item.size || undefined,
       product_id: item.product.id,
       ...(excluded ? { is_discounted: true as const } : {}),
-      ...(item.product.onSale === true && !excluded ? { promotional: true as const } : {}),
+      ...(basis.isPromotional ? { promotional: true as const } : {}),
     }
   })
   if (deliveryLinePriceAzn != null && deliveryLinePriceAzn > 0) {
