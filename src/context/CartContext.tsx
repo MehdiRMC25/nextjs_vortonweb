@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useReducer, useRef, type ReactNode } from 'react'
+import { useAuth } from './AuthContext'
 import type { CartItem } from '../types'
 
 type CartState = { items: CartItem[] }
@@ -11,7 +12,12 @@ type CartAction =
     | { type: 'CLEAR' }
     | { type: 'HYDRATE'; items: CartItem[] }
 
-const CART_STORAGE_KEY = 'vorton_cart_v1'
+const CART_STORAGE_PREFIX = 'vorton_cart_v1'
+
+function cartStorageKeyFor(userId: string | null): string {
+  if (!userId) return `${CART_STORAGE_PREFIX}_guest`
+  return `${CART_STORAGE_PREFIX}_user_${userId}`
+}
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -73,36 +79,48 @@ const CartContext = createContext<{
 } | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user, isAuthenticated } = useAuth()
   const [state, dispatch] = useReducer(cartReducer, { items: [] })
   const totalItems = state.items.reduce((s, i) => s + i.quantity, 0)
   const hydratedRef = useRef(false)
 
+  const userId =
+      isAuthenticated && user?.id != null && String(user.id).trim() !== ''
+          ? String(user.id).trim()
+          : null
+  const activeStorageKey = cartStorageKeyFor(userId)
+
   useEffect(() => {
+    hydratedRef.current = false
     try {
-      const raw = localStorage.getItem(CART_STORAGE_KEY)
+      const raw = localStorage.getItem(activeStorageKey)
       if (!raw) {
+        dispatch({ type: 'HYDRATE', items: [] })
         hydratedRef.current = true
         return
       }
       const parsed = JSON.parse(raw) as CartState
       if (parsed && Array.isArray(parsed.items)) {
         dispatch({ type: 'HYDRATE', items: parsed.items })
+      } else {
+        dispatch({ type: 'HYDRATE', items: [] })
       }
     } catch {
+      dispatch({ type: 'HYDRATE', items: [] })
       // ignore storage read errors
     } finally {
       hydratedRef.current = true
     }
-  }, [])
+  }, [activeStorageKey])
 
   useEffect(() => {
     if (!hydratedRef.current) return
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: state.items }))
+      localStorage.setItem(activeStorageKey, JSON.stringify({ items: state.items }))
     } catch {
       // ignore quota/private-mode errors
     }
-  }, [state.items])
+  }, [state.items, activeStorageKey])
 
   return (
     <CartContext.Provider

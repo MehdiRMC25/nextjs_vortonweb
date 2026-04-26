@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { config } from '@/config'
 import { useAuth } from '@/context/AuthContext'
 import { useLocale } from '@/context/LocaleContext'
@@ -13,6 +14,14 @@ type Props = {
 export default function WhatsAppButton({ pageTag }: Props) {
   const { isAuthenticated, user } = useAuth()
   const { locale, geoCountry } = useLocale()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
   const digits = selectWhatsAppDigits({
     isAuthenticated,
     userCountry: typeof user?.country === 'string' ? user.country : undefined,

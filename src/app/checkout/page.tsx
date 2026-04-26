@@ -838,7 +838,9 @@ export default function Checkout() {
                                     {t('applyPromoCode')}
                                 </button>
                             </div>
-                            <p className={styles.promoHint}>{t('promoCodeCheckoutHint')}</p>
+                            {displayPromoDiscountAzn > 0 && appliedPromoCode && (
+                                <p className={styles.promoHint}>{t('promoAppliedSuccess')}</p>
+                            )}
                         </div>
                         <div className={`${styles.card} ${styles.deliveryCard}`}>
                             {/* Keep delivery details UX as-is */}
