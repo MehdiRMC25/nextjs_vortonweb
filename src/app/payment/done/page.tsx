@@ -29,17 +29,16 @@ function PaymentDoneContent() {
     const isFailed = status && !isSuccess && !isCancelled
 
     useEffect(() => {
-        if (isSuccess) clearCart()
-    }, [isSuccess, clearCart])
-
-    useEffect(() => {
         if (!isSuccess || !bankOrderId || confirmSent.current) return
         confirmSent.current = true
         confirmPayment(bankOrderId, status).then(async (res) => {
-            if (res?.createdOrder) setCreatedOrder(res.createdOrder)
+            if (res?.createdOrder) {
+                setCreatedOrder(res.createdOrder)
+                clearCart()
+            }
             await refreshUser()
         }).catch(() => {})
-    }, [isSuccess, bankOrderId, status, refreshUser])
+    }, [isSuccess, bankOrderId, status, refreshUser, clearCart])
 
     const title = isSuccess
         ? t('paymentSuccess')

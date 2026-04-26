@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useReducer, type ReactNode } from 'react'
 import type { CartItem } from '../types'
 
 type CartState = { items: CartItem[] }
@@ -9,6 +9,21 @@ type CartAction =
   | { type: 'REMOVE'; productId: string; variantIndex: number; size: string }
   | { type: 'UPDATE_QTY'; productId: string; variantIndex: number; size: string; quantity: number }
   | { type: 'CLEAR' }
+
+const CART_STORAGE_KEY = 'vorton_cart_v1'
+
+function loadInitialCartState(): CartState {
+    if (typeof window === 'undefined') return { items: [] }
+    try {
+        const raw = localStorage.getItem(CART_STORAGE_KEY)
+        if (!raw) return { items: [] }
+        const parsed = JSON.parse(raw) as CartState
+        if (!parsed || !Array.isArray(parsed.items)) return { items: [] }
+        return { items: parsed.items }
+    } catch {
+        return { items: [] }
+    }
+}
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -68,8 +83,17 @@ const CartContext = createContext<{
 } | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] })
+  const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialCartState)
   const totalItems = state.items.reduce((s, i) => s + i.quantity, 0)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: state.items }))
+    } catch {
+      // ignore quota/private-mode errors
+    }
+  }, [state.items])
+
   return (
     <CartContext.Provider
       value={{

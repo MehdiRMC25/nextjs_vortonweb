@@ -818,7 +818,15 @@ export default function Checkout() {
                                     onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                                     autoComplete="off"
                                 />
-                                <button type="button" className="btn btn-secondary" disabled={!promoCode.trim()}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => {
+                                        setError(null)
+                                        setPromoCode((v) => v.trim().toUpperCase())
+                                    }}
+                                    disabled={!promoCode.trim()}
+                                >
                                     {t('applyPromoCode')}
                                 </button>
                             </div>
