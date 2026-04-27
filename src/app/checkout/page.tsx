@@ -213,6 +213,15 @@ export default function Checkout() {
     const displayPointsDiscountAzn = previewBreakdown?.pointsDiscountAzn ?? discountAzn
     const displayPromoDiscountAzn = previewBreakdown?.promoDiscountAzn ?? 0
 
+    const promoErrorCode =
+        typeof previewBreakdown?.['promo_error_code'] === 'string'
+            ? (previewBreakdown['promo_error_code'] as string)
+            : ''
+    const showInvalidPromoMessage =
+        Boolean(appliedPromoCode) &&
+        displayPromoDiscountAzn <= 0 &&
+        promoErrorCode === 'INVALID_PROMO_CODE'
+
     useEffect(() => {
         if (!useRewardPoints) {
             setPointsToApply(0)
@@ -840,6 +849,9 @@ export default function Checkout() {
                             </div>
                             {displayPromoDiscountAzn > 0 && appliedPromoCode && (
                                 <p className={styles.promoHint}>{t('promoAppliedSuccess')}</p>
+                            )}
+                            {showInvalidPromoMessage && (
+                                <p className={styles.error}>{t('promoInvalidCode')}</p>
                             )}
                         </div>
                         <div className={`${styles.card} ${styles.deliveryCard}`}>
