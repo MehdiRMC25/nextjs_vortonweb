@@ -229,7 +229,7 @@ export default function Checkout() {
     const showInvalidPromoMessage =
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&
-        (promoErrorCode === 'INVALID_PROMO_CODE' || (!promoErrorCode && !showExpiredPromoMessage))
+        !showExpiredPromoMessage
 
     useEffect(() => {
         if (!useRewardPoints) {
