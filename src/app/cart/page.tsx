@@ -107,7 +107,7 @@ export default function Cart() {
             const invalid = promoErrorCode === 'INVALID_PROMO_CODE'
             const expired = promoErrorCode === 'PROMO_EXPIRED'
             const appliedDiscount = Number.isFinite(discount) ? Math.max(0, discount) : 0
-            const success = !invalid && !expired && (appliedDiscount > 0 || approvedCode === normalized)
+            const success = appliedDiscount > 0 && !invalid && !expired
 
             if (success) {
                 setPromoDiscountAzn(appliedDiscount)
