@@ -222,14 +222,14 @@ export default function Checkout() {
         typeof previewBreakdown?.['promo_error_code'] === 'string'
             ? (previewBreakdown['promo_error_code'] as string)
             : ''
-    const showInvalidPromoMessage =
-        Boolean(appliedPromoCode) &&
-        displayPromoDiscountAzn <= 0 &&
-        (promoErrorCode === 'INVALID_PROMO_CODE' || (!promoErrorCode && !showExpiredPromoMessage))
     const showExpiredPromoMessage =
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&
         promoErrorCode === 'PROMO_EXPIRED'
+    const showInvalidPromoMessage =
+        Boolean(appliedPromoCode) &&
+        displayPromoDiscountAzn <= 0 &&
+        (promoErrorCode === 'INVALID_PROMO_CODE' || (!promoErrorCode && !showExpiredPromoMessage))
 
     useEffect(() => {
         if (!useRewardPoints) {
