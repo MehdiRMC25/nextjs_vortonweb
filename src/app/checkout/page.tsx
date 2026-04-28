@@ -225,7 +225,7 @@ export default function Checkout() {
     const showInvalidPromoMessage =
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&
-        promoErrorCode === 'INVALID_PROMO_CODE'
+        (promoErrorCode === 'INVALID_PROMO_CODE' || (!promoErrorCode && !showExpiredPromoMessage))
     const showExpiredPromoMessage =
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&

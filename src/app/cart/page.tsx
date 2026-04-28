@@ -118,9 +118,9 @@ export default function Cart() {
             } else {
                 setPromoDiscountAzn(0)
                 setPromoAppliedCode('')
-                setPromoInvalid(invalid || expired)
+                setPromoInvalid(true)
                 setPromoErrorCode(promoErrorCode)
-                setPromoStatus(invalid || expired ? 'invalid' : 'idle')
+                setPromoStatus('invalid')
             }
         } catch {
             setPromoDiscountAzn(0)
