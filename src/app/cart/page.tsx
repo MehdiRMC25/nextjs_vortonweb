@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
+import { useAuth } from '@/context/AuthContext'
 import { productDisplayName } from '@/lib/productDisplay'
+import {
+    postCheckoutPreview,
+    postCheckoutPreviewGuest,
+    type CheckoutPreviewResponse,
+} from '@/api/checkoutPreview'
+import { buildCheckoutOrderLineItems } from '@/lib/checkoutOrderLineItems'
+import { checkoutShippingDisplayCurrency } from '@/lib/shippingAzn'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './Cart.module.css'
 
@@ -20,10 +28,122 @@ function getItemPrice(item: { product: { price: number; salePrice?: number; vari
 }
 
 export default function Cart() {
-    const { t, locale } = useLocale()
+    const { t, locale, geoCountry } = useLocale()
+    const { user, token, isAuthenticated } = useAuth()
     const { items, removeItem, updateQuantity } = useCart()
     const [promoOpen, setPromoOpen] = useState(false)
     const [promoCode, setPromoCode] = useState('')
+    const [promoApplying, setPromoApplying] = useState(false)
+    const [promoAppliedCode, setPromoAppliedCode] = useState('')
+    const [promoDiscountAzn, setPromoDiscountAzn] = useState(0)
+    const [promoInvalid, setPromoInvalid] = useState(false)
+    const [promoStatus, setPromoStatus] = useState<'idle' | 'success' | 'invalid'>('idle')
+    const [promoErrorCode, setPromoErrorCode] = useState('')
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    const subtotal = items.reduce((sum, i) => {
+        const price = getItemPrice(i)
+        return sum + price * i.quantity
+    }, 0)
+
+    const checkoutCurrency = checkoutShippingDisplayCurrency(locale, geoCountry)
+    const deliveryCountry = useMemo(() => {
+        if (isAuthenticated) {
+            const userCountry = typeof user?.country === 'string' ? user.country.trim() : ''
+            return userCountry || (geoCountry || 'AZ')
+        }
+        return geoCountry || 'AZ'
+    }, [isAuthenticated, user, geoCountry])
+
+    const deliveryCity = useMemo(() => {
+        if (!isAuthenticated) return undefined
+        const city = typeof user?.city === 'string' ? user.city.trim() : ''
+        return city || undefined
+    }, [isAuthenticated, user])
+
+    async function handleApplyPromoFromCart() {
+        const normalized = promoCode.trim().toUpperCase()
+        setPromoCode(normalized)
+        setPromoInvalid(false)
+        setPromoDiscountAzn(0)
+        setPromoAppliedCode('')
+        setPromoErrorCode('')
+        setPromoStatus('idle')
+        if (!normalized) return
+
+        setPromoApplying(true)
+        try {
+            const payload = {
+                delivery_country: deliveryCountry,
+                ...(deliveryCity ? { delivery_city: deliveryCity } : {}),
+                checkout_currency: checkoutCurrency,
+                items: buildCheckoutOrderLineItems(items, null),
+                promo_code: normalized,
+            }
+            let res: CheckoutPreviewResponse
+            if (isAuthenticated && token) {
+                res = await postCheckoutPreview(token, payload)
+            } else {
+                res = await postCheckoutPreviewGuest(payload)
+            }
+            const discount = Number(
+                res.breakdown.promoDiscountAzn ??
+                res.breakdown['promo_discount_azn'] ??
+                0
+            )
+            const promoErrorCode =
+                typeof res.breakdown['promo_error_code'] === 'string'
+                    ? String(res.breakdown['promo_error_code'])
+                    : ''
+            const approvedCode =
+                typeof res.breakdown['promo_code'] === 'string'
+                    ? String(res.breakdown['promo_code']).toUpperCase()
+                    : ''
+
+            const invalid = promoErrorCode === 'INVALID_PROMO_CODE'
+            const expired = promoErrorCode === 'PROMO_EXPIRED'
+            const appliedDiscount = Number.isFinite(discount) ? Math.max(0, discount) : 0
+            const success = !invalid && !expired && (appliedDiscount > 0 || approvedCode === normalized)
+
+            if (success) {
+                setPromoDiscountAzn(appliedDiscount)
+                setPromoAppliedCode(normalized)
+                setPromoInvalid(false)
+                setPromoErrorCode('')
+                setPromoStatus('success')
+            } else {
+                setPromoDiscountAzn(0)
+                setPromoAppliedCode('')
+                setPromoInvalid(invalid || expired)
+                setPromoErrorCode(promoErrorCode)
+                setPromoStatus(invalid || expired ? 'invalid' : 'idle')
+            }
+        } catch {
+            setPromoDiscountAzn(0)
+            setPromoAppliedCode('')
+            setPromoInvalid(true)
+            setPromoStatus('invalid')
+        } finally {
+            setPromoApplying(false)
+        }
+    }
+
+    const checkoutHref =
+        promoStatus === 'success' && promoAppliedCode
+            ? `/checkout?promo=${encodeURIComponent(promoAppliedCode)}`
+            : '/checkout'
+
+    if (!mounted) {
+        return (
+            <div className="container">
+                <h1 className={styles.title}>{t('cart')}</h1>
+            </div>
+        )
+    }
 
     if (items.length === 0) {
         return (
@@ -41,13 +161,6 @@ export default function Cart() {
             </>
         )
     }
-
-    const subtotal = items.reduce((sum, i) => {
-        const price = getItemPrice(i)
-        return sum + price * i.quantity
-    }, 0)
-    const promoTrimmed = promoCode.trim()
-    const checkoutHref = promoTrimmed ? `/checkout?promo=${encodeURIComponent(promoTrimmed)}` : '/checkout'
 
     return (
         <>
@@ -120,6 +233,7 @@ export default function Cart() {
                                 <span>{t('subtotal')}</span>
                                 <span>₼{subtotal.toFixed(2)}</span>
                             </p>
+
                             <button
                                 type="button"
                                 className={styles.promoToggle}
@@ -138,7 +252,31 @@ export default function Cart() {
                                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                                         autoComplete="off"
                                     />
-                                    <p className={styles.promoHint}>{t('promoCodeCartHint')}</p>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => void handleApplyPromoFromCart()}
+                                        disabled={promoApplying || !promoCode.trim()}
+                                    >
+                                        {promoApplying ? t('loading') : t('applyPromoCode')}
+                                    </button>
+                                    {promoStatus === 'success' && (
+                                        <>
+                                            <p className={styles.promoSuccess}>{t('promoAppliedSuccess')}</p>
+                                            {promoDiscountAzn > 0 && (
+                                                <p className={styles.promoSuccess}>
+                                                    {t('promoCode')}: −₼{promoDiscountAzn.toFixed(2)}
+                                                </p>
+                                            )}
+                                        </>
+                                    )}
+                                    {promoStatus === 'invalid' && (
+                                        <p className={styles.promoError}>
+                                            {promoErrorCode === 'PROMO_EXPIRED'
+                                                ? t('promoExpiredCode')
+                                                : t('promoInvalidCode')}
+                                        </p>
+                                    )}
                                 </div>
                             )}
                             <p className={styles.note}>{t('shippingNote')}</p>

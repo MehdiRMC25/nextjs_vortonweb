@@ -83,6 +83,7 @@ export default function Checkout() {
     const [error, setError] = useState<string | null>(null)
     const [promoCode, setPromoCode] = useState('')
     const [appliedPromoCode, setAppliedPromoCode] = useState('')
+    const [promoApplySeq, setPromoApplySeq] = useState(0)
     const [guestName, setGuestName] = useState('')
     const [guestPhoneCountryIso, setGuestPhoneCountryIso] = useState<CountryCode>('AZ')
     const [guestPhoneLocal, setGuestPhoneLocal] = useState('')
@@ -116,7 +117,11 @@ export default function Checkout() {
     const countryCodesSorted = useMemo(() => sortedCountryCodes(locale), [locale])
     useEffect(() => {
         const promo = (searchParams.get('promo') ?? '').trim()
-        if (promo) setPromoCode(promo.toUpperCase())
+        if (promo) {
+            const normalized = promo.toUpperCase()
+            setPromoCode(normalized)
+            setAppliedPromoCode(normalized)
+        }
     }, [searchParams])
 
     useEffect(() => {
@@ -221,6 +226,10 @@ export default function Checkout() {
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&
         promoErrorCode === 'INVALID_PROMO_CODE'
+    const showExpiredPromoMessage =
+        Boolean(appliedPromoCode) &&
+        displayPromoDiscountAzn <= 0 &&
+        promoErrorCode === 'PROMO_EXPIRED'
 
     useEffect(() => {
         if (!useRewardPoints) {
@@ -320,6 +329,7 @@ export default function Checkout() {
         useRewardPoints,
         chosenPoints,
         appliedPromoCode,
+        promoApplySeq,
         items.length,
         t,
         shippingUnavailableCopy,
@@ -820,7 +830,7 @@ export default function Checkout() {
                         )}
                     </div>
 
-                    {isAuthenticated && user && (
+                    {isAuthenticated && user && !(displayPromoDiscountAzn > 0 && appliedPromoCode) && (
                         <>
                         <div className={`${styles.card} ${styles.promoCard}`}>
                             <h3 className={styles.cardTitle}>{t('promoCode')}</h3>
@@ -841,6 +851,7 @@ export default function Checkout() {
                                         const normalized = promoCode.trim().toUpperCase()
                                         setPromoCode(normalized)
                                         setAppliedPromoCode(normalized)
+                                        setPromoApplySeq((v) => v + 1)
                                     }}
                                     disabled={!promoCode.trim()}
                                 >
@@ -852,6 +863,9 @@ export default function Checkout() {
                             )}
                             {showInvalidPromoMessage && (
                                 <p className={styles.error}>{t('promoInvalidCode')}</p>
+                            )}
+                            {showExpiredPromoMessage && (
+                                <p className={styles.error}>{t('promoExpiredCode')}</p>
                             )}
                         </div>
                         <div className={`${styles.card} ${styles.deliveryCard}`}>
@@ -975,7 +989,7 @@ export default function Checkout() {
                                     </span>
                                 </div>
                             )}
-                            {displayPromoDiscountAzn > 0 && (
+                            {appliedPromoCode && !showInvalidPromoMessage && displayPromoDiscountAzn > 0 && (
                                 <div className={`${styles.summaryRow} ${styles.summaryRowDiscount}`}>
                                     <span>{t('promoCode')}</span>
                                     <span>

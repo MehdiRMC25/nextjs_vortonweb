@@ -170,10 +170,20 @@
   border-color: var(--accent);
 }
 
-.promoHint {
+.promoSuccess {
   margin: 0;
-  color: var(--text-muted);
+  color: #1b7f3a;
   font-size: 0.82rem;
+}
+
+.promoError {
+  margin: 0;
+  color: #c62828;
+  font-size: 0.82rem;
+}
+
+.summaryDiscountRow {
+  color: #1b7f3a;
 }
 
 .summaryRow {
