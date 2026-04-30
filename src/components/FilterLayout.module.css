@@ -10,9 +10,11 @@
   position: sticky;
   top: 72px;
   align-self: flex-start;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
   background: var(--bg-card);
   border-right: 1px solid var(--border);
-  padding: 24px 20px;
+  padding: 24px 20px 180px;
   padding-top: 24px;
   display: flex;
   flex-direction: column;
@@ -30,6 +32,7 @@
 @media (max-width: 1024px) {
   .main {
     margin-left: 0;
+    width: 100%;
     padding: 16px 24px 32px;
   }
 
@@ -39,12 +42,21 @@
     top: auto;
     width: 100%;
     height: auto;
+    max-height: none;
+    overflow-y: visible;
     padding-top: 24px;
+    padding-bottom: 24px;
     flex-direction: row;
     flex-wrap: wrap;
     border-right: none;
     border-bottom: 1px solid var(--border);
     gap: 16px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
   }
 }
 
