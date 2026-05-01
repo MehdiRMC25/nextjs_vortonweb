@@ -11,6 +11,7 @@ type ScrollSelectProps = {
   clearLabel?: string
   onChange: (value: string) => void
   disabled?: boolean
+  compact?: boolean
 }
 
 export default function ScrollSelect({
@@ -22,6 +23,7 @@ export default function ScrollSelect({
   clearLabel,
   onChange,
   disabled = false,
+  compact = false,
 }: ScrollSelectProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -40,7 +42,7 @@ export default function ScrollSelect({
   const clearText = clearLabel ?? placeholder
 
   return (
-    <div className={styles.wrap} ref={ref}>
+      <div className={`${styles.wrap}${compact ? ` ${styles.wrapCompact}` : ''}`} ref={ref}>
       <label className={styles.label} htmlFor={id}>
         {label}
       </label>

@@ -70,6 +70,23 @@
   transition: transform 0.2s;
 }
 
+.wrapCompact {
+  gap: 4px;
+}
+
+.wrapCompact .label {
+  font-size: 0.68rem;
+}
+
+.wrapCompact .trigger {
+  padding: 6px 32px 6px 10px;
+  font-size: 0.85rem;
+}
+
+.wrapCompact .option {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+}
 .dropdown {
   position: absolute;
   top: 100%;

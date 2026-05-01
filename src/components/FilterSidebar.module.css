@@ -92,3 +92,17 @@
   outline: none;
   border-color: var(--accent);
 }
+
+.sidebarBrandCompact {
+  margin-top: 0;
+  margin-bottom: 12px;
+  gap: 4px;
+}
+
+.sidebarBrandCompact .sidebarTitle {
+  font-size: 1.05rem;
+}
+
+.sidebarBrandCompact .brandTagline {
+  font-size: 0.88rem;
+}

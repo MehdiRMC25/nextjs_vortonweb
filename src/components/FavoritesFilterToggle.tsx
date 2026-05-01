@@ -6,15 +6,17 @@ import styles from './FavoritesFilterToggle.module.css'
 export default function FavoritesFilterToggle({
   enabled,
   onChange,
+  compact = false,
 }: {
   enabled: boolean
   onChange: (next: boolean) => void
+  compact?: boolean
 }) {
   const { t } = useLocale()
   return (
     <button
       type="button"
-      className={`${styles.toggle} ${enabled ? styles.enabled : ''}`}
+      className={`${styles.toggle}${compact ? ` ${styles.toggleCompact}` : ''} ${enabled ? styles.enabled : ''}`}
       aria-pressed={enabled}
       onClick={() => onChange(!enabled)}
     >
