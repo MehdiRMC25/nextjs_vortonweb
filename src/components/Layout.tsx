@@ -21,6 +21,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const isHome = pathname === '/'
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
   const role: UserRole = (user?.role as UserRole) ?? 'customer'
   const isStaff = role === 'employee' || role === 'manager'
 
@@ -36,15 +40,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className={styles.headerInner}>
           <Link href="/" className={styles.logo}>
             <img
-              src="/Vorton_Logo.png"
-              alt="Vorton"
-              className={styles.logoIcon}
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
+                src="/Vorton_Logo.png"
+                alt="Vorton"
+                className={styles.logoIcon}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
             />
           </Link>
-          <div className={styles.navWrap}>
+          <button
+              type="button"
+              className={styles.menuBtn}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((v) => !v)}
+          >
+            {mobileMenuOpen ? '✕' : '☰'}
+          </button>
+          <div className={`${styles.navWrap} ${mobileMenuOpen ? styles.navWrapOpen : ''}`.trim()}>
           <nav className={styles.nav}>
             <Link href="/" className={pathname === '/' ? styles.navActive : ''}>
               {t('home')}
