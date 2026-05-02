@@ -36,6 +36,9 @@ export interface Product {
   variants?: ProductVariant[]
 }
 
+/** Shop price ordering only (URL `sort=priceAsc|priceDesc`). New/sale use `new=1` and `sale=1`. */
+export type PriceSortMode = '' | 'priceAsc' | 'priceDesc'
+
 export interface CartItem {
   product: Product
   /** Index into product.variants (or 0 if no variants) */

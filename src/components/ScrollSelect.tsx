@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import styles from './ScrollSelect.module.css'
 
 type ScrollSelectProps = {
@@ -39,6 +39,11 @@ export default function ScrollSelect({
   }, [])
 
   const displayLabel = value ? (options.find((o) => o.value === value)?.label ?? value) : placeholder
+
+  useLayoutEffect(() => {
+    if (!open || !ref.current) return
+    ref.current.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+  }, [open])
   const clearText = clearLabel ?? placeholder
 
   return (

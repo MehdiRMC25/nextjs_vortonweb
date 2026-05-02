@@ -58,57 +58,65 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {mobileMenuOpen ? '✕' : '☰'}
           </button>
           <div className={`${styles.navWrap} ${mobileMenuOpen ? styles.navWrapOpen : ''}`.trim()}>
-          <nav className={styles.nav}>
-            <Link href="/" className={pathname === '/' ? styles.navActive : ''}>
-              {t('home')}
-            </Link>
-            <Link href="/about" className={pathname === '/about' ? styles.navActive : ''}>
-              {t('aboutUs')}
-            </Link>
-            <Link href="/shop" className={pathname.startsWith('/shop') ? styles.navActive : ''}>
-              {t('shop')}
-            </Link>
-            <Link href="/cart" className={styles.cartLink + (pathname === '/cart' ? ' ' + styles.navActive : '')}>
-              {t('cart')}
-              {mounted && totalItems > 0 && <span className={styles.cartBadge}>{totalItems}</span>}
-            </Link>
-            {!mounted ? (
-              <Link href="/signin" className={pathname === '/signin' ? styles.navActive : ''}>
-                {t('signIn')}
-              </Link>
-            ) : isAuthenticated ? (
-              <>
-                {isStaff ? (
-                  <Link href="/staff/dashboard" className={pathname.startsWith('/staff') ? styles.navActive : ''}>
-                    Staff
+            <nav className={styles.nav}>
+              <div className={styles.navLinks}>
+                <div className={styles.navRow}>
+                  <Link href="/" className={pathname === '/' ? styles.navActive : ''}>
+                    {t('home')}
                   </Link>
-                ) : (
-                  <Link href="/orders" className={pathname.startsWith('/orders') ? styles.navActive : ''}>
-                    {t('myOrders')}
+                  <Link href="/about" className={pathname === '/about' ? styles.navActive : ''}>
+                    {t('aboutUs')}
                   </Link>
-                )}
-                <Link href="/account" className={pathname === '/account' ? styles.navActive : ''}>
-                  {t('myAccount')}
-                </Link>
-                <button type="button" className={styles.signOutBtn} onClick={handleSignOut}>
-                  {t('signOut')}
-                </button>
-              </>
-            ) : (
-              <Link href="/signin" className={pathname === '/signin' ? styles.navActive : ''}>
-                {t('signIn')}
-              </Link>
-            )}
-            <Link href="/contact" className={pathname === '/contact' ? styles.navActive : ''}>
-              {t('contact')}
-            </Link>
-            <Suspense fallback={null}>
-              <HeaderDomainLocale />
-            </Suspense>
-            <Suspense fallback={null}>
-              <HeaderSearch />
-            </Suspense>
-          </nav>
+                  <Link href="/shop" className={pathname.startsWith('/shop') ? styles.navActive : ''}>
+                    {t('shop')}
+                  </Link>
+                  <Link href="/cart" className={styles.cartLink + (pathname === '/cart' ? ' ' + styles.navActive : '')}>
+                    {t('cart')}
+                    {mounted && totalItems > 0 && <span className={styles.cartBadge}>{totalItems}</span>}
+                  </Link>
+                </div>
+                <div className={styles.navRow}>
+                  {!mounted ? (
+                      <Link href="/signin" className={pathname === '/signin' ? styles.navActive : ''}>
+                        {t('signIn')}
+                      </Link>
+                  ) : isAuthenticated ? (
+                      <>
+                        {isStaff ? (
+                            <Link href="/staff/dashboard" className={pathname.startsWith('/staff') ? styles.navActive : ''}>
+                              Staff
+                            </Link>
+                        ) : (
+                            <Link href="/orders" className={pathname.startsWith('/orders') ? styles.navActive : ''}>
+                              {t('myOrders')}
+                            </Link>
+                        )}
+                        <Link href="/account" className={pathname === '/account' ? styles.navActive : ''}>
+                          {t('myAccount')}
+                        </Link>
+                        <button type="button" className={styles.signOutBtn} onClick={handleSignOut}>
+                          {t('signOut')}
+                        </button>
+                      </>
+                  ) : (
+                      <Link href="/signin" className={pathname === '/signin' ? styles.navActive : ''}>
+                        {t('signIn')}
+                      </Link>
+                  )}
+                  <Link href="/contact" className={pathname === '/contact' ? styles.navActive : ''}>
+                    {t('contact')}
+                  </Link>
+                </div>
+              </div>
+              <div className={styles.navAside}>
+                <Suspense fallback={null}>
+                  <HeaderDomainLocale />
+                </Suspense>
+                <Suspense fallback={null}>
+                  <HeaderSearch />
+                </Suspense>
+              </div>
+            </nav>
           </div>
         </div>
       </header>

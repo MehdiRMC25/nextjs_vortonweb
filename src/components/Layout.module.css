@@ -77,6 +77,36 @@
   font-size: 1.25rem;
 }
 
+.navLinks {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 28px;
+  min-width: 0;
+  font-size: inherit;
+}
+
+.navAside {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.navAside .langBtn,
+.navAside .langBtnActive {
+  margin-left: 0;
+}
+
+.navRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+}
+
 .nav a {
   font-family: inherit;
   font-weight: 500;
@@ -262,6 +292,120 @@
   min-width: 0;
 }
 
+@media (min-width: 1156px) {
+  .nav {
+    width: 100%;
+  }
+
+  .navLinks {
+    flex: 1;
+    justify-content: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  .navRow {
+    display: contents;
+  }
+
+  .headerSearch {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1155px) {
+  .navWrap {
+    justify-content: flex-start;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 40px;
+    width: 100%;
+    font-size: 0.92rem;
+    line-height: 1.2;
+  }
+
+  .navLinks {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .navRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    row-gap: 6px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .navAside {
+    flex-direction: column;
+    align-items: flex-end;
+    align-self: center;
+    justify-content: center;
+    justify-self: end;
+  }
+
+  .headerSearch {
+    margin-left: 0;
+    width: auto;
+    max-width: min(250px, 32vw);
+  }
+
+  .headerSearchInput {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav a,
+  .cartLink,
+  .signOutBtn {
+    text-align: center;
+  }
+}
+@media (min-width: 641px) and (max-width: 799px) {
+  .nav {
+    font-size: 0.92rem;
+  }
+
+  .langBtn,
+  .langBtnActive {
+    font-size: 0.92rem;
+  }
+}
+
+@media (min-width: 800px) and (max-width: 999px) {
+  .nav {
+    font-size: 1.06rem;
+  }
+
+  .langBtn,
+  .langBtnActive {
+    font-size: 1.06rem;
+  }
+}
+
+@media (min-width: 1000px) and (max-width: 1155px) {
+  .nav {
+    font-size: 1.25rem;
+  }
+
+  .langBtn,
+  .langBtnActive {
+    font-size: 1.25rem;
+  }
+}
+
 @media (max-width: 640px) {
   .headerInner {
     flex-wrap: wrap;
@@ -287,11 +431,36 @@
   }
 
   .nav {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     gap: 14px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
     max-width: none;
     font-size: 1.05rem;
+  }
+
+  .navLinks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .navRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .navAside {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .langBtn,

@@ -8,7 +8,7 @@ import { useLocale } from '@/context/LocaleContext'
 import ProductCard from '@/components/ProductCard'
 import FilterLayout from '@/components/FilterLayout'
 import { CircularProgress } from '@/components/CircularProgress'
-import type { Product } from '@/types'
+import type { Product, PriceSortMode } from '@/types'
 import styles from './Shop.module.css'
 
 function getUniqueColors(products: Product[]): string[] {
@@ -73,8 +73,10 @@ export default function Shop() {
     const selectedColor = searchParams.get('color') ?? ''
     const selectedSize = searchParams.get('size') ?? ''
     const favoritesOnly = searchParams.get('favorites') === '1'
+    const newOnly = searchParams.get('new') === '1'
+    const saleOnly = searchParams.get('sale') === '1'
     const sortParam = searchParams.get('sort')
-    const priceSort: '' | 'priceAsc' | 'priceDesc' =
+    const priceSort: PriceSortMode =
         sortParam === 'priceAsc' || sortParam === 'priceDesc' ? sortParam : ''
 
     useEffect(() => {
@@ -157,8 +159,34 @@ export default function Shop() {
         [replaceShopQuery]
     )
 
+    const setNewOnly = useCallback(
+        (value: boolean) => {
+            replaceShopQuery((next) => {
+                if (value) {
+                    next.set('new', '1')
+                } else {
+                    next.delete('new')
+                }
+            })
+        },
+        [replaceShopQuery]
+    )
+
+    const setSaleOnly = useCallback(
+        (value: boolean) => {
+            replaceShopQuery((next) => {
+                if (value) {
+                    next.set('sale', '1')
+                } else {
+                    next.delete('sale')
+                }
+            })
+        },
+        [replaceShopQuery]
+    )
+
     const setPriceSort = useCallback(
-        (value: '' | 'priceAsc' | 'priceDesc') => {
+        (value: PriceSortMode) => {
             replaceShopQuery((next) => {
                 if (value === 'priceAsc' || value === 'priceDesc') {
                     next.set('sort', value)
@@ -202,7 +230,13 @@ export default function Shop() {
                 return p.variants.some((v) => !!v.skuColor && favoritesSet.has(v.skuColor))
             })
         }
-        if (priceSort) {
+        if (newOnly) {
+            list = list.filter((p) => p.isNew)
+        }
+        if (saleOnly) {
+            list = list.filter((p) => p.onSale)
+        }
+        if (priceSort === 'priceAsc' || priceSort === 'priceDesc') {
             list = [...list].sort((a, b) => {
                 const ap = a.salePrice ?? a.price
                 const bp = b.salePrice ?? b.price
@@ -210,7 +244,7 @@ export default function Shop() {
             })
         }
         return list
-    }, [byCategory, selectedColor, selectedSize, searchQuery, favoritesOnly, favoritesSet, priceSort])
+    }, [byCategory, selectedColor, selectedSize, searchQuery, favoritesOnly, favoritesSet, newOnly, saleOnly, priceSort])
 
     return (
         <FilterLayout
@@ -218,6 +252,10 @@ export default function Shop() {
             setCategory={setCategory}
             favoritesOnly={favoritesOnly}
             setFavoritesOnly={setFavoritesOnly}
+            newOnly={newOnly}
+            setNewOnly={setNewOnly}
+            saleOnly={saleOnly}
+            setSaleOnly={setSaleOnly}
             priceSort={priceSort}
             setPriceSort={setPriceSort}
             selectedColor={selectedColor}

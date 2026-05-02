@@ -2,6 +2,7 @@ import { useLocale } from '../context/LocaleContext'
 import ScrollSelect from './ScrollSelect'
 import { displayColorName } from '@/lib/colorTranslation'
 import FavoritesFilterToggle from '@/components/FavoritesFilterToggle'
+import type { PriceSortMode } from '@/types'
 import styles from './FilterSidebar.module.css'
 
 export interface FilterSidebarProps {
@@ -9,8 +10,12 @@ export interface FilterSidebarProps {
   setCategory: (value: string) => void
   favoritesOnly: boolean
   setFavoritesOnly: (value: boolean) => void
-  priceSort: '' | 'priceAsc' | 'priceDesc'
-  setPriceSort: (value: '' | 'priceAsc' | 'priceDesc') => void
+  newOnly: boolean
+  setNewOnly: (value: boolean) => void
+  saleOnly: boolean
+  setSaleOnly: (value: boolean) => void
+  priceSort: PriceSortMode
+  setPriceSort: (value: PriceSortMode) => void
   selectedColor: string
   setSelectedColor: (value: string) => void
   selectedSize: string
@@ -32,6 +37,10 @@ export default function FilterSidebar({
   setCategory,
   favoritesOnly,
   setFavoritesOnly,
+  newOnly,
+  setNewOnly,
+  saleOnly,
+  setSaleOnly,
   priceSort,
   setPriceSort,
   selectedColor,
@@ -126,7 +135,26 @@ export default function FilterSidebar({
         )}
 
         {showPrice && (
-            <div className={styles.filterBlock}>
+            <div className={`${styles.filterBlock} ${styles.priceFilterBlock}`}>
+              <span className={styles.filterLabel}>{t('sortToggleGroup')}</span>
+              <label className={styles.sortCheckboxRow}>
+                <input
+                    type="checkbox"
+                    checked={newOnly}
+                    onChange={(e) => setNewOnly(e.target.checked)}
+                    disabled={loading}
+                />
+                <span>{t('newCollection')}</span>
+              </label>
+              <label className={styles.sortCheckboxRow}>
+                <input
+                    type="checkbox"
+                    checked={saleOnly}
+                    onChange={(e) => setSaleOnly(e.target.checked)}
+                    disabled={loading}
+                />
+                <span>{t('onSale')}</span>
+              </label>
               <ScrollSelect
                   id="filter-price-sort"
                   label={t('price')}
@@ -137,7 +165,7 @@ export default function FilterSidebar({
                   ]}
                   placeholder={t('priceSortPlaceholder')}
                   clearLabel={t('clearFilter')}
-                  onChange={(v) => setPriceSort(v as '' | 'priceAsc' | 'priceDesc')}
+                  onChange={(v) => setPriceSort(v as PriceSortMode)}
                   disabled={loading}
                   compact={compact}
               />
