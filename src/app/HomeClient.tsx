@@ -10,6 +10,11 @@ import { CircularProgress } from '@/components/CircularProgress'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import styles from './Home.module.css'
 
+import dynamic from 'next/dynamic'
+
+const PromoCampaignRoot = dynamic(() => import('@/components/promo/PromoCampaignRoot'), { ssr: false })
+
+
 /* Add or remove image URLs – slider adapts automatically */
 const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&h=800&fit=crop',
@@ -242,6 +247,7 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
           </div>
         </section>
         <WhatsAppButton pageTag="home" />
+        <PromoCampaignRoot />
       </>
   )
 }

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
+import { GoogleAnalytics } from '@next/third-parties/google'
 import { headers } from 'next/headers'
 import { Outfit } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
@@ -97,6 +98,9 @@ export default async function RootLayout({
                         </ProductsProvider>
                     </LocaleProvider>
                 </AuthProvider>
+                {process.env.NEXT_PUBLIC_GA_ID ? (
+                    <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+                ) : null}
             </body>
         </html>
     )

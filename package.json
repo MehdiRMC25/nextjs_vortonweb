@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@next/third-parties": "^16.2.1",
     "jsbarcode": "^3.12.3",
     "libphonenumber-js": "^1.12.40",
     "next": "16.2.1",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "zod": "^3.24.0",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
