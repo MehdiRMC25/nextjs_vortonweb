@@ -226,6 +226,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     noProductsYet: 'Hələ məhsul yoxdur.',
     retryOrReload: 'Yenilə',
     noItemsOnSale: 'Hazırda endirimdə məhsul yoxdur.',
+    shopPreviewTitle: 'Mağazadan seçilmişlər',
+    visitShop: 'Mağazaya keç',
 
     back: '← Geri',
     backToShop: 'Mağazaya qayıt',
@@ -614,6 +616,9 @@ export const translations: Record<Locale, Record<string, string>> = {
     noProductsYet: 'No products yet.',
     retryOrReload: 'Refresh',
     noItemsOnSale: 'No items on sale right now.',
+    shopPreviewTitle: 'From the shop',
+    visitShop: 'Visit shop',
+
 
     back: '← Back',
     backToShop: 'Back to Shop',

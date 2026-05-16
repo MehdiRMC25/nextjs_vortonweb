@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from 'react'
-import { useState, useCallback, useRef, useEffect, type RefObject } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, type RefObject } from 'react'
+import Link from 'next/link'
 import { useProducts } from '@/context/ProductsContext'
+import type { Product } from '@/types'
 import { useLocale } from '@/context/LocaleContext'
 import { articles } from '@/data'
 import ProductCard from '@/components/ProductCard'
@@ -22,6 +24,23 @@ const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=1200&h=800&fit=crop',
   'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1200&h=800&fit=crop',
 ]
+
+function pickHomeShopPreview(products: Product[], failedImageIds: Set<string>): Product[] {
+  const pool = products.filter((p) => !failedImageIds.has(p.id))
+  const men = pool.filter((p) => p.category === 'men')
+  const women = pool.filter((p) => p.category === 'women')
+  const picked: Product[] = []
+  let mi = 0
+  let wi = 0
+  for (let i = 0; i < 8; i++) {
+    const wantMen = i % 2 === 0
+    if (wantMen && mi < men.length) picked.push(men[mi++])
+    else if (!wantMen && wi < women.length) picked.push(women[wi++])
+    else if (mi < men.length) picked.push(men[mi++])
+    else if (wi < women.length) picked.push(women[wi++])
+  }
+  return picked
+}
 
 export default function HomeClient({ intro }: { intro: ReactNode }) {
   const { t } = useLocale()
@@ -53,6 +72,11 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
 
   const newCollectionProducts = products.filter((p) => p.isNew && !failedImageIds.has(p.id))
   const onSaleProducts = products.filter((p) => p.onSale && !failedImageIds.has(p.id))
+
+  const shopPreviewProducts = useMemo(
+      () => pickHomeShopPreview(products, failedImageIds),
+      [products, failedImageIds]
+  )
 
   return (
       <>
@@ -194,6 +218,29 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
             </div>
           </div>
         </section>
+
+        {!loading && shopPreviewProducts.length > 0 && (
+            <section className={styles.section}>
+              <div className="container">
+                <h2 className="section-title">{t('shopPreviewTitle')}</h2>
+                <div className={styles.shopPreviewGrid}>
+                  {shopPreviewProducts.map((p, index) => (
+                      <ProductCard
+                          key={p.id}
+                          product={p}
+                          onImageError={onImageError}
+                          imageLoading={index < 4 ? 'eager' : 'lazy'}
+                      />
+                  ))}
+                </div>
+                <div className={styles.shopPreviewCta}>
+                  <Link href="/shop" className="btn btn-primary">
+                    {t('visitShop')}
+                  </Link>
+                </div>
+              </div>
+            </section>
+        )}
 
         <section className={styles.section}>
           <div className="container">
