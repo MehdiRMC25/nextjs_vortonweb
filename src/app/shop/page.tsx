@@ -267,7 +267,7 @@ export default function Shop() {
             loading={loading}
         >
             <div className={styles.header}>
-                <h1 className={styles.title}>
+                <h1 className="section-title">
                     {category === 'men' ? t('mensCollection') : category === 'women' ? t('womensCollection') : t('shop')}
                 </h1>
             </div>
