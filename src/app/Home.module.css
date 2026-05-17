@@ -9,6 +9,7 @@
   margin: 0 0 12px;
   letter-spacing: -0.02em;
   line-height: 1.25;
+  color: var(--text-secondary);
 }
 
 .seoIntroText {
@@ -226,7 +227,7 @@
   margin: 0;
 }
 
-.shopPreviewGrid {
+.productGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
@@ -238,16 +239,57 @@
   margin-top: 32px;
 }
 
+.visitShopBtn {
+  padding: 14px 32px;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.visitShopBtn:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+  transform: translateY(-1px);
+}
+
+.visitShopBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.28);
+}
+
+.visitShopBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.productSection :global(.container) {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
 @media (max-width: 1024px) {
-  .shopPreviewGrid {
+  .productGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .productSection :global(.container) {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .productSection :global(.container) {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .shopPreviewGrid {
+  .productGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
   }
 }
 

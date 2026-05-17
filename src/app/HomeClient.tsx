@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from 'react'
-import { useState, useCallback, useRef, useEffect, useMemo, type RefObject } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useProducts } from '@/context/ProductsContext'
 import type { Product } from '@/types'
@@ -47,8 +47,6 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
   const { products, loading, error, retry } = useProducts()
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
   const [heroIndex, setHeroIndex] = useState(0)
-  const newCollectionRef = useRef<HTMLDivElement | null>(null)
-  const onSaleRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -59,15 +57,6 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
 
   const onImageError = useCallback((productId: string) => {
     setFailedImageIds((prev) => new Set(prev).add(productId))
-  }, [])
-
-  const scrollProducts = useCallback((rowRef: RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
-    if (!rowRef.current) return
-    const amount = Math.max(260, Math.round(rowRef.current.clientWidth * 0.8))
-    rowRef.current.scrollBy({
-      left: direction === 'left' ? -amount : amount,
-      behavior: 'smooth',
-    })
   }, [])
 
   const newCollectionProducts = products.filter((p) => p.isNew && !failedImageIds.has(p.id))
@@ -112,83 +101,47 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
           </section>
         ) : (
           <>
-        <section className={styles.section}>
-          <div className="container">
-            <h2 className="section-title">{t('newCollection')}</h2>
-            {newCollectionProducts.length > 0 ? (
-                <div className={styles.carouselWrap}>
-                  <button
-                      type="button"
-                      className={styles.scrollArrowLeft}
-                      aria-label="Scroll new collection left"
-                      onClick={() => scrollProducts(newCollectionRef, 'left')}
-                  >
-                    ←
-                  </button>
-                  <div className={styles.productRow} ref={newCollectionRef}>
-                    {newCollectionProducts.map((p, index) => (
-                        <ProductCard
-                          key={p.id}
-                          product={p}
-                          onImageError={onImageError}
-                          imageLoading={index < 4 ? 'eager' : 'lazy'}
-                          imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
-                        />
-                    ))}
-                  </div>
-                  <button
-                      type="button"
-                      className={styles.scrollArrowRight}
-                      aria-label="Scroll new collection right"
-                      onClick={() => scrollProducts(newCollectionRef, 'right')}
-                  >
-                    →
-                  </button>
-                </div>
-            ) : (
-                <p className={styles.empty}>{t('noProductsYet')}</p>
-            )}
-          </div>
-        </section>
+            <section className={`${styles.section} ${styles.productSection}`}>
+              <div className="container">
+                <h2 className="section-title">{t('newCollection')}</h2>
+                {newCollectionProducts.length > 0 ? (
+                    <div className={styles.productGrid}>
+                      {newCollectionProducts.map((p, index) => (
+                          <ProductCard
+                              key={p.id}
+                              product={p}
+                              onImageError={onImageError}
+                              imageLoading={index < 4 ? 'eager' : 'lazy'}
+                              imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
+                          />
+                      ))}
+                    </div>
+                ) : (
+                    <p className={styles.empty}>{t('noProductsYet')}</p>
+                )}
+              </div>
+            </section>
 
-        <section className={styles.section}>
-          <div className="container">
-            <h2 className="section-title">{t('onSale')}</h2>
-            {onSaleProducts.length > 0 ? (
-                <div className={styles.carouselWrap}>
-                  <button
-                      type="button"
-                      className={styles.scrollArrowLeft}
-                      aria-label="Scroll on sale left"
-                      onClick={() => scrollProducts(onSaleRef, 'left')}
-                  >
-                    ←
-                  </button>
-                  <div className={styles.productRow} ref={onSaleRef}>
-                    {onSaleProducts.map((p, index) => (
-                        <ProductCard
-                          key={p.id}
-                          product={p}
-                          onImageError={onImageError}
-                          imageLoading={index < 4 ? 'eager' : 'lazy'}
-                          imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
-                        />
-                    ))}
-                  </div>
-                  <button
-                      type="button"
-                      className={styles.scrollArrowRight}
-                      aria-label="Scroll on sale right"
-                      onClick={() => scrollProducts(onSaleRef, 'right')}
-                  >
-                    →
-                  </button>
-                </div>
-            ) : (
-                <p className={styles.empty}>{t('noItemsOnSale')}</p>
-            )}
-          </div>
-        </section>
+            <section className={`${styles.section} ${styles.productSection}`}>
+              <div className="container">
+                <h2 className="section-title">{t('onSale')}</h2>
+                {onSaleProducts.length > 0 ? (
+                    <div className={styles.productGrid}>
+                      {onSaleProducts.map((p, index) => (
+                          <ProductCard
+                              key={p.id}
+                              product={p}
+                              onImageError={onImageError}
+                              imageLoading={index < 4 ? 'eager' : 'lazy'}
+                              imageFetchPriority={index < 4 ? (index === 0 ? 'high' : 'auto') : undefined}
+                          />
+                      ))}
+                    </div>
+                ) : (
+                    <p className={styles.empty}>{t('noItemsOnSale')}</p>
+                )}
+              </div>
+            </section>
           </>
         )}
 
@@ -220,10 +173,10 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
         </section>
 
         {!loading && shopPreviewProducts.length > 0 && (
-            <section className={styles.section}>
+            <section className={`${styles.section} ${styles.productSection}`}>
               <div className="container">
                 <h2 className="section-title">{t('shopPreviewTitle')}</h2>
-                <div className={styles.shopPreviewGrid}>
+                <div className={styles.productGrid}>
                   {shopPreviewProducts.map((p, index) => (
                       <ProductCard
                           key={p.id}
@@ -234,7 +187,7 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
                   ))}
                 </div>
                 <div className={styles.shopPreviewCta}>
-                  <Link href="/shop" className="btn btn-primary">
+                  <Link href="/shop" className={`btn btn-primary ${styles.visitShopBtn}`}>
                     {t('visitShop')}
                   </Link>
                 </div>
