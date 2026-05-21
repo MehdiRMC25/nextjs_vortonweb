@@ -14,6 +14,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(slug)
   const h = await headers()
   const pathname = `/shop/${slug}`
+  const locale = h.get('x-next-locale') === 'az' ? 'az' : 'en'
+
   const { canonical, alternates } = getCanonicalAndAlternates(h, { pathname, search: '' })
 
   if (!product) {
@@ -31,9 +33,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
-  const catLabel = product.category === 'women' ? 'Women' : 'Men'
-  const title = `${catLabel} ${product.name}`
-  const description = `Shop ${product.name} at Vorton. Premium ${product.category === 'women' ? "women's" : "men's"} fashion — prices in ₼. Secure checkout.`
+  const displayName =
+      locale === 'az' && product.nameAz?.trim() ? product.nameAz.trim() : product.name
+  const catLabel =
+      product.category === 'women'
+          ? locale === 'az'
+              ? 'Qadın'
+              : 'Women'
+          : locale === 'az'
+              ? 'Kişi'
+              : 'Men'
+  const title = `${catLabel} ${displayName}`
+  const description =
+      locale === 'az' && product.descriptionAz?.trim()
+          ? product.descriptionAz.trim()
+          : locale === 'az'
+              ? `${displayName} — Vorton mağazasında. Qiymətlər ₼ ilə. Təhlükəsiz ödəniş.`
+              : `Shop ${product.name} at Vorton. Premium ${product.category === 'women' ? "women's" : "men's"} fashion — prices in ₼. Secure checkout.`
 
   return {
     title,
@@ -51,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: canonical,
       type: 'website',
-      images: product.image ? [{ url: product.image, alt: product.name }] : undefined,
+      images: product.image ? [{ url: product.image, alt: displayName }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
@@ -67,10 +83,11 @@ export default async function ShopProductLayout({ children, params }: Props) {
   const product = await getProductBySlug(slug)
   const h = await headers()
   const siteUrl = getRequestOrigin(h)
+  const locale = h.get('x-next-locale') === 'az' ? 'az' : 'en'
 
   return (
-    <>
-      {product ? <ProductJsonLd product={product} siteUrl={siteUrl} /> : null}
+      <>
+        {product ? <ProductJsonLd product={product} siteUrl={siteUrl} locale={locale} /> : null}
       {children}
     </>
   )

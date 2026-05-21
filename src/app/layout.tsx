@@ -22,14 +22,28 @@ export async function generateMetadata(): Promise<Metadata> {
     const site = getRequestOrigin(h)
     const metadataBase = new URL(site.endsWith('/') ? site : `${site}/`)
 
+    const titleDefault =
+        locale === 'az' ? 'Üslubun Rahatlıqla Qovuşduğu Yer' : 'Vorton Fashion — Discover Your Style'
+    const description =
+        locale === 'az'
+            ? 'Kişilər və qadınlar üçün premium gündəlik geyimlər. Yeni kolleksiyaları, seçilmiş modelləri kəşf edin və rahatlıqla qapınıza çatdırılan dəbli geyimlərdən yararlanın.'
+            : 'Vorton — contemporary fashion and everyday clothing. Shop men’s and women’s collections with secure checkout and delivery.'
+    const ogDescription =
+        locale === 'az'
+            ? description
+            : 'Contemporary fashion for modern life. Explore men’s and women’s clothing, new arrivals, and seasonal edits.'
+    const twitterDescription =
+        locale === 'az'
+            ? description
+            : 'Contemporary fashion for modern life. Shop men’s and women’s clothing at Vorton.'
+
     return {
         metadataBase,
         title: {
-            default: 'Vorton Fashion — Discover Your Style',
+            default: titleDefault,
             template: '%s | Vorton',
         },
-        description:
-            'Vorton — contemporary fashion and everyday clothing. Shop men’s and women’s collections with secure checkout and delivery.',
+        description,
         applicationName: 'Vorton',
         alternates: {
             canonical,
@@ -44,16 +58,14 @@ export async function generateMetadata(): Promise<Metadata> {
             locale: ogLocale,
             url: canonical,
             siteName: 'Vorton',
-            title: 'Vorton Fashion — Discover Your Style',
-            description:
-                'Contemporary fashion for modern life. Explore men’s and women’s clothing, new arrivals, and seasonal edits.',
+            title: titleDefault,
+            description: ogDescription,
             images: [{ url: '/Vorton_Logo.png', width: 512, height: 512, alt: 'Vorton' }],
         },
         twitter: {
             card: 'summary_large_image',
-            title: 'Vorton Fashion — Discover Your Style',
-            description:
-                'Contemporary fashion for modern life. Shop men’s and women’s clothing at Vorton.',
+            title: titleDefault,
+            description: twitterDescription,
         },
         robots: {
             index: true,
