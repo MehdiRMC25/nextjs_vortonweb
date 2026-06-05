@@ -1,22 +1,19 @@
 import { z } from 'zod'
 
-export const promoCampaignApiSchema = z.object({
+/** Backend GET /promotions/active — Postgres show_on_home only. */
+export const promoActiveApiSchema = z.object({
   active: z.boolean(),
-  campaignId: z.string().min(1),
-  title: z.string().min(1),
-  message: z.string().min(1),
-  promoCode: z.string().optional(),
-  ctaLabel: z.string().optional(),
-  ctaHref: z.string().url().optional(),
-  endsAt: z.string().optional(),
 })
 
-export type PromoCampaignPayload = z.infer<typeof promoCampaignApiSchema>
+export type PromoActiveResponse = z.infer<typeof promoActiveApiSchema>
 
-export function parsePromoCampaignPayload(data: unknown): PromoCampaignPayload | null {
-  const r = promoCampaignApiSchema.safeParse(data)
+export function parsePromoActiveResponse(data: unknown): PromoActiveResponse | null {
+  const r = promoActiveApiSchema.safeParse(data)
   return r.success ? r.data : null
 }
+
+/** Fixed id — API no longer sends campaignId. */
+export const HOME_PROMO_DISMISS_ID = 'home-promo'
 
 export function dismissStorageKey(campaignId: string): string {
   return `promo-dismiss:${campaignId}`
@@ -30,10 +27,4 @@ export function isCampaignDismissed(campaignId: string): boolean {
 export function setCampaignDismissed(campaignId: string): void {
   if (typeof window === 'undefined') return
   window.localStorage.setItem(dismissStorageKey(campaignId), '1')
-}
-
-export function parseEndsAt(endsAt: string | undefined): Date | null {
-  if (!endsAt) return null
-  const d = new Date(endsAt)
-  return Number.isNaN(d.getTime()) ? null : d
 }

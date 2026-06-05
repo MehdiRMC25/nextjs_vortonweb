@@ -1,13 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import * as Dialog from '@radix-ui/react-dialog'
+import { useLocale } from '@/context/LocaleContext'
 import {
-  parsePromoCampaignPayload,
+  parsePromoActiveResponse,
   isCampaignDismissed,
   setCampaignDismissed,
-  parseEndsAt,
-  type PromoCampaignPayload,
+  HOME_PROMO_DISMISS_ID,
 } from '@/lib/promoCampaign'
 
 function usePrefersReducedMotion(): boolean {
@@ -23,21 +24,12 @@ function usePrefersReducedMotion(): boolean {
 }
 
 export default function PromoCampaignRoot() {
+  const { t } = useLocale()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [campaign, setCampaign] = useState<PromoCampaignPayload | null>(null)
+  const [show, setShow] = useState(false)
   const [open, setOpen] = useState(false)
-  const [now, setNow] = useState(() => Date.now())
   const reducedMotion = usePrefersReducedMotion()
-
-  const endsAtDate = useMemo(() => parseEndsAt(campaign?.endsAt), [campaign?.endsAt])
-  const expired = endsAtDate !== null && now > endsAtDate.getTime()
-
-  useEffect(() => {
-    if (!endsAtDate || expired) return
-    const id = window.setInterval(() => setNow(Date.now()), 1000)
-    return () => window.clearInterval(id)
-  }, [endsAtDate, expired])
 
   useEffect(() => {
     let cancelled = false
@@ -46,22 +38,11 @@ export default function PromoCampaignRoot() {
         const res = await fetch('/api/promo/active', { cache: 'no-store' })
         if (!res.ok) throw new Error(String(res.status))
         const json: unknown = await res.json()
-        const parsed = parsePromoCampaignPayload(json)
+        const parsed = parsePromoActiveResponse(json)
         if (cancelled) return
-        if (!parsed || !parsed.active) {
-          setCampaign(null)
-          return
-        }
-        if (isCampaignDismissed(parsed.campaignId)) {
-          setCampaign(null)
-          return
-        }
-        const end = parseEndsAt(parsed.endsAt)
-        if (end && Date.now() > end.getTime()) {
-          setCampaign(null)
-          return
-        }
-        setCampaign(parsed)
+        if (!parsed?.active) return
+        if (isCampaignDismissed(HOME_PROMO_DISMISS_ID)) return
+        setShow(true)
         setOpen(true)
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : 'fetch')
@@ -75,17 +56,12 @@ export default function PromoCampaignRoot() {
   }, [])
 
   const handleDismiss = useCallback(() => {
-    if (campaign) setCampaignDismissed(campaign.campaignId)
+    setCampaignDismissed(HOME_PROMO_DISMISS_ID)
     setOpen(false)
-    setCampaign(null)
-  }, [campaign])
+    setShow(false)
+  }, [])
 
-  if (loading || error || !campaign || !open || expired) return null
-
-  const msLeft = endsAtDate ? Math.max(0, endsAtDate.getTime() - now) : null
-  const secLeft = msLeft === null ? null : Math.floor(msLeft / 1000)
-  const mm = secLeft === null ? null : Math.floor(secLeft / 60)
-  const ss = secLeft === null ? null : secLeft % 60
+  if (loading || error || !show || !open) return null
 
   const motionClass = reducedMotion
       ? ''
@@ -114,40 +90,29 @@ export default function PromoCampaignRoot() {
                 id="promo-dialog-title"
                 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]"
             >
-              {campaign.title}
+              {t('homePromoTitle')}
             </Dialog.Title>
             <Dialog.Description
                 id="promo-dialog-desc"
                 className="mt-3 text-base leading-relaxed text-[var(--text-secondary)]"
             >
-              {campaign.message}
+              {t('homePromoMessage')}
             </Dialog.Description>
-            {campaign.promoCode ? (
-                <p className="mt-4 rounded-lg border border-dashed border-[var(--accent)]/50 bg-white/80 px-3 py-2 text-center font-mono text-sm font-semibold tracking-wide text-[var(--text-primary)]">
-                  {campaign.promoCode}
-                </p>
-            ) : null}
-            {secLeft !== null ? (
-                <p className="mt-3 text-center text-sm text-[var(--text-muted)]" aria-live="polite">
-                  {mm !== null && ss !== null ? `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')} left` : ''}
-                </p>
-            ) : null}
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-              {campaign.ctaLabel && campaign.ctaHref ? (
-                  <a
-                      href={campaign.ctaHref}
-                      className="inline-flex flex-1 items-center justify-center rounded-xl bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)] sm:flex-none"
-                  >
-                    {campaign.ctaLabel}
-                  </a>
-              ) : null}
+              <Link
+                  href="/shop"
+                  className="inline-flex flex-1 items-center justify-center rounded-xl bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)] sm:flex-none"
+                  onClick={handleDismiss}
+              >
+                {t('homePromoCtaShop')}
+              </Link>
               <Dialog.Close asChild>
                 <button
                     type="button"
                     className="inline-flex flex-1 items-center justify-center rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] transition hover:bg-black/[0.03] sm:flex-none"
                     onClick={handleDismiss}
                 >
-                  Close
+                  {t('homePromoClose')}
                 </button>
               </Dialog.Close>
             </div>
