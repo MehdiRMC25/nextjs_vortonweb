@@ -56,3 +56,13 @@ export interface Article {
   date: string
   url?: string
 }
+
+
+/** Home page news/promo cards from MongoDB `News` collection (`_id: "home"`). */
+export interface HomeNewsItem {
+  id: string
+  title: string
+  titleAz?: string
+  imageUrl: string
+  link: string
+}

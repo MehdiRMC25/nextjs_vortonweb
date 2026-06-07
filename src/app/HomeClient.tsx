@@ -4,9 +4,9 @@ import type { ReactNode } from 'react'
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useProducts } from '@/context/ProductsContext'
-import type { Product } from '@/types'
+import type { HomeNewsItem, Product } from '@/types'
 import { useLocale } from '@/context/LocaleContext'
-import { articles } from '@/data'
+import { fetchHomeNews, fetchHomeVideos, youtubeEmbedUrl } from '@/api/homeContent'
 import ProductCard from '@/components/ProductCard'
 import { CircularProgress } from '@/components/CircularProgress'
 import WhatsAppButton from '@/components/WhatsAppButton'
@@ -43,16 +43,30 @@ function pickHomeShopPreview(products: Product[], failedImageIds: Set<string>): 
 }
 
 export default function HomeClient({ intro }: { intro: ReactNode }) {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const { products, loading, error, retry } = useProducts()
   const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set())
   const [heroIndex, setHeroIndex] = useState(0)
+  const [homeVideoUrls, setHomeVideoUrls] = useState<string[]>([])
+  const [homeNewsItems, setHomeNewsItems] = useState<HomeNewsItem[]>([])
 
   useEffect(() => {
     const id = setInterval(() => {
       setHeroIndex((i) => (i + 1) % HERO_IMAGES.length)
     }, 5000)
     return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([fetchHomeVideos(), fetchHomeNews()]).then(([videosRes, newsRes]) => {
+      if (cancelled) return
+      if (videosRes.videoUrls.length > 0) setHomeVideoUrls(videosRes.videoUrls)
+      if (newsRes.items.length > 0) setHomeNewsItems(newsRes.items)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const onImageError = useCallback((productId: string) => {
@@ -199,24 +213,21 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
           <div className="container">
             <h2 className="section-title">{t('media')}</h2>
             <div className={styles.videoGrid}>
-              <div className={styles.videoCard}>
-                <iframe
-                    className={styles.videoIframe}
-                    src="https://www.youtube.com/embed/Gw4LlCsJozM?rel=0"
-                    title="The Future of Fashion: How Bio-Based Fibers Are Changing Everything"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                />
-              </div>
-              <div className={styles.videoCard}>
-                <iframe
-                    className={styles.videoIframe}
-                    src="https://www.youtube.com/embed/1CZElaBmnmM?rel=0"
-                    title="Suzanne Lee: Designing With Biology – Biofabrication and Sustainable Materials"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                />
-              </div>
+              {homeVideoUrls.map((url, index) => {
+                const embedSrc = youtubeEmbedUrl(url)
+                if (!embedSrc) return null
+                return (
+                    <div key={`${embedSrc}-${index}`} className={styles.videoCard}>
+                      <iframe
+                          className={styles.videoIframe}
+                          src={embedSrc}
+                          title={`${t('media')} ${index + 1}`}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                      />
+                    </div>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -225,24 +236,33 @@ export default function HomeClient({ intro }: { intro: ReactNode }) {
           <div className="container">
             <h2 className="section-title">{t('articles')}</h2>
             <div className={styles.articleGrid}>
-              {articles.map((a) => (
-                  <a href={a.url || '#'} target={a.url ? '_blank' : undefined} rel={a.url ? 'noopener noreferrer' : undefined} key={a.id} className={styles.articleCard}>
-                    <div className={styles.articleImage}>
-                      <img
-                        src={a.image}
-                        alt={a.title}
-                        className={styles.articleImageFill}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                    <div className={styles.articleBody}>
-                      <h3 className={styles.articleTitle}>{a.title}</h3>
-                      <p className={styles.articleExcerpt}>{a.excerpt}</p>
-                      <span className={styles.articleDate}>{a.date}</span>
-                    </div>
-                  </a>
-              ))}
+              {homeNewsItems.map((item) => {
+                const title = locale === 'az' ? (item.titleAz || item.title) : item.title
+                const href = item.link || '#'
+                const external = href.startsWith('http://') || href.startsWith('https://')
+                return (
+                    <a
+                        href={href}
+                        key={item.id}
+                        className={styles.articleCard}
+                        target={external ? '_blank' : undefined}
+                        rel={external ? 'noopener noreferrer' : undefined}
+                    >
+                      <div className={styles.articleImage}>
+                        <img
+                            src={item.imageUrl}
+                            alt={title}
+                            className={styles.articleImageFill}
+                            loading="lazy"
+                            decoding="async"
+                        />
+                      </div>
+                      <div className={styles.articleBody}>
+                        <h3 className={styles.articleTitle}>{title}</h3>
+                      </div>
+                    </a>
+                )
+              })}
             </div>
           </div>
         </section>
