@@ -48,9 +48,9 @@ export async function fetchHomeNews(): Promise<{ ok: boolean; items: HomeNewsIte
     const base = config.apiUrl.replace(/\/$/, '')
     const res = await fetch(`${base}/api/home-news`)
     const data = await res.json().catch(() => ({}))
-    const rawItems = Array.isArray(data?.items) ? data.items : []
+    const rawItems: unknown[] = Array.isArray(data?.items) ? data.items : []
     const items = rawItems
-        .map((x, i) =>
+        .map((x: unknown, i: number) =>
             x && typeof x === 'object' ? normalizeNewsItem(x as Record<string, unknown>, i) : null
         )
         .filter((x): x is HomeNewsItem => !!x)
