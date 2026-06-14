@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { promoActiveApiSchema } from '@/lib/promoCampaign'
 
 const inactive = { active: false as const }
 
@@ -14,11 +15,9 @@ export async function GET() {
     })
     if (!res.ok) return NextResponse.json(inactive)
     const json: unknown = await res.json()
-    const active =
-        json &&
-        typeof json === 'object' &&
-        (json as { active?: boolean }).active === true
-    return NextResponse.json(active ? { active: true } : inactive)
+    const parsed = promoActiveApiSchema.safeParse(json)
+    if (!parsed.success || !parsed.data.active) return NextResponse.json(inactive)
+    return NextResponse.json(parsed.data)
   } catch {
     return NextResponse.json(inactive)
   }
