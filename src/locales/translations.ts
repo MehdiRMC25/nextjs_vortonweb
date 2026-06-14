@@ -253,6 +253,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     promoCodeCartHint: 'Kod checkout səhifəsində tətbiq olunacaq.',
     promoAppliedSuccess: 'Promo kod uğurla tətbiq olundu. Endirim sifarişinizə əlavə edildi.',
     promoInvalidCode: 'Daxil edilən promo kod etibarlı deyil.',
+    promoAlreadyUsedCode: 'Bu promo kodu artıq hesabınızda istifadə olunub.',
     promoExpiredCode: 'Daxil edilən promo kodun müddəti bitib.',
     homePromoTitle: 'Xüsusi endirim kampaniyası!',
     homePromoMessage:
@@ -649,6 +650,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     promoCodeCartHint: 'The code will be applied on checkout.',
     promoAppliedSuccess: 'Promo code applied successfully. Discount has been added to your order.',
     promoInvalidCode: 'Inserted promo code is not valid.',
+    promoAlreadyUsedCode: 'This promo code has already been used on your account.',
     promoExpiredCode: 'Inserted promo code is expired.',
     homePromoTitle: 'Special promotion!',
     homePromoMessage: 'Enter your promo code at checkout in our shop to get your discount.',

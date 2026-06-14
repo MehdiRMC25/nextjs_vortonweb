@@ -226,10 +226,15 @@ export default function Checkout() {
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&
         promoErrorCode === 'PROMO_EXPIRED'
+    const showAlreadyUsedPromoMessage =
+        Boolean(appliedPromoCode) &&
+        displayPromoDiscountAzn <= 0 &&
+        promoErrorCode === 'PROMO_PER_ACCOUNT_LIMIT_REACHED'
     const showInvalidPromoMessage =
         Boolean(appliedPromoCode) &&
         displayPromoDiscountAzn <= 0 &&
-        !showExpiredPromoMessage
+        !showExpiredPromoMessage &&
+        !showAlreadyUsedPromoMessage
 
     useEffect(() => {
         if (!useRewardPoints) {
@@ -868,6 +873,9 @@ export default function Checkout() {
                                 <p className={styles.error}>{t('promoExpiredCode')}</p>
                             )}
                         </div>
+                            {showAlreadyUsedPromoMessage && (
+                                <p className={styles.error}>{t('promoAlreadyUsedCode')}</p>
+                            )}
                         <div className={`${styles.card} ${styles.deliveryCard}`}>
                             {/* Keep delivery details UX as-is */}
                             <div className={styles.deliveryPanel}>
@@ -1061,6 +1069,7 @@ export default function Checkout() {
                                 loading ||
                                 previewLoading ||
                                 payBlockedByShipping ||
+                                showAlreadyUsedPromoMessage ||
                                 !resolvedDeliveryCountry.trim() ||
                                 !previewBreakdown
                             }

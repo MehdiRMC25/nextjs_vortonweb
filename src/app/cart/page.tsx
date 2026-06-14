@@ -106,8 +106,9 @@ export default function Cart() {
 
             const invalid = promoErrorCode === 'INVALID_PROMO_CODE'
             const expired = promoErrorCode === 'PROMO_EXPIRED'
+            const alreadyUsed = promoErrorCode === 'PROMO_PER_ACCOUNT_LIMIT_REACHED'
             const appliedDiscount = Number.isFinite(discount) ? Math.max(0, discount) : 0
-            const success = appliedDiscount > 0 && !invalid && !expired
+            const success = appliedDiscount > 0 && !invalid && !expired && !alreadyUsed
 
             if (success) {
                 setPromoDiscountAzn(appliedDiscount)
@@ -274,7 +275,9 @@ export default function Cart() {
                                         <p className={styles.promoError}>
                                             {promoErrorCode === 'PROMO_EXPIRED'
                                                 ? t('promoExpiredCode')
-                                                : t('promoInvalidCode')}
+                                                : promoErrorCode === 'PROMO_PER_ACCOUNT_LIMIT_REACHED'
+                                                    ? t('promoAlreadyUsedCode')
+                                                    : t('promoInvalidCode')}
                                         </p>
                                     )}
                                 </div>

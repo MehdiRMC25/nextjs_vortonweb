@@ -34,16 +34,30 @@ export function promoBillboardCopy(
 /** Fixed id — API no longer sends campaignId. */
 export const HOME_PROMO_DISMISS_ID = 'home-promo'
 
+/**
+ * How long close/shop hides the home billboard (ms).
+ * 0 = show again on every home visit/refresh.
+ * 30 * 60 * 1000 = 30 minutes.
+ * 5 * 1000 = 5 seconds (testing).
+ */
+export const PROMO_DISMISS_TTL_MS = 30 * 60 * 1000
+
 export function dismissStorageKey(campaignId: string): string {
   return `promo-dismiss:${campaignId}`
 }
 
 export function isCampaignDismissed(campaignId: string): boolean {
   if (typeof window === 'undefined') return false
-  return window.localStorage.getItem(dismissStorageKey(campaignId)) === '1'
+  if (PROMO_DISMISS_TTL_MS <= 0) return false
+  const raw = window.localStorage.getItem(dismissStorageKey(campaignId))
+  if (!raw) return false
+  const dismissedAt = Number(raw)
+  if (!Number.isFinite(dismissedAt) || dismissedAt <= 0) return false
+  return Date.now() - dismissedAt < PROMO_DISMISS_TTL_MS
 }
 
 export function setCampaignDismissed(campaignId: string): void {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(dismissStorageKey(campaignId), '1')
+  if (PROMO_DISMISS_TTL_MS <= 0) return
+  window.localStorage.setItem(dismissStorageKey(campaignId), String(Date.now()))
 }
