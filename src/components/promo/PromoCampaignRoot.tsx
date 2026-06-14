@@ -8,7 +8,9 @@ import {
   parsePromoActiveResponse,
   isCampaignDismissed,
   setCampaignDismissed,
-  HOME_PROMO_DISMISS_ID,
+  promoDismissId,
+  promoBillboardCopy,
+  type PromoActiveResponse,
 } from '@/lib/promoCampaign'
 
 function usePrefersReducedMotion(): boolean {
@@ -24,11 +26,12 @@ function usePrefersReducedMotion(): boolean {
 }
 
 export default function PromoCampaignRoot() {
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [show, setShow] = useState(false)
   const [open, setOpen] = useState(false)
+  const [campaign, setCampaign] = useState<PromoActiveResponse | null>(null)
   const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
@@ -41,7 +44,9 @@ export default function PromoCampaignRoot() {
         const parsed = parsePromoActiveResponse(json)
         if (cancelled) return
         if (!parsed?.active) return
-        if (isCampaignDismissed(HOME_PROMO_DISMISS_ID)) return
+        const dismissId = promoDismissId(parsed)
+        if (isCampaignDismissed(dismissId)) return
+        setCampaign(parsed)
         setShow(true)
         setOpen(true)
       } catch (e) {
@@ -56,12 +61,16 @@ export default function PromoCampaignRoot() {
   }, [])
 
   const handleDismiss = useCallback(() => {
-    setCampaignDismissed(HOME_PROMO_DISMISS_ID)
+    if (campaign) setCampaignDismissed(promoDismissId(campaign))
     setOpen(false)
     setShow(false)
-  }, [])
+  }, [campaign])
 
   if (loading || error || !show || !open) return null
+
+  const copy = campaign ? promoBillboardCopy(campaign, locale) : { title: '', message: '' }
+  const title = copy.title || t('homePromoTitle')
+  const message = copy.message || t('homePromoMessage')
 
   const motionClass = reducedMotion
       ? ''
@@ -90,13 +99,13 @@ export default function PromoCampaignRoot() {
                 id="promo-dialog-title"
                 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]"
             >
-              {t('homePromoTitle')}
+              {title}
             </Dialog.Title>
             <Dialog.Description
                 id="promo-dialog-desc"
                 className="mt-3 text-base leading-relaxed text-[var(--text-secondary)]"
             >
-              {t('homePromoMessage')}
+              {message}
             </Dialog.Description>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <Link
