@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useProducts } from '@/context/ProductsContext'
 import { useCart } from '@/context/CartContext'
 import { useLocale } from '@/context/LocaleContext'
-import { variantHasValidColor, fetchApiProductDetail, type ProductDetailExtras } from '@/api/products'
+import { variantHasValidColor, fetchApiProductDetail, swatchInlineStyle, type ProductDetailExtras } from '@/api/products'
 import { productDisplayName } from '@/lib/productDisplay'
 import { displayColorName } from '@/lib/colorTranslation'
 import { getFavoriteKey } from '@/lib/favorites'
@@ -105,8 +105,11 @@ export default function ProductDetail() {
     }, [validColorSwatches, selectedColor])
 
     const selectedColorNameUi = useMemo(() => {
-        return selectedColorName ? displayColorName(selectedColorName, locale) : ''
-    }, [selectedColorName, locale])
+        const found = validColorSwatches.find((s) => s.variantIndex === selectedColor)
+        if (!found?.color) return ''
+        if (locale === 'az' && found.color.displayNameAz) return found.color.displayNameAz
+        return displayColorName(found.color.name, locale)
+    }, [validColorSwatches, selectedColor, locale])
 
     useEffect(() => {
         if (product && validColorSwatches.length > 0) {
@@ -285,10 +288,14 @@ export default function ProductDetail() {
                                     <button
                                         key={`${color.name}-${variantIndex}`}
                                         type="button"
-                                        className={`${styles.colorBtn} ${variantIndex === selectedColor ? styles.colorBtnActive : ''}`}
-                                        style={{ background: color.hex }}
+                                        className={`${styles.colorBtn} ${variantIndex === selectedColor ? styles.colorBtnActive : ''} ${color.ringHex ? styles.colorBtnRing : ''} ${color.hexes && color.hexes.length > 1 ? styles.colorBtnMulti : ''}`}
+                                        style={swatchInlineStyle(color)}
                                         onClick={() => setSelectedColor(variantIndex)}
-                                        title={displayColorName(color.name, locale)}
+                                        title={
+                                            locale === 'az' && color.displayNameAz
+                                                ? color.displayNameAz
+                                                : displayColorName(color.name, locale)
+                                        }
                                     />
                                 ))}
                             </div>

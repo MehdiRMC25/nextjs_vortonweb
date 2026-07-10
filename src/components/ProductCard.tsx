@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useLocale } from '../context/LocaleContext'
-import { variantHasValidColor } from '../api/products'
+import { variantHasValidColor, swatchInlineStyle } from '../api/products'
 import { displayColorName } from '@/lib/colorTranslation'
 import { getFavoriteKey } from '@/lib/favorites'
 import FavoriteButton from '@/components/FavoriteButton'
@@ -143,12 +143,16 @@ export default function ProductCard({
         <p className={styles.sku}>SKU: {product.sku}</p>
         <div className={styles.colors}>
           {displayColors.map((c, i) => (
-            <span
-              key={`${c.name}-${i}`}
-              className={styles.colorDot}
-              style={{ background: c.hex }}
-              title={displayColorName(c.name, locale)}
-            />
+              <span
+                  key={`${c.name}-${i}`}
+                  className={styles.colorDot}
+                  style={swatchInlineStyle(c)}
+                  title={
+                    locale === 'az' && c.displayNameAz
+                        ? c.displayNameAz
+                        : displayColorName(c.name, locale)
+                  }
+              />
           ))}
         </div>
         <p className={styles.sizes}>{t('sizesLabel')}: {displaySizes.join(', ')}</p>

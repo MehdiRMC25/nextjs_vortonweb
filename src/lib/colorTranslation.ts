@@ -65,6 +65,22 @@ export function displayColorName(colorName: string, locale: Locale): string {
   const rawLower = raw.toLowerCase().replace(/\s+/g, ' ').trim()
   if (rawLower === 'navy blue' || rawLower === 'navy-blue') return 'Tünd göy'
   if (rawLower === 'navy') return 'Tünd göy'
+  if (rawLower === 'smoky-blue' || rawLower === 'smoky blue') return 'Dumanlı mavi'
+  if (rawLower === 'yellow-blue' || rawLower === 'yellow blue') return 'Sarı-mavi'
+  if (rawLower === 'yellow-red' || rawLower === 'yellow red') return 'Sarı-qırmızı'
+  if (rawLower === 'aquamarine' || rawLower === 'aqua-marine') return 'Su yaşılı'
+  if (rawLower === 'light-pink' || rawLower === 'light pink') return 'Açıq çəhrayı'
+  if (rawLower === 'turquoise' || rawLower === 'turquois') return 'Firuzəyi'
+  if (rawLower === 'electric-blue' || rawLower === 'electric blue') return 'Elektrik mavisi'
+  if (rawLower === 'tan') return 'Taba'
+  if (rawLower === 'ice-blue' || rawLower === 'ice blue') return 'Buz mavisi'
+  if (
+      rawLower === 'multicolor' ||
+      rawLower === 'multicolour' ||
+      rawLower === 'multi-color' ||
+      rawLower === 'multi-colour'
+  )
+    return 'Çoxrəngli'
 
   const parts = raw.split(/[\s-]+/).filter(Boolean)
   if (parts.length === 0) return raw

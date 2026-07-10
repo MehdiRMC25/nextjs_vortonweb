@@ -57,13 +57,13 @@ const COLOR_HEX: Record<string, string> = {
   'Midnight Blue': '#1e293b',
   'Electric Blue': '#00bfff',
   'Electric-blue': '#00bfff',
-  'Ice-Blue': '#87ceeb',
+  'Ice-Blue': '#4f8fd4',
   'Turquoise': '#40e0d0',
   'Aqua': '#00ffff',
   'Denim-Blue': '#1560bd',
   'Cerulean-Blue': '#0284c7',
   'Sapphire-Blue': '#0c4a6e',
-  'Smoky-Blue': '#64748b',
+  'Smoky-Blue': '#5b7c99',
   /* Green variants */
   'Light-Green': '#86efac',
   'Dark-Green': '#166534',
@@ -126,6 +126,18 @@ const COLOR_HEX: Record<string, string> = {
   'Red-White': '#dc2626',
   'Yellow-Black': '#ca8a04',
   'Yellow-White': '#eab308',
+  'Yellow-Blue': '#facc15',
+  'Yellow-Red': '#facc15',
+  Aquamarine: '#7fdbca',
+  'Aqua-Marine': '#7fdbca',
+  'Light-Pink': '#f9a8d4',
+  'Light Pink': '#f9a8d4',
+  Firuzəyi: '#14b8a6',
+  Firuzeyi: '#14b8a6',
+  'Firuz-eyi': '#14b8a6',
+  Multicolor: '#6366f1',
+  'Multi-Color': '#6366f1',
+  'Multi-Colour': '#6366f1',
   'Orange-Black': '#ea580c',
   'Pink-White': '#ec4899',
   'Purple-Black': '#581c87',
@@ -143,7 +155,7 @@ const COLOR_HEX: Record<string, string> = {
   'Grey-cream': '#d1d5db',
   'Black-Tiger': 'radial-gradient(ellipse 35% 40% at 20% 30%, #2d1f0f 0%, #1a1a1a 30%, transparent 70%), radial-gradient(ellipse 30% 35% at 70% 60%, #2d1f0f 0%, #1a1a1a 25%, transparent 65%), radial-gradient(ellipse 25% 30% at 50% 85%, #1a1a1a 0%, #3d2914 40%, transparent 70%), radial-gradient(ellipse 28% 32% at 85% 20%, #2d1f0f 0%, transparent 60%), #d4b896',
   'Ruby-Red': '#be123c',
-  'Multicolour': '#6b7280',
+  'Multicolour': '#6366f1',
   Indigo: '#4f46e5',
   'İndigo': '#4f46e5',
   /* Azeri */
@@ -158,6 +170,46 @@ const COLOR_HEX: Record<string, string> = {
   Yaşıl: '#16a34a',
   Narıncı: '#f97316',
   Velvet: '#722f37',
+}
+
+type ColorSwatchExtra = {
+  ringHex?: string
+  hexes?: string[]
+  displayNameAz?: string
+}
+
+const MULTICOLOR_HEXES = ['#ef4444', '#facc15', '#22c55e', '#2563eb', '#a855f7']
+
+const COLOR_SWATCH_EXTRA: Record<string, ColorSwatchExtra> = {
+  'Smoky-Blue': { displayNameAz: 'Dumanlı mavi' },
+  SmokyBlue: { displayNameAz: 'Dumanlı mavi' },
+  Multicolour: { hexes: MULTICOLOR_HEXES, displayNameAz: 'Çoxrəngli' },
+  Multicolor: { hexes: MULTICOLOR_HEXES, displayNameAz: 'Çoxrəngli' },
+  'Multi-Colour': { hexes: MULTICOLOR_HEXES, displayNameAz: 'Çoxrəngli' },
+  'Multi-Color': { hexes: MULTICOLOR_HEXES, displayNameAz: 'Çoxrəngli' },
+  Çoxrəngli: { hexes: MULTICOLOR_HEXES, displayNameAz: 'Çoxrəngli' },
+  'Yellow-Blue': { ringHex: '#2563eb', displayNameAz: 'Sarı-mavi' },
+  YellowBlue: { ringHex: '#2563eb', displayNameAz: 'Sarı-mavi' },
+  'Sarı-Mavi': { ringHex: '#2563eb', displayNameAz: 'Sarı-mavi' },
+  'Yellow-Red': { ringHex: '#dc2626', displayNameAz: 'Sarı-qırmızı' },
+  YellowRed: { ringHex: '#dc2626', displayNameAz: 'Sarı-qırmızı' },
+  'Sarı-Qırmızı': { ringHex: '#dc2626', displayNameAz: 'Sarı-qırmızı' },
+  Aquamarine: { displayNameAz: 'Su yaşılı' },
+  'Aqua-Marine': { displayNameAz: 'Su yaşılı' },
+  'Su-Yaşılı': { displayNameAz: 'Su yaşılı' },
+  'Su-Yasili': { displayNameAz: 'Su yaşılı' },
+  'Light-Pink': { displayNameAz: 'Açıq çəhrayı' },
+  'Light Pink': { displayNameAz: 'Açıq çəhrayı' },
+  Turquoise: { displayNameAz: 'Firuzəyi' },
+  Turquois: { displayNameAz: 'Firuzəyi' },
+  Firuzəyi: { displayNameAz: 'Firuzəyi' },
+  Firuzeyi: { displayNameAz: 'Firuzəyi' },
+  'Firuz-eyi': { displayNameAz: 'Firuzəyi' },
+  'Electric Blue': { displayNameAz: 'Elektrik mavisi' },
+  'Electric-blue': { displayNameAz: 'Elektrik mavisi' },
+  Tan: { displayNameAz: 'Taba' },
+  Taba: { displayNameAz: 'Taba' },
+  'Ice-Blue': { displayNameAz: 'Buz mavisi' },
 }
 
 /** Numeric SKU-Color codes (last segment when it's a number, e.g. SET-OYS-L-326 → 326). Extend as needed. */
@@ -208,8 +260,35 @@ const COLOR_ALIASES: Record<string, string> = {
   'cream nude': 'Cream-Nude',
   indigo: 'Indigo',
   'ındigo': 'Indigo',
-  multicolour: 'Multicolour',
-  'multi-colour': 'Multicolour',
+  multicolor: 'Multicolor',
+  'multi-color': 'Multicolor',
+  'smoky-blue': 'Smoky-Blue',
+  'smoky blue': 'Smoky-Blue',
+  smokyblue: 'Smoky-Blue',
+  'yellow-blue': 'Yellow-Blue',
+  'yellow blue': 'Yellow-Blue',
+  yellowblue: 'Yellow-Blue',
+  'sarı-mavi': 'Yellow-Blue',
+  'sari-mavi': 'Yellow-Blue',
+  'yellow-red': 'Yellow-Red',
+  'yellow red': 'Yellow-Red',
+  yellowred: 'Yellow-Red',
+  'sarı-qırmızı': 'Yellow-Red',
+  'sari-qirmizi': 'Yellow-Red',
+  aquamarine: 'Aquamarine',
+  'aqua-marine': 'Aquamarine',
+  'su-yaşılı': 'Aquamarine',
+  'su-yasili': 'Aquamarine',
+  'light-pink': 'Light-Pink',
+  'light pink': 'Light-Pink',
+  lightpink: 'Light-Pink',
+  turquoise: 'Turquoise',
+  turquois: 'Turquoise',
+  firuzeyi: 'Firuzeyi',
+  'firuz-eyi': 'Firuzeyi',
+  firuzəyi: 'Firuzəyi',
+  'elektrik-mavisi': 'Electric Blue',
+  taba: 'Tan',
   'blue-green': 'Blue-green',
   'blue green': 'Blue-green',
   'grey-cream': 'Grey-cream',
@@ -232,6 +311,52 @@ function colorToHex(color: string): string {
   const alias = COLOR_ALIASES[raw.toLowerCase()] ?? COLOR_ALIASES[normalized.toLowerCase()]
   const key = alias ?? normalized ?? raw
   return COLOR_HEX[key] ?? COLOR_HEX[raw] ?? COLOR_HEX[normalized] ?? '#6b7280'
+}
+
+const RAINBOW_WHEEL_BG =
+    'conic-gradient(#e11d48, #f97316, #eab308, #22c55e, #06b6d4, #2563eb, #7c3aed, #db2777, #e11d48)'
+
+function resolveColorKey(color: string): string {
+  const raw = color.trim()
+  const normalized = normalizeColorName(raw)
+  return COLOR_ALIASES[raw.toLowerCase()] ?? COLOR_ALIASES[normalized.toLowerCase()] ?? normalized ?? raw
+}
+
+function resolveProductColor(colorName: string): {
+  name: string
+  hex: string
+  ringHex?: string
+  hexes?: string[]
+  displayNameAz?: string
+} {
+  const name = (colorName && colorName.trim()) || 'Grey'
+  const key = resolveColorKey(name)
+  const hex = COLOR_HEX[key] ?? COLOR_HEX[name] ?? COLOR_HEX[normalizeColorName(name)] ?? '#6b7280'
+  const extra =
+      COLOR_SWATCH_EXTRA[key] ??
+      COLOR_SWATCH_EXTRA[name] ??
+      COLOR_SWATCH_EXTRA[normalizeColorName(name)]
+  return {
+    name,
+    hex,
+    ringHex: extra?.ringHex,
+    hexes: extra?.hexes,
+    displayNameAz: extra?.displayNameAz,
+  }
+}
+
+export function swatchInlineStyle(c: {
+  hex: string
+  ringHex?: string
+  hexes?: string[]
+}): { background: string; borderColor?: string; borderWidth?: number | string; borderStyle?: string } {
+  if (c.hexes && c.hexes.length > 1) {
+    return { background: RAINBOW_WHEEL_BG, borderWidth: 0, borderStyle: 'none' }
+  }
+  if (c.ringHex) {
+    return { background: c.hex, borderColor: c.ringHex }
+  }
+  return { background: c.hex }
 }
 
 /** Color modifiers that form compound names: Electric-blue, Dark-blue, Cream-Nude, etc. */
@@ -454,7 +579,7 @@ export function buildProductsFromApi(docs: ApiProductDoc[]): Product[] {
       onSale,
       colors: productVariants.map((v) => {
         const colorName = (v.color && v.color.trim()) || colorNameFromSkuColor(v.skuColor) || 'Grey'
-        return { name: colorName, hex: colorToHex(colorName) }
+        return resolveProductColor(colorName)
       }),
       variants: productVariants,
     }

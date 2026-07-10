@@ -161,16 +161,26 @@
   border: 2px solid var(--border);
   padding: 0;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: box-shadow 0.2s;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.colorBtn:hover {
+.colorBtn:hover:not(.colorBtnRing) {
   border-color: var(--text-muted);
 }
 
+.colorBtnMulti {
+  border-color: transparent;
+}
+
 .colorBtnActive {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--bg-primary);
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent);
+}
+
+.colorBtnActive.colorBtnRing {
+  /* keep blue/red contour from inline borderColor; selection is outer ring only */
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent);
 }
 
 .price {

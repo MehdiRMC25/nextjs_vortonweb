@@ -80,6 +80,9 @@
   height: 18px;
   border-radius: 50%;
   border: 2px solid var(--border);
+  display: inline-block;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .sizes {

@@ -26,7 +26,13 @@ export interface Product {
   salePrice?: number
   image: string
   images?: string[]
-  colors: { name: string; hex: string }[]
+  colors: {
+    name: string
+    hex: string
+    ringHex?: string
+    hexes?: string[]
+    displayNameAz?: string
+  }[]
   sizes: string[]
   category: 'men' | 'women'
   fabric?: string
