@@ -232,7 +232,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     back: '← Geri',
     backToShop: 'Mağazaya qayıt',
     selectSize: 'Ölçü seçin',
-    quantity: 'Miqdar'
+    quantity: 'Miqdar',
     soldOut: 'Satılıb',
     addToCart: 'Səbətə əlavə et',
     productNotFound: 'Məhsul tapılmadı.',
