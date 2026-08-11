@@ -17,6 +17,7 @@ export interface ApiProductDoc {
   images?: string[]
   sizes: string[]
   fabric?: string
+  soldOut?: boolean
   gender?: string
   category?: string
   isDiscounted?: boolean

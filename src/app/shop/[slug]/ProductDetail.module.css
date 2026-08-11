@@ -261,6 +261,13 @@
   opacity: 1;
 }
 
+.soldOut {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
 .sizes {
   display: flex;
   flex-wrap: wrap;

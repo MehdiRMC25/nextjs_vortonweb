@@ -67,8 +67,13 @@ export default function ProductDetail() {
         : (product ? (product.salePrice ?? product.price) : 0)
     const hasSale = variant ? !!variant.isDiscounted : (product ? !!(product.onSale && product.salePrice) : false)
     const sizes = variant?.sizes?.length ? variant.sizes : (product?.sizes || [])
+    const soldOut =
+        variant?.soldOut === true ||
+        product?.soldOut === true ||
+        !Array.isArray(sizes) ||
+        sizes.length === 0
     const fabric = variant?.fabric ?? product?.fabric
-    const effectiveSize = selectedSize ?? sizes[0]
+    const effectiveSize = soldOut ? null : (selectedSize ?? sizes[0])
     const [descExpanded, setDescExpanded] = useState(false)
     const [detailExtras, setDetailExtras] = useState<ProductDetailExtras | null>(null)
 
@@ -81,7 +86,14 @@ export default function ProductDetail() {
         fetchApiProductDetail(product.id).then((ex) => {
             if (!cancelled && ex) setDetailExtras(ex)
         })
-        return () => {
+        return () => {    const sizes = variant?.sizes?.length ? variant.sizes : (product?.sizes || [])
+            const soldOut =
+                variant?.soldOut === true ||
+                product?.soldOut === true ||
+                !Array.isArray(sizes) ||
+                sizes.length === 0
+            const fabric = variant?.fabric ?? product?.fabric
+            const effectiveSize = soldOut ? null : (selectedSize ?? sizes[0])
             cancelled = true
         }
     }, [product?.id])
@@ -218,10 +230,11 @@ export default function ProductDetail() {
     }
 
     function handleAddToCart() {
+        if (soldOut || !effectiveSize) return
         addItem({
             product: p,
             variantIndex,
-            size: effectiveSize ?? '',
+            size: effectiveSize,
             quantity,
         })
         router.push('/cart')
@@ -334,9 +347,11 @@ export default function ProductDetail() {
                         </button>
                     </section>
 
-                    {sizes.length > 0 && (
-                        <div className={styles.row}>
-                            <span className={styles.label}>{t('selectSize')}</span>
+                    <div className={styles.row}>
+                        <span className={styles.label}>{t('selectSize')}</span>
+                        {soldOut ? (
+                            <p className={styles.soldOut}>{t('soldOut')}</p>
+                        ) : (
                             <div className={styles.sizes}>
                                 {sizes.map((s) => (
                                     <button
@@ -349,8 +364,8 @@ export default function ProductDetail() {
                                     </button>
                                 ))}
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
                     <div className={styles.row}>
                         <span className={styles.label}>{t('quantity')}</span>
@@ -376,7 +391,7 @@ export default function ProductDetail() {
                     <button
                         className={styles.addToCart}
                         onClick={handleAddToCart}
-                        disabled={sizes.length > 0 && !effectiveSize}
+                        disabled={soldOut || !effectiveSize}
                     >
                         {t('addToCart')} — ₼{(displayPrice * quantity).toFixed(2)}
                     </button>

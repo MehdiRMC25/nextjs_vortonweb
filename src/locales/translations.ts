@@ -232,7 +232,8 @@ export const translations: Record<Locale, Record<string, string>> = {
     back: '← Geri',
     backToShop: 'Mağazaya qayıt',
     selectSize: 'Ölçü seçin',
-    quantity: 'Miqdar',
+    quantity: 'Miqdar'
+    soldOut: 'Satılıb',
     addToCart: 'Səbətə əlavə et',
     productNotFound: 'Məhsul tapılmadı.',
     similarProducts: 'Oxşar məhsullar',
@@ -630,6 +631,7 @@ export const translations: Record<Locale, Record<string, string>> = {
     backToShop: 'Back to Shop',
     selectSize: 'Select Size',
     quantity: 'Quantity',
+    soldOut: 'Sold Out',
     addToCart: 'Add to Cart',
     productNotFound: 'Product not found.',
     similarProducts: 'Similar products',

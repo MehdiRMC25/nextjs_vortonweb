@@ -7,6 +7,7 @@ export interface ProductVariant {
   images: string[]
   sizes: string[]
   fabric?: string
+  soldOut?: boolean
   isDiscounted?: boolean
   isNewCollection?: boolean
 }
@@ -35,6 +36,7 @@ export interface Product {
   }[]
   sizes: string[]
   category: 'men' | 'women'
+  soldOut?: boolean
   fabric?: string
   isNew?: boolean
   onSale?: boolean

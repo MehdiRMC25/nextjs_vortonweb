@@ -155,7 +155,12 @@ export default function ProductCard({
               />
           ))}
         </div>
-        <p className={styles.sizes}>{t('sizesLabel')}: {displaySizes.join(', ')}</p>
+        <p className={styles.sizes}>
+          {t('sizesLabel')}:{' '}
+          {displayVariant?.soldOut === true || product.soldOut === true || !displaySizes?.length
+              ? t('soldOut')
+              : displaySizes.join(', ')}
+        </p>
         <div className={styles.priceRow}>
           {hasSale && (
             <span className={styles.priceOriginal}>₼{priceOriginal.toFixed(2)}</span>
