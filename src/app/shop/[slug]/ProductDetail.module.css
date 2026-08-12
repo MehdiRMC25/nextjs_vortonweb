@@ -262,10 +262,19 @@
 }
 
 .soldOut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  min-height: 44px;
+  padding: 10px 18px;
   margin: 0;
   font-weight: 600;
-  font-size: 1.05rem;
-  color: var(--text-primary);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
 }
 
 .sizes {
@@ -341,7 +350,10 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-
+.addToCart:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 /* Similar products */
 .similar {
   margin-top: 48px;

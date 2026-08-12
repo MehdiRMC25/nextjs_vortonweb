@@ -350,7 +350,7 @@ export default function ProductDetail() {
                     <div className={styles.row}>
                         <span className={styles.label}>{t('selectSize')}</span>
                         {soldOut ? (
-                            <p className={styles.soldOut}>{t('soldOut')}</p>
+                            <span className={styles.soldOut}>{t('soldOut')}</span>
                         ) : (
                             <div className={styles.sizes}>
                                 {sizes.map((s) => (
@@ -366,7 +366,7 @@ export default function ProductDetail() {
                             </div>
                         )}
                     </div>
-
+                    {!soldOut && (
                     <div className={styles.row}>
                         <span className={styles.label}>{t('quantity')}</span>
                         <div className={styles.qty}>
@@ -387,13 +387,14 @@ export default function ProductDetail() {
                             </button>
                         </div>
                     </div>
+                    )}
 
                     <button
-                        className={styles.addToCart}
+                        className={`${styles.addToCart} ${soldOut ? styles.addToCartSoldOut : ''}`}
                         onClick={handleAddToCart}
                         disabled={soldOut || !effectiveSize}
                     >
-                        {t('addToCart')} — ₼{(displayPrice * quantity).toFixed(2)}
+                        {soldOut ? t('soldOut') : `${t('addToCart')} — ₼${(displayPrice * quantity).toFixed(2)}`}
                     </button>
                 </div>
             </div>
