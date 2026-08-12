@@ -54,7 +54,9 @@ export default function ProductCard({
   }, [product.variants, product.colors, selectedColorFilter])
 
   const displayImage = displayVariant?.image ?? product.image
-  const displaySizes = displayVariant?.sizes ?? product.sizes
+  const displaySizes = displayVariant?.sizes
+      ?? product.variants?.find((v) => !v.soldOut && v.sizes?.length)?.sizes
+      ?? product.sizes
   const displayPrice = displayVariant
     ? (displayVariant.discountedPrice ?? displayVariant.price)
     : (product.salePrice ?? product.price)
@@ -155,12 +157,11 @@ export default function ProductCard({
               />
           ))}
         </div>
-        <p className={styles.sizes}>
-          {t('sizesLabel')}:{' '}
-          {displayVariant?.soldOut === true || product.soldOut === true || !displaySizes?.length
-              ? t('soldOut')
-              : displaySizes.join(', ')}
-        </p>
+        {displaySizes?.length ? (
+            <p className={styles.sizes}>
+              {t('sizesLabel')}: {displaySizes.join(', ')}
+            </p>
+        ) : null}
         <div className={styles.priceRow}>
           {hasSale && (
             <span className={styles.priceOriginal}>₼{priceOriginal.toFixed(2)}</span>

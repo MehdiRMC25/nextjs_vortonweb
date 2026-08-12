@@ -69,7 +69,6 @@ export default function ProductDetail() {
     const sizes = variant?.sizes?.length ? variant.sizes : (product?.sizes || [])
     const soldOut =
         variant?.soldOut === true ||
-        product?.soldOut === true ||
         !Array.isArray(sizes) ||
         sizes.length === 0
     const fabric = variant?.fabric ?? product?.fabric
@@ -86,14 +85,7 @@ export default function ProductDetail() {
         fetchApiProductDetail(product.id).then((ex) => {
             if (!cancelled && ex) setDetailExtras(ex)
         })
-        return () => {    const sizes = variant?.sizes?.length ? variant.sizes : (product?.sizes || [])
-            const soldOut =
-                variant?.soldOut === true ||
-                product?.soldOut === true ||
-                !Array.isArray(sizes) ||
-                sizes.length === 0
-            const fabric = variant?.fabric ?? product?.fabric
-            const effectiveSize = soldOut ? null : (selectedSize ?? sizes[0])
+        return () => {
             cancelled = true
         }
     }, [product?.id])
